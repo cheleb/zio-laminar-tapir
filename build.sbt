@@ -196,7 +196,7 @@ lazy val core = scalajsProject("core", false)
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
       "com.softwaremill.sttp.client3" %%% "zio" % Versions.sttp,
-      "dev.zio" %%% "zio-json" % "0.7.1",
+      "dev.zio" %%% "zio-json" % "0.7.3",
       "dev.zio" %%% "zio-prelude" % "1.0.0-RC27"
     )
   )
