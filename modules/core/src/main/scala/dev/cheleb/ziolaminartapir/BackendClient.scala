@@ -51,9 +51,9 @@ trait BackendClient {
     * @param payload
     * @return
     */
-  def securedEndpointRequestZIO[I, E <: Throwable, O](
+  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       endpoint: Endpoint[String, I, E, O, Any]
-  )(payload: I)(using session: Session[WithToken]): Task[O]
+  )(payload: I)(using session: Session[UserToken]): Task[O]
 
 }
 
@@ -91,7 +91,9 @@ private class BackendClientLive(
     interpreter.toSecureRequestThrowDecodeFailures(endpoint, config.baseUrl)
 
   /** Get the token from the session, or fail with an exception. */
-  private def tokenOfFail(using session: Session[WithToken]) =
+  private def tokenOfFail[UserToken <: WithToken](using
+      session: Session[UserToken]
+  ) =
     ZIO
       .fromOption(session.getUserState)
       .orElseFail(RestrictedEndpointException("No token found"))
@@ -104,9 +106,9 @@ private class BackendClientLive(
   ): ZIO[Any, Throwable, O] =
     backend.send(endpointRequest(endpoint)(payload)).map(_.body).absolve
 
-  def securedEndpointRequestZIO[I, E <: Throwable, O](
+  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       endpoint: Endpoint[String, I, E, O, Any]
-  )(payload: I)(using session: Session[WithToken]): ZIO[Any, Throwable, O] =
+  )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
     for {
       token <- tokenOfFail
       res <- backend

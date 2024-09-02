@@ -26,7 +26,7 @@ object ZJS {
       *
       * @param bus
       */
-    def emitTo[UserToken <: WithToken](
+    def emitTo(
         bus: EventBus[A]
     ): Unit =
       Unsafe.unsafe { implicit unsafe =>
@@ -84,9 +84,9 @@ object ZJS {
       * @return
       */
     @targetName("securedApply")
-    def apply(
+    def apply[UserToken <: WithToken](
         payload: I
-    )(using session: Session[WithToken]): RIO[BackendClient, O] =
+    )(using session: Session[UserToken]): RIO[BackendClient, O] =
       ZIO
         .service[BackendClient]
         .flatMap(_.securedEndpointRequestZIO(endpoint)(payload))
