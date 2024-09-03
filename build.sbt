@@ -14,7 +14,7 @@ val Versions = new {
   val flywaydb = "10.17.1"
 }
 
-val tapirVersion = "1.11.1"
+val tapirVersion = "1.11.2"
 
 val laminarVersion = "17.1.0"
 
