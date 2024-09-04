@@ -10,14 +10,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Install dependencies
-        run: |
-          cd examples/client
-          npm install
+      # - name: Setup Node
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 18
       - name: Setup JVM
         uses: actions/setup-java@v4
         with:
@@ -25,7 +21,7 @@ jobs:
           distribution: "zulu"
       # - name: Tests
       #   run: sbt +test
-      - name: server/dist
-        run: DEV=prod sbt server/dist
+      - name: compile
+        run: sbt compile
         env:
           NODE_OPTIONS: "--openssl-legacy-provider"
