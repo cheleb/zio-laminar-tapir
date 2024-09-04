@@ -45,9 +45,11 @@ object ZJS {
     def runJs: Unit =
       Unsafe.unsafe { implicit unsafe =>
         Runtime.default.unsafe.fork(
-          zio.provide(
-            BackendClientLive.configuredLayer("http://localhost:8080")
-          )
+          zio
+            .tapError(e => Console.printLineError(e.getMessage()))
+            .provide(
+              BackendClientLive.configuredLayer("http://localhost:8080")
+            )
         )
       }
 

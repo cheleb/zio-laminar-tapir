@@ -8,12 +8,12 @@ import com.raquo.laminar.api.L.*
 import zio.json.*
 import dev.cheleb.ziojwt.WithToken
 
-trait Session[WithToken] {
+trait Session[UserToken <: WithToken] {
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]]
   def whenActive[A](callback: => A): Signal[Option[A]]
   def isActive: Boolean
-  def setUserState(token: WithToken): Unit
-  def getUserState: Option[WithToken]
+  def setUserState(token: UserToken): Unit
+  def getUserState: Option[UserToken]
   def loadUserState(): Unit
   def clearUserState(): Unit
 }
