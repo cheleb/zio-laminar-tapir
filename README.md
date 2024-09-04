@@ -1,8 +1,18 @@
-## sbt project compiled with Scala 3
+## ZIO, Lamibar and Tapir
+
+This a project to use ZIO, Lamibar and Tapir to create a simple REST API.
+
+* ZIO: A type-safe, composable library for asynchronous and concurrent programming in Scala.
+* Lamibar: A library for building REST APIs in Scala.
+* Tapir: A library for defining HTTP API endpoints as immutable data structures.
+
+This project will provide:
+
+* A simple access to REST API
+* Token based authentication using JWT
+
 
 ### Usage
 
-This is a normal sbt project. You can compile code with `sbt compile`, run it with `sbt run`, and `sbt console` will start a Scala 3 REPL.
 
-For more information on the sbt-dotty plugin, see the
-[scala3-example-project](https://github.com/scala/scala3-example-project/blob/main/README.md).
+TBD

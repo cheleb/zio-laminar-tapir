@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    if: github.event.base_ref=='refs/heads/master'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Setup JVM
+        uses: actions/setup-java@v4
+        with:
+          java-version: "22"
+          distribution: "zulu"
+      # - name: Tests
+      #   run: sbt +test
+      - name: Release
+        run: DEV=prod sbt ci-release
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          NODE_OPTIONS: "--openssl-legacy-provider"

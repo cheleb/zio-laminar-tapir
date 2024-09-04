@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  CI:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: |
+          cd examples/client
+          npm install
+      - name: Setup JVM
+        uses: actions/setup-java@v4
+        with:
+          java-version: "22"
+          distribution: "zulu"
+      # - name: Tests
+      #   run: sbt +test
+      - name: server/dist
+        run: DEV=prod sbt server/dist
+        env:
+          NODE_OPTIONS: "--openssl-legacy-provider"
