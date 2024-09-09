@@ -1,18 +1,21 @@
 package dev.cheleb.ziolaminartapir
 
-import zio.Task
-import zio.ZIO
-import zio.ZLayer
+import dev.cheleb.ziojwt.WithToken
+
+import izumi.reflect.Tag
+
+import org.scalajs.dom.window
+
+import scala.scalajs.LinkingInfo
 
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
 import sttp.client3.impl.zio.FetchZioBackend
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
-
 import sttp.capabilities.WebSockets
-import izumi.reflect.Tag
-import dev.cheleb.ziojwt.WithToken
+
+import zio.*
 
 type ZioStreamsWithWebSockets = ZioStreams & WebSockets
 
@@ -123,9 +126,11 @@ object BackendClientLive {
   def layer =
     ZLayer.derive[BackendClientLive]
 
-  def configuredLayer(
-      backendBaseURL: String
-  ) = {
+  val backendBaseURL =
+    if LinkingInfo.developmentMode then "http://localhost:8080"
+    else window.document.location.origin
+
+  def configuredLayer = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
     val config = BackendClientConfig(Some(uri"${backendBaseURL}"))

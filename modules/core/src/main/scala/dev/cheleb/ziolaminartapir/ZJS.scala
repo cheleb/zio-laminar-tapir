@@ -34,7 +34,7 @@ object ZJS {
           zio
             .tapError(e => Console.printLineError(e.getMessage()))
             .tap(a => ZIO.attempt(bus.emit(a)))
-            .provide(BackendClientLive.configuredLayer("http://localhost:8080"))
+            .provide(BackendClientLive.configuredLayer)
         )
       }
 
@@ -48,7 +48,7 @@ object ZJS {
           zio
             .tapError(e => Console.printLineError(e.getMessage()))
             .provide(
-              BackendClientLive.configuredLayer("http://localhost:8080")
+              BackendClientLive.configuredLayer
             )
         )
       }
