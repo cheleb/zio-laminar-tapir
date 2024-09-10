@@ -108,19 +108,18 @@ lazy val core = scalajsProject("core", false)
     )
   )
 
-
 lazy val example = scalajsProject("client", true)
   .settings(
     scalaJSUseMainModuleInitializer := true,
-    scalaJSLinkerConfig  ~= {  config =>
-          config.withModuleKind(ModuleKind.ESModule)
-            .withSourceMap(false)
-            .withModuleSplitStyle(ModuleSplitStyle.SmallestModules)
-      }
-    
+    scalaJSLinkerConfig ~= { config =>
+      config
+        .withModuleKind(ModuleKind.ESModule)
+        .withSourceMap(false)
+        .withModuleSplitStyle(ModuleSplitStyle.SmallestModules)
+    }
   )
   .settings(scalacOptions ++= usedScalacOptions)
-  .dependsOn(sharedJs)
+  .dependsOn(core)
   .settings(
     publish / skip := true
   )
@@ -150,3 +149,19 @@ def nexusNpmSettings =
       )
     )
     .toSeq
+
+Global / onLoad := {
+  val scalaVersionValue = (example / scalaVersion).value
+  val outputFile =
+    target.value / "build-env.sh"
+  IO.writeLines(
+    outputFile,
+    s"""  
+  |# Generated file see build.sbt
+  |SCALA_VERSION="$scalaVersionValue"
+  |""".stripMargin.split("\n").toList,
+    StandardCharsets.UTF_8
+  )
+
+  (Global / onLoad).value
+}

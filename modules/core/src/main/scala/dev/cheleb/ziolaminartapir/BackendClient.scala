@@ -16,6 +16,7 @@ import sttp.tapir.client.sttp.SttpClientInterpreter
 import sttp.capabilities.WebSockets
 
 import zio.*
+import sttp.model.Uri
 
 type ZioStreamsWithWebSockets = ZioStreams & WebSockets
 
@@ -80,7 +81,7 @@ private class BackendClientLive(
   private def endpointRequest[I, E, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   ): I => Request[Either[E, O], Any] =
-    interpreter.toRequestThrowDecodeFailures(endpoint, config.baseUrl)
+    interpreter.toRequestThrowDecodeFailures(endpoint, config.baseUrlAsOption)
 
   /** Turn a secured endpoint into curried functions from Token => Input =>
     * Request.
@@ -91,16 +92,36 @@ private class BackendClientLive(
   private def securedEndpointRequest[A, I, E, O](
       endpoint: Endpoint[A, I, E, O, Any]
   ): A => I => Request[Either[E, O], Any] =
-    interpreter.toSecureRequestThrowDecodeFailures(endpoint, config.baseUrl)
+    interpreter.toSecureRequestThrowDecodeFailures(
+      endpoint,
+      config.baseUrlAsOption
+    )
+
+  private def isSameIssuer(token: WithToken): Option[Boolean] =
+    for {
+      configHost <- config.baseUrl.host
+      confitPort <- config.baseUrl.port
+    } yield token.issuer == s"${configHost}:${confitPort}"
 
   /** Get the token from the session, or fail with an exception. */
   private def tokenOfFail[UserToken <: WithToken](using
       session: Session[UserToken]
   ) =
-    ZIO
-      .fromOption(session.getUserState)
-      .orElseFail(RestrictedEndpointException("No token found"))
-      .map(_.token)
+    for {
+      withToken <- ZIO
+        .fromOption(session.getUserState)
+        .orElseFail(RestrictedEndpointException("No token found"))
+      sameIssuer <- ZIO
+        .fromOption(isSameIssuer(withToken))
+        .orElseFail(RestrictedEndpointException("No issuer found"))
+      _ <- ZIO.unless(sameIssuer)(
+        ZIO.fail(
+          RestrictedEndpointException(
+            s"Token issued by ${withToken.issuer} but backend is ${config.baseUrl}"
+          )
+        )
+      )
+    } yield withToken.token
 
   def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
@@ -127,13 +148,24 @@ object BackendClientLive {
     ZLayer.derive[BackendClientLive]
 
   val backendBaseURL =
-    if LinkingInfo.developmentMode then "http://localhost:8080"
-    else window.document.location.origin
+    if LinkingInfo.developmentMode then Uri.unsafeParse("http://localhost:8080")
+    else Uri.unsafeParse(window.document.location.origin)
 
-  def configuredLayer = {
+  def configuredLayer(
+      baseURL: Uri
+  ): ZLayer[Any, Nothing, BackendClientLive] = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
-    val config = BackendClientConfig(Some(uri"${backendBaseURL}"))
+    val config = BackendClientConfig(baseURL)
+
+    ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
+      config
+    ) >>> layer
+  }
+  def configuredLayer: ZLayer[Any, Nothing, BackendClientLive] = {
+    val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
+    val interpreter = SttpClientInterpreter()
+    val config = BackendClientConfig(backendBaseURL)
 
     ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
       config
