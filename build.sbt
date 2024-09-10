@@ -1,6 +1,8 @@
 import java.nio.charset.StandardCharsets
 import org.scalajs.linker.interface.ModuleSplitStyle
 
+val dev = sys.env.get("DEV").getOrElse("demo")
+
 val scala33 = "3.5.0"
 
 val Versions = new {
@@ -104,6 +106,23 @@ lazy val core = scalajsProject("core", false)
       "dev.zio" %%% "zio-json" % Versions.zioJson,
       "dev.zio" %%% "zio-prelude" % Versions.zioPrelude
     )
+  )
+
+
+lazy val example = scalajsProject("client", true)
+  .settings(
+    scalaJSUseMainModuleInitializer := true,
+    scalaJSLinkerConfig  ~= {  config =>
+          config.withModuleKind(ModuleKind.ESModule)
+            .withSourceMap(false)
+            .withModuleSplitStyle(ModuleSplitStyle.SmallestModules)
+      }
+    
+  )
+  .settings(scalacOptions ++= usedScalacOptions)
+  .dependsOn(sharedJs)
+  .settings(
+    publish / skip := true
   )
 
 def scalajsProject(projectId: String, sample: Boolean): Project =
