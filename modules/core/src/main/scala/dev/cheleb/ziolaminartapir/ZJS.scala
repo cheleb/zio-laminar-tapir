@@ -32,8 +32,34 @@ object ZJS {
       Unsafe.unsafe { implicit unsafe =>
         Runtime.default.unsafe.fork(
           zio
-            .tapError(e => Console.printLineError(e.getMessage()))
+            .tapError(th => Console.printLineError(th.getMessage()))
             .tap(a => ZIO.attempt(bus.emit(a)))
+            .provide(BackendClientLive.configuredLayer)
+        )
+      }
+
+    def emitTo(
+        bus: EventBus[A],
+        error: EventBus[E]
+    ): Unit =
+      Unsafe.unsafe { implicit unsafe =>
+        Runtime.default.unsafe.fork(
+          zio
+            .tapError(e => ZIO.attempt(error.emit(e)))
+            .tap(a => ZIO.attempt(bus.emit(a)))
+            .provide(BackendClientLive.configuredLayer)
+        )
+      }
+
+    @targetName("eitherEmitTo")
+    def emitTo(
+        bus: EventBus[Either[E, A]]
+    ): Unit =
+      Unsafe.unsafe { implicit unsafe =>
+        Runtime.default.unsafe.fork(
+          zio
+            .tapError(e => ZIO.attempt(bus.emit(Left(e))))
+            .tap(a => ZIO.attempt(bus.emit(Right(a))))
             .provide(BackendClientLive.configuredLayer)
         )
       }
@@ -46,7 +72,6 @@ object ZJS {
       Unsafe.unsafe { implicit unsafe =>
         Runtime.default.unsafe.fork(
           zio
-            .tapError(e => Console.printLineError(e.getMessage()))
             .provide(
               BackendClientLive.configuredLayer
             )
