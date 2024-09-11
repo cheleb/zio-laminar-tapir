@@ -14,6 +14,10 @@ val myApp =
 
   div(
     h1("Hello, world!"),
+    p("This is a simple example of a Laminar app using ZIO and Tapir."),
+    p(
+      s"Click the buttons below to make requests to the backend ${BackendClientLive.developmentApiServer}."
+    ),
     button(
       "runJs",
       onClick --> (_ => HttpBinEndpoints.get(()).runJsOn(z))

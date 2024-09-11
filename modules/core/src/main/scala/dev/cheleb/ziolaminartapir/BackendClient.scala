@@ -7,6 +7,7 @@ import izumi.reflect.Tag
 import org.scalajs.dom.window
 
 import scala.scalajs.LinkingInfo
+import scala.scalajs.js
 
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
@@ -144,11 +145,20 @@ private class BackendClientLive(
 }
 
 object BackendClientLive {
+
+  def developmentApiServer =
+    if js.typeOf(js.Dynamic.global.selectDynamic("DEV_API_URL")) == "string"
+    then js.Dynamic.global.DEV_API_URL.toString
+    else "http://localhost:8080"
+
   def layer =
     ZLayer.derive[BackendClientLive]
 
   val backendBaseURL =
-    if LinkingInfo.developmentMode then Uri.unsafeParse("http://localhost:8080")
+    if LinkingInfo.developmentMode then
+      Uri.unsafeParse(
+        developmentApiServer
+      )
     else Uri.unsafeParse(window.document.location.origin)
 
   def configuredLayer(
