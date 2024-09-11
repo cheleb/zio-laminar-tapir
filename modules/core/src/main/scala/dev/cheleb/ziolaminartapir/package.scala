@@ -26,7 +26,7 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
     *
     * @param bus
     */
-  def emitToOn(bus: EventBus[A], baseURL: Uri): Unit =
+  def emitTo(baseURL: Uri, bus: EventBus[A]): Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
         zio
@@ -45,18 +45,31 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
           .provide(BackendClientLive.configuredLayer)
       )
     }
-  // def emitTo(
-  //     bus: EventBus[A],
-  //     error: EventBus[E]
-  // )(baseURL: Option[Uri] = None): Unit =
-  //   Unsafe.unsafe { implicit unsafe =>
-  //     Runtime.default.unsafe.fork(
-  //       zio
-  //         .tapError(e => ZIO.attempt(error.emit(e)))
-  //         .tap(a => ZIO.attempt(bus.emit(a)))
-  //         .provide(BackendClientLive.configuredLayer())
-  //     )
-  //   }
+  def emitTo(
+      bus: EventBus[A],
+      error: EventBus[E]
+  ): Unit =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.fork(
+        zio
+          .tapError(e => ZIO.attempt(error.emit(e)))
+          .tap(a => ZIO.attempt(bus.emit(a)))
+          .provide(BackendClientLive.configuredLayer)
+      )
+    }
+  def emitTo(
+      baseURL: Uri,
+      bus: EventBus[A],
+      error: EventBus[E]
+  ): Unit =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.fork(
+        zio
+          .tapError(e => ZIO.attempt(error.emit(e)))
+          .tap(a => ZIO.attempt(bus.emit(a)))
+          .provide(BackendClientLive.configuredLayer(baseURL))
+      )
+    }
 
   // @targetName("eitherEmitTo")
   // def emitTo(
@@ -75,10 +88,21 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
     *
     * @return
     */
-  def runJsOn(baseURL: Uri): Unit =
+  def runJs(baseURL: Uri): Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
         zio
+          .provide(
+            BackendClientLive.configuredLayer(baseURL)
+          )
+      )
+    }
+
+  def runJs(baseURL: Uri, errorBus: EventBus[E]): Unit =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.fork(
+        zio
+          .tapError(e => ZIO.attempt(errorBus.emit(e)))
           .provide(
             BackendClientLive.configuredLayer(baseURL)
           )
@@ -105,7 +129,7 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
     */
   def toEventStream(baseURL: Uri): EventStream[A] = {
     val eventBus = EventBus[A]()
-    emitToOn(eventBus, baseURL)
+    emitTo(baseURL, eventBus)
     eventBus.events
   }
 
