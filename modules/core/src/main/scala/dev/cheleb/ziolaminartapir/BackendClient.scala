@@ -147,7 +147,7 @@ private class BackendClientLive(
 object BackendClientLive {
 
   def developmentApiServer =
-    if js.typeOf(js.Dynamic.global.selectDynamic("DEV_API_URL")) == "string"
+    if js.typeOf(js.Dynamic.global.DEV_API_URL) == "string"
     then js.Dynamic.global.DEV_API_URL.toString
     else "http://localhost:8080"
 
