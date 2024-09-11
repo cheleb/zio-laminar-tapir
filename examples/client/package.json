@@ -1,5 +1,5 @@
 {
-  "name": "laminar-form-derivation",
+  "name": "zio-laminar-tapir",
   "private": true,
   "version": "0.0.1",
   "main": "index.js",
