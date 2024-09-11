@@ -18,9 +18,6 @@ local.sbt
 # Bloop
 .bsp
 
-# VS Code
-.vscode/
-
 # Metals
 .bloop/
 .metals/
