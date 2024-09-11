@@ -11,8 +11,10 @@ This project will provide:
 * A simple access to REST API
 * Token based authentication using JWT
 
+Live demo: [🚀 Click me for a live demo](https://cheleb.github.io/zio-laminar-tapir/demo/index.html)
 
 ### Usage
 
+See [docs](https://cheleb.github.io/zio-laminar-tapir/docs/index.html)
 
 TBD

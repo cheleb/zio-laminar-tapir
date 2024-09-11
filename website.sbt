@@ -32,7 +32,7 @@ Compile / doc / scalacOptions ++= Seq(
   // custom::https://www.linkedin.com/in/olivier-nouguier::linkedinday.png::linkedinnight.png
   "-social-links:github::https://github.com/cheleb,twitter::https://twitter.com/oNouguier",
   "-Ygenerate-inkuire",
-  "-skip-by-regex:samples\\..*",
+  "-skip-by-regex:demo\\..*",
   "-skip-by-regex:html\\..*",
   "-snippet-compiler:compile"
 )

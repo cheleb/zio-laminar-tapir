@@ -2,7 +2,7 @@
 layout: main
 ---
 
-## Laminar Form Derivation
+## ZIO * Laminar * Tapir
 
 
 zio-Laminar-tapir Form Derivation is a library to easy interact with Tapir endpoints in a Laminar reactive component.
