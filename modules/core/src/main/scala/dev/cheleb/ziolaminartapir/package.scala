@@ -23,91 +23,133 @@ import sttp.model.Uri
   */
 extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
 
-  private def exec(task: ZIO[BackendClient, E, A]) =
+  /** Run the underlying request to the default backend.
+    */
+  private def exec: Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
-        task.provide(BackendClientLive.configuredLayer)
+        zio.provide(BackendClientLive.configuredLayer)
       )
     }
-  private def exec(task: ZIO[BackendClient, E, A], uri: Uri) =
+
+  /** Run the underlying request to the backend at uri.
+    */
+  private def exec(uri: Uri): Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
-        task.provide(BackendClientLive.configuredLayer(uri))
+        zio.provide(BackendClientLive.configuredLayer(uri))
       )
     }
 
   /** Emit the result of the ZIO to an EventBus.
     *
+    * @param baseURL
+    *   The base URL to send the request to.
     * @param bus
+    *   The EventBus to emit the result to.
     */
-  def emitTo(baseURL: Uri, bus: EventBus[A]): Unit = exec(
+  def emitTo(baseURL: Uri, bus: EventBus[A]): Unit =
     zio
       .tapError(th => Console.printLineError(th.getMessage()))
-      .tap(a => ZIO.attempt(bus.emit(a))),
-    baseURL
-  )
+      .tap(a => ZIO.attempt(bus.emit(a)))
+      .exec(baseURL)
 
+  /** Emit the result of the ZIO to an EventBus.
+    *
+    * Underlying request to the default backend.
+    * @param bus
+    */
   def emitTo(bus: EventBus[A]): Unit =
-    exec(
-      zio
-        .tapError(th => Console.printLineError(th.getMessage()))
-        .tap(a => ZIO.attempt(bus.emit(a)))
-    )
+    zio
+      .tapError(th => Console.printLineError(th.getMessage()))
+      .tap(a => ZIO.attempt(bus.emit(a)))
+      .exec
+
+  /** Emit the result and error of the ZIO to an EventBus.
+    *
+    * Underlying request to the default backend.
+    *
+    * @param bus
+    * @param error
+    */
   def emitTo(
       bus: EventBus[A],
       error: EventBus[E]
   ): Unit =
-    exec(
-      zio
-        .tapError(e => ZIO.attempt(error.emit(e)))
-        .tap(a => ZIO.attempt(bus.emit(a)))
-    )
+    zio
+      .tapError(e => ZIO.attempt(error.emit(e)))
+      .tap(a => ZIO.attempt(bus.emit(a)))
+      .exec
 
+  /** Emit the result and error of the ZIO to an EventBus.
+    *
+    * @param baseURL
+    *   uri to send the request to
+    * @param bus
+    *   event bus to emit the result to
+    * @param error
+    *   event bus to emit the error to
+    */
   def emitTo(
       baseURL: Uri,
       bus: EventBus[A],
       error: EventBus[E]
   ): Unit =
-    exec(
-      zio
-        .tapError(e => ZIO.attempt(error.emit(e)))
-        .tap(a => ZIO.attempt(bus.emit(a))),
-      baseURL
-    )
+    zio
+      .tapError(e => ZIO.attempt(error.emit(e)))
+      .tap(a => ZIO.attempt(bus.emit(a)))
+      .exec(baseURL)
 
+  /** Emit the result of the ZIO to an EventBus of Either.
+    *
+    * Underlying request to the default backend.
+    *
+    * @param bus
+    *   event bus to emit the result to
+    */
   def emitToEither(
       bus: EventBus[Either[E, A]]
-  ): Unit = exec(
+  ): Unit =
     zio
       .tapError(e => ZIO.attempt(bus.emit(Left(e))))
       .tap(a => ZIO.attempt(bus.emit(Right(a))))
-  )
+      .exec
 
   /** Run the ZIO in JS.
+    *
+    * emits the error to the console
+    *
+    * @param baseURL
+    *   the base URL to send the request to
     *
     * @return
     */
   def runJs(baseURL: Uri): Unit =
-    exec(zio, baseURL)
+    zio
+      .tapError(th => Console.printLineError(th.getMessage()))
+      .exec(baseURL)
 
+  /** Run the ZIO in JS.
+    *
+    * emits the error to the errorBus
+    *
+    * @param baseURL
+    *   the base URL to send the request to
+    * @param errorBus
+    */
   def runJs(baseURL: Uri, errorBus: EventBus[E]): Unit =
-    exec(
-      zio.tapError(e => ZIO.attempt(errorBus.emit(e)))
-    )
+    zio
+      .tapError(e => ZIO.attempt(errorBus.emit(e)))
+      .exec(baseURL)
 
   /** Run the ZIO in JS.
     *
     * @return
     */
   def runJs: Unit =
-    Unsafe.unsafe { implicit unsafe =>
-      Runtime.default.unsafe.fork(
-        zio
-          .provide(
-            BackendClientLive.configuredLayer
-          )
-      )
-    }
+    zio
+      .tapError(th => Console.printLineError(th.getMessage()))
+      .exec
 
   /** Emit the result of the ZIO to an EventBus, and return the EventStream.
     *
