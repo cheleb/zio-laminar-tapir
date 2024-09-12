@@ -8,10 +8,9 @@ val scala33 = "3.5.0"
 val Versions = new {
   val laminar = "17.1.0"
   val tapir = "1.11.2"
-  val sttp = "3.9.6"
+  val sttp = "3.9.8"
   val zio = "2.1.9"
-  val zioJson = "0.7.2"
-  val zioPrelude = "1.0.0-RC30"
+  val zioJson = "0.7.3"
 }
 
 inThisBuild(
@@ -103,8 +102,7 @@ lazy val core = scalajsProject("core", false)
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
       "com.softwaremill.sttp.client3" %%% "zio" % Versions.sttp,
-      "dev.zio" %%% "zio-json" % Versions.zioJson,
-      "dev.zio" %%% "zio-prelude" % Versions.zioPrelude
+      "dev.zio" %%% "zio-json" % Versions.zioJson
     )
   )
 
