@@ -5,7 +5,9 @@ layout: main
 ## ZIO * Laminar * Tapir
 
 
-zio-Laminar-tapir Form Derivation is a library to easy interact with Tapir endpoints in a Laminar reactive component.
+zio-Laminar-tapir is a library that leverages the power of ZIO, Laminar and Tapir to build web applications in Scala.
+
+It provides a simple way to use tapir endpoints, as [Fetch client](https://sttp.softwaremill.com/en/latest/backends/javascript/fetch.html), call them and handle the response in a ZIO effect back to the UI.
 
 It will handler jwt token, request and response marshalling and client management.
 
@@ -25,5 +27,5 @@ It depends on:
 Incredible thanks to incredible people who made this possible, authors and contributors of:
 
 * librairies this project depends on !
-* Strongly inspired by non less Daniel Ciocîrlan's from Rock the JVM [ZIO Laminar](https://rockthejvm.com/p/zio-rites-of-passage) course
+* Strongly inspired by non less incredible <3 Daniel Ciocîrlan's blogs, videos and courses <3 from Rock the JVM [ZIO Laminar](https://rockthejvm.com/p/zio-rite-of-passage) course
 
