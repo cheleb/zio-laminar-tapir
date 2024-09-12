@@ -1,6 +1,6 @@
 ## ZIO, Lamibar and Tapir
 
-This a project to use ZIO, Lamibar and Tapir to create a simple REST API.
+This a project to use ZIO, Laminar and Tapir to communicate with a REST API.
 
 * ZIO: A type-safe, composable library for asynchronous and concurrent programming in Scala.
 * Lamibar: A library for building REST APIs in Scala.
@@ -9,7 +9,7 @@ This a project to use ZIO, Lamibar and Tapir to create a simple REST API.
 This project will provide:
 
 * A simple access to REST API
-* Token based authentication using JWT
+* Local storage token (authentication) handling using JWT.
 
 Live demo: [🚀 Click me for a live demo](https://cheleb.github.io/zio-laminar-tapir/demo/index.html)
 

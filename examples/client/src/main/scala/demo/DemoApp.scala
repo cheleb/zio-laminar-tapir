@@ -6,7 +6,7 @@ import com.raquo.laminar.api.L.*
 import dev.cheleb.ziolaminartapir.*
 import sttp.model.Uri
 
-val z = Uri.unsafeParse("https://httpbin.org")
+val httpbin = Uri.unsafeParse("https://httpbin.org")
 
 val myApp =
 
@@ -17,15 +17,15 @@ val myApp =
     h1("Hello, world!"),
     p("This is a simple example of a Laminar app using ZIO and Tapir."),
     p(
-      s"Click the buttons below to make requests to the backend ${BackendClientLive.developmentApiServer}."
+      s"Click the buttons below to make requests to the backend $httpbin."
     ),
     button(
       "runJs",
-      onClick --> (_ => HttpBinEndpoints.get(()).runJs(z, errorBus))
+      onClick --> (_ => HttpBinEndpoints.get(()).runJs(httpbin, errorBus))
     ),
     button(
       "emitTo",
-      onClick --> (_ => HttpBinEndpoints.get(()).emitTo(z, eventBus))
+      onClick --> (_ => HttpBinEndpoints.get(()).emitTo(httpbin, eventBus))
     )
   )
 
