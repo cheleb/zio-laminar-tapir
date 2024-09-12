@@ -17,4 +17,7 @@ object Storage {
   def remove(key: String): Unit =
     dom.window.localStorage.removeItem(key)
 
+  def removeAll(): Unit =
+    dom.window.localStorage.clear()
+
 }

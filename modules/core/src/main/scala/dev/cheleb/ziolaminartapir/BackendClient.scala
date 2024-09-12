@@ -105,12 +105,12 @@ private class BackendClientLive(
     } yield token.issuer == s"${configHost}:${confitPort}"
 
   /** Get the token from the session, or fail with an exception. */
-  private def tokenOfFail[UserToken <: WithToken](using
+  private def tokenOfFail[UserToken <: WithToken](issuer: Option[String])(using
       session: Session[UserToken]
   ) =
     for {
       withToken <- ZIO
-        .fromOption(session.getUserState)
+        .fromOption(session.getUserState(issuer))
         .orElseFail(RestrictedEndpointException("No token found"))
       sameIssuer <- ZIO
         .fromOption(isSameIssuer(withToken))
@@ -135,7 +135,7 @@ private class BackendClientLive(
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
     for {
-      token <- tokenOfFail
+      token <- tokenOfFail(None)
       res <- backend
         .send(securedEndpointRequest(endpoint)(token)(payload))
         .map(_.body)

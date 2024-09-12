@@ -12,9 +12,9 @@ trait Session[UserToken <: WithToken] {
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]]
   def whenActive[A](callback: => A): Signal[Option[A]]
   def isActive: Boolean
-  def setUserState(token: UserToken): Unit
-  def getUserState: Option[UserToken]
-  def loadUserState(): Unit
+  def setUserState(issuer: Option[String], token: UserToken): Unit
+  def getUserState(issuer: Option[String]): Option[UserToken]
+  def loadUserState(issuer: Option[String]): Unit
   def clearUserState(): Unit
 }
 
@@ -22,7 +22,9 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     extends Session[UserToken] {
   val userState: Var[Option[UserToken]] = Var(Option.empty[UserToken])
 
-  private val userTokenKey = "userToken"
+  private def userTokenKey(issuer: Option[String]) = issuer match
+    case None         => "userToken"
+    case Some(issuer) => s"userToken@$issuer"
 
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]] =
     userState.signal.map {
@@ -45,21 +47,21 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
   // TODO Should be more clever about expiration.
   def isActive = userState.now().isDefined
 
-  def setUserState(token: UserToken): Unit = {
+  def setUserState(issuer: Option[String], token: UserToken): Unit = {
     userState.set(Option(token))
-    Storage.set(userTokenKey, token)
+    Storage.set(userTokenKey(issuer), token)
   }
 
-  def getUserState: Option[UserToken] =
-    loadUserState()
+  def getUserState(issuer: Option[String]): Option[UserToken] =
+    loadUserState(issuer)
     userState.now()
 
-  def loadUserState(): Unit =
+  def loadUserState(issuer: Option[String]): Unit =
     Storage
-      .get[UserToken](userTokenKey)
+      .get[UserToken](userTokenKey(issuer))
       .foreach {
         case exp: WithToken if exp.expiration * 1000 < new Date().getTime() =>
-          Storage.remove(userTokenKey)
+          Storage.remove(userTokenKey(issuer))
         case token =>
           userState.now() match
             case Some(value) if token != value => userState.set(Some(token))
@@ -69,7 +71,7 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
 
   def clearUserState(): Unit =
     userState.set(Option.empty[UserToken])
-    Storage.remove(userTokenKey)
+    Storage.removeAll()
 }
 
 object Session:
