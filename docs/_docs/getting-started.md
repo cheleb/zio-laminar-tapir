@@ -12,7 +12,13 @@ libraryDependencies += "dev.cheleb"    %%% "zio-laminar-tapir"  % "0.0.2"
 
 From a classical tapir endpoint definition:
 
-```scala
+
+
+```scala sc:nocompile
+import zio.*
+import zio.json.*
+import sttp.tapir.*
+
 case class GetResponse(args: Map[String, String]) derives JsonCodec
 
 trait BaseEndpoint {
@@ -23,12 +29,13 @@ trait BaseEndpoint {
   val baseSecuredEndpoint: Endpoint[String, Unit, Throwable, Unit, Any] =
     baseEndpoint
       .securityIn(auth.bearer[String]())
+}
 
 ```
 
 In your Laminar app:
 
-```scala
+```scala sc:nocompile
 
 import dev.cheleb.ziolaminartapir.*                 // (1)
 
