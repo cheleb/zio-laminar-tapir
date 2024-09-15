@@ -7,6 +7,7 @@ import com.raquo.laminar.api.L.*
 
 import zio.json.*
 import dev.cheleb.ziojwt.WithToken
+import sttp.model.Uri
 
 trait Session[UserToken <: WithToken] {
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]]
@@ -18,9 +19,13 @@ trait Session[UserToken <: WithToken] {
   def clearUserState(): Unit
 }
 
-class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
+class SessionLive[UserToken <: WithToken](
+    backends: Map[Symbol, Uri] = Map.empty
+)(using JsonCodec[UserToken])
     extends Session[UserToken] {
   val userState: Var[Option[UserToken]] = Var(Option.empty[UserToken])
+
+  println(backends.toString())
 
   private def userTokenKey(issuer: Option[String]) = issuer match
     case None         => "userToken"
@@ -74,9 +79,9 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     Storage.removeAll()
 }
 
-object Session:
+// object Session:
 
-  def apply[UserToken <: WithToken](using
-      JsonCodec[UserToken]
-  ): Session[UserToken] =
-    SessionLive[UserToken]
+//   def apply[UserToken <: WithToken](using
+//       JsonCodec[UserToken]
+//   ): Session[UserToken] =
+//     SessionLive[UserToken]

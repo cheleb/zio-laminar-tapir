@@ -24,9 +24,7 @@ type ZioStreamsWithWebSockets = ZioStreams & WebSockets
 case class RestrictedEndpointException(message: String)
     extends RuntimeException(message)
 
-/** A client to the backend, extending the endpoints as methods.
-  */
-trait BackendClient {
+trait SameOriginBackendClient {
 
   /** Call an endpoint with a payload.
     *
@@ -59,8 +57,10 @@ trait BackendClient {
   def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): Task[O]
-
 }
+
+/** A client to the backend, extending the endpoints as methods.
+  */
 
 /** The live implementation of the BackendClient.
   *
@@ -72,7 +72,7 @@ private class BackendClientLive(
     backend: SttpBackend[Task, ZioStreamsWithWebSockets],
     interpreter: SttpClientInterpreter,
     config: BackendClientConfig
-) extends BackendClient {
+) extends SameOriginBackendClient {
 
   /** Turn an endpoint into a function from Input => Request.
     *
@@ -83,6 +83,12 @@ private class BackendClientLive(
       endpoint: Endpoint[Unit, I, E, O, Any]
   ): I => Request[Either[E, O], Any] =
     interpreter.toRequestThrowDecodeFailures(endpoint, config.baseUrlAsOption)
+
+  private def endpointRequest[I, E, O](
+      baseUri: Option[Uri],
+      endpoint: Endpoint[Unit, I, E, O, Any]
+  ): I => Request[Either[E, O], Any] =
+    interpreter.toRequestThrowDecodeFailures(endpoint, baseUri)
 
   /** Turn a secured endpoint into curried functions from Token => Input =>
     * Request.
@@ -131,6 +137,17 @@ private class BackendClientLive(
   ): ZIO[Any, Throwable, O] =
     backend.send(endpointRequest(endpoint)(payload)).map(_.body).absolve
 
+  def endpointRequestZIO[I, E <: Throwable, O](
+      baseUri: Option[Uri],
+      endpoint: Endpoint[Unit, I, E, O, Any]
+  )(
+      payload: I
+  ): ZIO[Any, Throwable, O] =
+    backend
+      .send(endpointRequest(baseUri, endpoint)(payload))
+      .map(_.body)
+      .absolve
+
   def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
@@ -151,8 +168,21 @@ object BackendClientLive {
     then js.Dynamic.global.DEV_API_URL.toString
     else "http://localhost:8080"
 
-  def layer =
+  def layer: ZLayer[
+    SttpBackend[Task, ZioStreamsWithWebSockets] &
+      (SttpClientInterpreter & BackendClientConfig),
+    Nothing,
+    BackendClientLive
+  ] =
     ZLayer.derive[BackendClientLive]
+
+  def configurableLayer(baseUri: Uri): ZLayer[
+    SttpBackend[Task, ZioStreamsWithWebSockets] & SttpClientInterpreter,
+    Nothing,
+    BackendClientLive
+  ] =
+    ZLayer.succeed(BackendClientConfig(baseUri)) >>> ZLayer
+      .derive[BackendClientLive]
 
   val backendBaseURL =
     if LinkingInfo.developmentMode then

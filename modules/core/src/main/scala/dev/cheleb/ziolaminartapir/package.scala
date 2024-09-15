@@ -21,7 +21,21 @@ import sttp.model.Uri
   *
   * This is a side effect, and should be used with caution.
   */
-extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
+
+extension [E <: Throwable, A](zio: ZIO[DifferentOriginBackendClient, E, A])
+  /** Run the underlying request to the default backend.
+    */
+  @targetName("dexec")
+  private def exec: Unit =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.fork(
+        zio.provide(DifferentOriginBackendClientLive.configuredLayer)
+      )
+    }
+extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
+
+  /** Run the underlying request to the default backend.
+    */
 
   /** Run the underlying request to the default backend.
     */
@@ -117,20 +131,6 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
 
   /** Run the ZIO in JS.
     *
-    * emits the error to the console
-    *
-    * @param baseURL
-    *   the base URL to send the request to
-    *
-    * @return
-    */
-  def runJs(baseURL: Uri): Unit =
-    zio
-      .tapError(th => Console.printLineError(th.getMessage()))
-      .exec(baseURL)
-
-  /** Run the ZIO in JS.
-    *
     * emits the error to the errorBus
     *
     * @param baseURL
@@ -167,18 +167,43 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
     eventBus.events
   }
 
+extension [E <: Throwable, A](zio: ZIO[DifferentOriginBackendClient, E, A])
+  /** Run the ZIO in JS.
+    *
+    * emits the error to the console
+    *
+    * @param baseURL
+    *   the base URL to send the request to
+    *
+    * @return
+    */
+  @targetName("drunJs")
+  def runJs: Unit =
+    zio
+      .tap(a => Console.printLine(a.toString()))
+      .tapError(th => Console.printLineError(th.getMessage()))
+      .exec
+
 /** Extension that allows us to turn an unsecure endpoint to a function from a
   * payload to a ZIO.
   */
-extension [I, E <: Throwable, O](endpoint: Endpoint[Unit, I, E, O, Any])
+extension [I, E <: Throwable, O](
+    endpoint: Endpoint[Unit, I, E, O, Any]
+)
   /** Call the endpoint with a payload, and get a ZIO back.
     * @param payload
     * @return
     */
-  def apply(payload: I): RIO[BackendClient, O] =
+  def apply(payload: I): RIO[SameOriginBackendClient, O] =
     ZIO
-      .service[BackendClient]
+      .service[SameOriginBackendClient]
       .flatMap(_.endpointRequestZIO(endpoint)(payload))
+
+  @targetName("dapply")
+  def on(baseUri: Uri, payload: I): RIO[DifferentOriginBackendClient, O] =
+    ZIO
+      .service[DifferentOriginBackendClient]
+      .flatMap(_.endpointRequestZIO(Some(baseUri), endpoint)(payload))
 
 /** Extension that allows us to turn a secured endpoint to a function from a
   * payload to a ZIO.
@@ -191,7 +216,7 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
   @targetName("securedApply")
   def apply[UserToken <: WithToken](
       payload: I
-  )(using session: Session[UserToken]): RIO[BackendClient, O] =
+  )(using session: Session[UserToken]): RIO[SameOriginBackendClient, O] =
     ZIO
-      .service[BackendClient]
+      .service[SameOriginBackendClient]
       .flatMap(_.securedEndpointRequestZIO(endpoint)(payload))
