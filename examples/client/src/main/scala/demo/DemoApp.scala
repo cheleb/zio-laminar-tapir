@@ -21,7 +21,7 @@ val myApp =
     ),
     button(
       "runJs",
-      onClick --> (_ => HttpBinEndpoints.get.on(httpbin, ()).runJs)
+      onClick --> (_ => HttpBinEndpoints.get.on(httpbin)(()).runJs)
     ),
     button(
       "emitTo",

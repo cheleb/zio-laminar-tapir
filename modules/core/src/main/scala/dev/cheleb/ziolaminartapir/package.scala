@@ -195,19 +195,20 @@ extension [I, E <: Throwable, O](
     * @return
     */
   def apply(payload: I): RIO[SameOriginBackendClient, O] =
-    ZIO
-      .service[SameOriginBackendClient]
-      .flatMap(_.endpointRequestZIO(endpoint)(payload))
+    ZIO.debug(payload.toString()) *>
+      ZIO
+        .service[SameOriginBackendClient]
+        .flatMap(_.endpointRequestZIO(endpoint)(payload))
 
   @targetName("dapply")
-  def on(baseUri: Uri, payload: I): RIO[DifferentOriginBackendClient, O] =
+  def on(baseUri: Uri)(payload: I): RIO[DifferentOriginBackendClient, O] =
     ZIO
       .service[DifferentOriginBackendClient]
       .flatMap(_.endpointRequestZIO(Some(baseUri), endpoint)(payload))
 
-/** Extension that allows us to turn a secured endpoint to a function from a
-  * payload to a ZIO.
-  */
+  /** Extension that allows us to turn a secured endpoint to a function from a
+    * payload to a ZIO.
+    */
 extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
   /** Call the secured endpoint with a payload, and get a ZIO back.
     * @param payload

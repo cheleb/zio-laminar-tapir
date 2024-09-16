@@ -22,6 +22,9 @@ trait BaseEndpoint {
 
 object HttpBinEndpoints extends BaseEndpoint {
   val get = baseEndpoint.get.in("get").out(jsonBody[GetResponse])
+  val getInt =
+    baseEndpoint.get.in("get").in(query[Int]("int")).out(jsonBody[GetResponse])
+
 }
 
 final case class HttpError(
