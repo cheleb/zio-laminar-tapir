@@ -20,7 +20,11 @@ val myApp =
       s"Click the buttons below to make requests to the backend $httpbin."
     ),
     button(
-      "runJs",
+      "runJs some origin",
+      onClick --> (_ => HttpBinEndpoints.get(()).runJs)
+    ),
+    button(
+      "runJs remote",
       onClick --> (_ => HttpBinEndpoints.get.on(httpbin)(()).runJs)
     ),
     button(

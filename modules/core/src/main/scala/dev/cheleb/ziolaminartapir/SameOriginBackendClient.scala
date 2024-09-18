@@ -75,30 +75,6 @@ private class SameOriginBackendClientLive(
 ) extends BackendClient(backend, interpreter)
     with SameOriginBackendClient {
 
-  /** Turn an endpoint into a function from Input => Request.
-    *
-    * @param endpoint
-    * @return
-    */
-  private def endpointRequest[I, E, O](
-      endpoint: Endpoint[Unit, I, E, O, Any]
-  ): I => Request[Either[E, O], Any] =
-    interpreter.toRequestThrowDecodeFailures(endpoint, config.baseUrlAsOption)
-
-  /** Turn a secured endpoint into curried functions from Token => Input =>
-    * Request.
-    *
-    * @param endpoint
-    * @return
-    */
-  private def securedEndpointRequest[A, I, E, O](
-      endpoint: Endpoint[A, I, E, O, Any]
-  ): A => I => Request[Either[E, O], Any] =
-    interpreter.toSecureRequestThrowDecodeFailures(
-      endpoint,
-      config.baseUrlAsOption
-    )
-
   override def isSameIssuer(token: WithToken): Option[Boolean] =
     for {
       configHost <- config.baseUrl.host
@@ -110,18 +86,12 @@ private class SameOriginBackendClientLive(
   )(
       payload: I
   ): ZIO[Any, Throwable, O] =
-    backend.send(endpointRequest(endpoint)(payload)).map(_.body).absolve
+    endpointRequestZIO(config.baseUrlAsOption, endpoint)(payload)
 
   def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
-    for {
-      token <- tokenOfFail(None)
-      res <- backend
-        .send(securedEndpointRequest(endpoint)(token)(payload))
-        .map(_.body)
-        .absolve
-    } yield res
+    securedEndpointRequestZIO(config.baseUrlAsOption, endpoint)(payload)
 
 }
 

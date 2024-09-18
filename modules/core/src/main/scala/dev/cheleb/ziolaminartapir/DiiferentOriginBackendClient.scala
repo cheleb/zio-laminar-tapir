@@ -28,33 +28,8 @@ trait DifferentOriginBackendClient {
 private class DifferentOriginBackendClientLive(
     backend: SttpBackend[Task, ZioStreamsWithWebSockets],
     interpreter: SttpClientInterpreter
-) extends DifferentOriginBackendClient {
-
-  private def endpointRequest[I, E, O](
-      baseUri: Option[Uri],
-      endpoint: Endpoint[Unit, I, E, O, Any]
-  ): I => Request[Either[E, O], Any] =
-    interpreter.toRequestThrowDecodeFailures(endpoint, baseUri)
-
-  /** Turn a secured endpoint into curried functions from Token => Input =>
-    * Request.
-    *
-    * @param endpoint
-    * @return
-    */
-
-  def endpointRequestZIO[I, E <: Throwable, O](
-      baseUri: Option[Uri],
-      endpoint: Endpoint[Unit, I, E, O, Any]
-  )(
-      payload: I
-  ): ZIO[Any, Throwable, O] =
-    backend
-      .send(endpointRequest(baseUri, endpoint)(payload))
-      .map(_.body)
-      .absolve
-
-}
+) extends BackendClient(backend, interpreter)
+    with DifferentOriginBackendClient {}
 
 object DifferentOriginBackendClientLive {
 
