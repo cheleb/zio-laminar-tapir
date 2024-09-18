@@ -3,7 +3,7 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 
 val dev = sys.env.get("DEV").getOrElse("demo")
 
-val scala33 = "3.5.0"
+val scala33 = "3.5.1"
 
 val Versions = new {
   val laminar = "17.1.0"
