@@ -9,6 +9,7 @@ val Versions = new {
   val laminar = "17.1.0"
   val tapir = "1.11.2"
   val sttp = "3.9.8"
+  val sttpModel = "1.7.11"
   val zio = "2.1.9"
   val zioJson = "0.7.3"
 }
@@ -85,6 +86,9 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .in(file("modules/shared"))
   .settings(
     name := "zio-jwt"
+  )
+  .settings(
+    libraryDependencies += "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModel
   )
 
 lazy val sharedJvm = shared.jvm

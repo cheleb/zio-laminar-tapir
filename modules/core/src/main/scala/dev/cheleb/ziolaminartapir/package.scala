@@ -204,7 +204,7 @@ extension [I, E <: Throwable, O](
   def on(baseUri: Uri)(payload: I): RIO[DifferentOriginBackendClient, O] =
     ZIO
       .service[DifferentOriginBackendClient]
-      .flatMap(_.endpointRequestZIO(Some(baseUri), endpoint)(payload))
+      .flatMap(_.endpointRequestZIO(baseUri, endpoint)(payload))
 
   /** Extension that allows us to turn a secured endpoint to a function from a
     * payload to a ZIO.
@@ -227,4 +227,4 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
   )(using session: Session[UserToken]): RIO[DifferentOriginBackendClient, O] =
     ZIO
       .service[DifferentOriginBackendClient]
-      .flatMap(_.securedEndpointRequestZIO(Some(baseUri), endpoint)(payload))
+      .flatMap(_.securedEndpointRequestZIO(baseUri, endpoint)(payload))

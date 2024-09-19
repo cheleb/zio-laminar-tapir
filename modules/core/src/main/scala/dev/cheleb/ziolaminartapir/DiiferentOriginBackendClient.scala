@@ -13,13 +13,13 @@ import dev.cheleb.ziojwt.WithToken
 
 trait DifferentOriginBackendClient {
   def endpointRequestZIO[I, E <: Throwable, O](
-      baseUri: Option[Uri],
+      baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
   ): Task[O]
   def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
-      baseUri: Option[Uri],
+      baseUri: Uri,
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O]
 
@@ -37,10 +37,9 @@ private class DifferentOriginBackendClientLive(
 ) extends BackendClient(backend, interpreter)
     with DifferentOriginBackendClient {
 
+  def isSameIssuer(token: WithToken): Boolean = true
 
-      def isSameIssuer(token: WithToken): Option[Boolean] = Some(true)
-
-    }
+}
 
 object DifferentOriginBackendClientLive {
 

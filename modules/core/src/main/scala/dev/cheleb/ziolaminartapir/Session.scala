@@ -13,23 +13,22 @@ trait Session[UserToken <: WithToken] {
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]]
   def whenActive[A](callback: => A): Signal[Option[A]]
   def isActive: Boolean
-  def setUserState(issuer: Option[String], token: UserToken): Unit
-  def getUserState(issuer: Option[String]): Option[UserToken]
-  def loadUserState(issuer: Option[String]): Unit
+  def setUserState(issuer: Uri, token: UserToken): Unit
+  def getUserState(issuer: Uri): Option[UserToken]
+  def loadUserState(issuer: Uri): Unit
   def clearUserState(): Unit
 }
 
-class SessionLive[UserToken <: WithToken](
-    backends: Map[Symbol, Uri] = Map.empty
-)(using JsonCodec[UserToken])
+class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     extends Session[UserToken] {
   val userState: Var[Option[UserToken]] = Var(Option.empty[UserToken])
 
-  println(backends.toString())
-
-  private def userTokenKey(issuer: Option[String]) = issuer match
-    case None         => "userToken"
-    case Some(issuer) => s"userToken@$issuer"
+  private def userTokenKey(issuer: Uri) =
+    (for {
+      host <- issuer.host
+      port <- issuer.port
+    } yield s"userToken@$host:$port")
+      .getOrElse(s"userToken@${issuer.toString}")
 
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]] =
     userState.signal.map {
@@ -52,16 +51,16 @@ class SessionLive[UserToken <: WithToken](
   // TODO Should be more clever about expiration.
   def isActive = userState.now().isDefined
 
-  def setUserState(issuer: Option[String], token: UserToken): Unit = {
+  def setUserState(issuer: Uri, token: UserToken): Unit = {
     userState.set(Option(token))
     Storage.set(userTokenKey(issuer), token)
   }
 
-  def getUserState(issuer: Option[String]): Option[UserToken] =
+  def getUserState(issuer: Uri): Option[UserToken] =
     loadUserState(issuer)
     userState.now()
 
-  def loadUserState(issuer: Option[String]): Unit =
+  def loadUserState(issuer: Uri): Unit =
     Storage
       .get[UserToken](userTokenKey(issuer))
       .foreach {

@@ -75,23 +75,23 @@ private class SameOriginBackendClientLive(
 ) extends BackendClient(backend, interpreter)
     with SameOriginBackendClient {
 
-  override def isSameIssuer(token: WithToken): Option[Boolean] =
-    for {
-      configHost <- config.baseUrl.host
-      confitPort <- config.baseUrl.port
-    } yield token.issuer == s"${configHost}:${confitPort}"
+  override def isSameIssuer(token: WithToken): Boolean =
+    (for {
+      host <- config.baseUrl.host
+      port <- config.baseUrl.port
+    } yield token.issuer.toString == s"$host:$port").getOrElse(false)
 
   def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
   ): ZIO[Any, Throwable, O] =
-    endpointRequestZIO(config.baseUrlAsOption, endpoint)(payload)
+    endpointRequestZIO(config.baseUrl, endpoint)(payload)
 
   def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
-    securedEndpointRequestZIO(config.baseUrlAsOption, endpoint)(payload)
+    securedEndpointRequestZIO(config.baseUrl, endpoint)(payload)
 
 }
 
@@ -99,8 +99,8 @@ object SameOriginBackendClientLive {
 
   def developmentApiServer =
     if js.typeOf(js.Dynamic.global.DEV_API_URL) == "string"
-    then js.Dynamic.global.DEV_API_URL.toString
-    else "http://localhost:8080"
+    then Uri.unsafeParse(js.Dynamic.global.DEV_API_URL.toString)
+    else Uri.unsafeParse("http://localhost:8080")
 
   def layer: ZLayer[
     SttpBackend[Task, ZioStreamsWithWebSockets] &
@@ -119,10 +119,7 @@ object SameOriginBackendClientLive {
       .derive[SameOriginBackendClientLive]
 
   val backendBaseURL =
-    if LinkingInfo.developmentMode then
-      Uri.unsafeParse(
-        developmentApiServer
-      )
+    if LinkingInfo.developmentMode then developmentApiServer
     else Uri.unsafeParse(window.document.location.origin)
 
   def configuredLayer(
