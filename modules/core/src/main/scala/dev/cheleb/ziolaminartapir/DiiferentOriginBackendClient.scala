@@ -9,6 +9,7 @@ import sttp.tapir.client.sttp.SttpClientInterpreter
 
 import zio.*
 import sttp.model.Uri
+import dev.cheleb.ziojwt.WithToken
 
 trait DifferentOriginBackendClient {
   def endpointRequestZIO[I, E <: Throwable, O](
@@ -17,6 +18,11 @@ trait DifferentOriginBackendClient {
   )(
       payload: I
   ): Task[O]
+  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
+      baseUri: Option[Uri],
+      endpoint: Endpoint[String, I, E, O, Any]
+  )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O]
+
 }
 
 /** The live implementation of the BackendClient.
@@ -29,7 +35,12 @@ private class DifferentOriginBackendClientLive(
     backend: SttpBackend[Task, ZioStreamsWithWebSockets],
     interpreter: SttpClientInterpreter
 ) extends BackendClient(backend, interpreter)
-    with DifferentOriginBackendClient {}
+    with DifferentOriginBackendClient {
+
+
+      def isSameIssuer(token: WithToken): Option[Boolean] = Some(true)
+
+    }
 
 object DifferentOriginBackendClientLive {
 

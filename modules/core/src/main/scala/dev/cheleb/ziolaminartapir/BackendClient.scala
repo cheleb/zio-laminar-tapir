@@ -56,7 +56,7 @@ private[ziolaminartapir] abstract class BackendClient(
   //     confitPort <- config.baseUrl.port
   //   } yield token.issuer == s"${configHost}:${confitPort}"
 
-  def isSameIssuer(token: WithToken): Option[Boolean] = Some(true) // FIXME
+  def isSameIssuer(token: WithToken): Option[Boolean] // FIXME
 
   /** Get the token from the session, or fail with an exception. */
   private[ziolaminartapir] def tokenOfFail[UserToken <: WithToken](

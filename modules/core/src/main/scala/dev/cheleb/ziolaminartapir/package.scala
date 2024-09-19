@@ -221,3 +221,10 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
     ZIO
       .service[SameOriginBackendClient]
       .flatMap(_.securedEndpointRequestZIO(endpoint)(payload))
+
+  def on[UserToken <: WithToken](baseUri: Uri)(
+      payload: I
+  )(using session: Session[UserToken]): RIO[DifferentOriginBackendClient, O] =
+    ZIO
+      .service[DifferentOriginBackendClient]
+      .flatMap(_.securedEndpointRequestZIO(Some(baseUri), endpoint)(payload))
