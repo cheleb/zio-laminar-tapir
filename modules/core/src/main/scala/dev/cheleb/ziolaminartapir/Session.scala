@@ -10,7 +10,9 @@ import dev.cheleb.ziojwt.WithToken
 import sttp.model.Uri
 
 trait Session[UserToken <: WithToken] {
-  def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]]
+  def apply[A](withoutSession: => A)(
+      withSession: UserToken => A
+  ): Signal[A]
   def whenActive[A](callback: => A): Signal[Option[A]]
 
   /** This method is used to produce an Option when the user is active.
@@ -70,10 +72,12 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     * @param withSession
     * @return
     */
-  def apply[A](withoutSession: => A)(withSession: => A): Signal[Option[A]] =
+  def apply[A](
+      withoutSession: => A
+  )(withSession: UserToken => A): Signal[A] =
     userState.signal.map {
-      case Some(_) => Some(withSession)
-      case None    => Some(withoutSession)
+      case Some(userToken) => withSession(userToken)
+      case None            => withoutSession
     }
 
   /** This method is used to produce an Option when the user is active.
