@@ -11,7 +11,7 @@ val httpbin = Uri.unsafeParse("https://httpbin.org")
 val myApp =
 
   val eventBus = new EventBus[GetResponse]()
-  val errorBus = new EventBus[Throwable]()
+//  val errorBus = new EventBus[Throwable]()
 
   div(
     h1("Hello, world!"),
@@ -20,12 +20,20 @@ val myApp =
       s"Click the buttons below to make requests to the backend $httpbin."
     ),
     button(
-      "runJs",
-      onClick --> (_ => HttpBinEndpoints.get(()).runJs(httpbin, errorBus))
+      "runJs some origin",
+      onClick --> (_ => HttpBinEndpoints.get(()).runJs)
+    ),
+    button(
+      "runJs remote",
+      onClick --> (_ => HttpBinEndpoints.get.on(httpbin)(()).runJs)
     ),
     button(
       "emitTo",
-      onClick --> (_ => HttpBinEndpoints.get(()).emitTo(httpbin, eventBus))
+      onClick --> (_ =>
+        HttpBinEndpoints
+          .get(())
+          .emitTo(httpbin, eventBus)
+      )
     )
   )
 

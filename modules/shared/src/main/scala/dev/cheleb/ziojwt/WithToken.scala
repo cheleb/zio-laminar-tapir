@@ -1,7 +1,8 @@
 package dev.cheleb.ziojwt
 
+import sttp.model.Uri
+
 trait WithToken {
-  def issuer: String
   def token: String
   val expiration: Long
 }
