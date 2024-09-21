@@ -12,10 +12,38 @@ import sttp.model.Uri
 trait Session[UserToken <: WithToken] {
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]]
   def whenActive[A](callback: => A): Signal[Option[A]]
+
+  /** This method is used to produce an Option when the user is active.
+    *
+    * @return
+    */
   def isActive: Boolean
+
+  /** Save the token in the storage. Tokens are stored by issuer (the host and
+    * port of the issuer).
+    *
+    * @param issuer
+    * @param token
+    */
   def saveToken(issuer: Uri, token: UserToken): Unit
+
+  /** Get the token from the storage. Tokens are stored by issuer (the host and
+    * port of the issuer).
+    *
+    * @param issuer
+    * @return
+    */
   def getToken(issuer: Uri): Option[UserToken]
+
+  /** Load the user state from the storage. This method is used to log in the
+    *
+    * @param issuer
+    */
   def loadUserState(issuer: Uri): Unit
+
+  /** Clear the user state. This method is used to log out the user. It should
+    * remove the token from the session and the storage.
+    */
   def clearUserState(): Unit
 }
 
@@ -23,14 +51,26 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     extends Session[UserToken] {
   val userState: Var[Option[UserToken]] = Var(Option.empty[UserToken])
 
-  private def userTokenKey(issuer: Uri) =
+  /** This method is used to produce a key to store the token in the storage.
+    *
+    * @param issuer
+    * @return
+    */
+  private def userTokenKey(issuer: Uri): String =
     (for {
       host <- issuer.host
       port <- issuer.port
     } yield s"userToken@$host:$port")
       .getOrElse(s"userToken@${issuer.toString}")
 
-  def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]] =
+  /** This method is used to produce different values depending on the user
+    * state.
+    *
+    * @param withoutSession
+    * @param withSession
+    * @return
+    */
+  def apply[A](withoutSession: => A)(withSession: => A): Signal[Option[A]] =
     userState.signal.map {
       case Some(_) => Some(withSession)
       case None    => Some(withoutSession)
@@ -48,8 +88,16 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
   def whenActive[A](callback: => A): Signal[Option[A]] =
     userState.signal.map(_.map(_ => callback))
 
-  // TODO Should be more clever about expiration.
-  def isActive = userState.now().isDefined
+  def isActive = userState
+    .now()
+    .map(_.expiration * 1000 > new Date().getTime()) match {
+    case Some(true) => true
+    case Some(false) =>
+      userState.set(Option.empty[UserToken])
+      Storage.removeAll()
+      false
+    case None => false
+  }
 
   def saveToken(issuer: Uri, token: UserToken): Unit = {
     userState.set(Option(token))
