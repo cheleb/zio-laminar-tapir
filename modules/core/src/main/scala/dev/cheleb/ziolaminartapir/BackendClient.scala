@@ -50,8 +50,6 @@ private[ziolaminartapir] abstract class BackendClient(
       Some(baseUri)
     )
 
-  def isSameIssuer(token: WithToken): Boolean
-
   /** Get the token from the session, or fail with an exception. */
   private[ziolaminartapir] def tokenOfFail[UserToken <: WithToken](
       issuer: Uri
@@ -60,15 +58,8 @@ private[ziolaminartapir] abstract class BackendClient(
   ) =
     for {
       withToken <- ZIO
-        .fromOption(session.getUserState(issuer))
+        .fromOption(session.getToken(issuer))
         .orElseFail(RestrictedEndpointException("No token found"))
-      sameIssuer <- ZIO.unless(isSameIssuer(withToken))(
-        ZIO.fail(
-          RestrictedEndpointException(
-            s"Token issued by ${withToken.issuer} but backend is {config.baseUrl}"
-          )
-        )
-      )
 
     } yield withToken.token
 

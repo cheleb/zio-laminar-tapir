@@ -75,12 +75,6 @@ private class SameOriginBackendClientLive(
 ) extends BackendClient(backend, interpreter)
     with SameOriginBackendClient {
 
-  override def isSameIssuer(token: WithToken): Boolean =
-    (for {
-      host <- config.baseUrl.host
-      port <- config.baseUrl.port
-    } yield token.issuer.toString == s"$host:$port").getOrElse(false)
-
   def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(

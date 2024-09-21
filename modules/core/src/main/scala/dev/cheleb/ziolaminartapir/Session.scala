@@ -13,8 +13,8 @@ trait Session[UserToken <: WithToken] {
   def apply[A](withSession: => A)(withoutSession: => A): Signal[Option[A]]
   def whenActive[A](callback: => A): Signal[Option[A]]
   def isActive: Boolean
-  def setUserState(issuer: Uri, token: UserToken): Unit
-  def getUserState(issuer: Uri): Option[UserToken]
+  def saveToken(issuer: Uri, token: UserToken): Unit
+  def getToken(issuer: Uri): Option[UserToken]
   def loadUserState(issuer: Uri): Unit
   def clearUserState(): Unit
 }
@@ -51,12 +51,12 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
   // TODO Should be more clever about expiration.
   def isActive = userState.now().isDefined
 
-  def setUserState(issuer: Uri, token: UserToken): Unit = {
+  def saveToken(issuer: Uri, token: UserToken): Unit = {
     userState.set(Option(token))
     Storage.set(userTokenKey(issuer), token)
   }
 
-  def getUserState(issuer: Uri): Option[UserToken] =
+  def getToken(issuer: Uri): Option[UserToken] =
     loadUserState(issuer)
     userState.now()
 
@@ -77,10 +77,3 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     userState.set(Option.empty[UserToken])
     Storage.removeAll()
 }
-
-// object Session:
-
-//   def apply[UserToken <: WithToken](using
-//       JsonCodec[UserToken]
-//   ): Session[UserToken] =
-//     SessionLive[UserToken]
