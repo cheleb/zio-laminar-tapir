@@ -32,7 +32,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
@@ -49,7 +49,12 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
+  private[ziolaminartapir] def securedEndpointRequestZIO[
+      UserToken <: WithToken,
+      I,
+      E <: Throwable,
+      O
+  ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): Task[O]
 }
@@ -75,7 +80,7 @@ private class SameOriginBackendClientLive(
     * @param payload
     * @return
     */
-  def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
@@ -87,7 +92,12 @@ private class SameOriginBackendClientLive(
       * @param payload
       * @return
       */
-  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
+  private[ziolaminartapir] def securedEndpointRequestZIO[
+      UserToken <: WithToken,
+      I,
+      E <: Throwable,
+      O
+  ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
     securedEndpointRequestZIO(config.baseUrl, endpoint)(payload)
@@ -98,13 +108,26 @@ private class SameOriginBackendClientLive(
   */
 object SameOriginBackendClientLive {
 
+  /** The base URL of the backend in development mode. It is the value of the
+    */
   private def developmentApiServer =
     if js.typeOf(js.Dynamic.global.DEV_API_URL) == "string"
     then Uri.unsafeParse(js.Dynamic.global.DEV_API_URL.toString)
     else Uri.unsafeParse("http://localhost:8080")
 
-  /** The layer that can be used to create a client.
+  /** The base URL of the backend. It is the origin of the current page in
+    * production mode, and localhost:8080 or the DEV_API_URL environment
+    * variable in development mode.
+    * {{{
+    * DEV_API_URL ="http://localhost:9999/";
+    * }}}
     */
+  lazy val backendBaseURL =
+    if LinkingInfo.developmentMode then developmentApiServer
+    else Uri.unsafeParse(window.document.location.origin)
+
+    /** The layer that can be used to create a client.
+      */
   private def layer: ZLayer[
     SttpBackend[Task, ZioStreamsWithWebSockets] &
       (SttpClientInterpreter & BackendClientConfig),
@@ -113,11 +136,10 @@ object SameOriginBackendClientLive {
   ] =
     ZLayer.derive[SameOriginBackendClientLive]
 
-  lazy val backendBaseURL: Uri =
-    if LinkingInfo.developmentMode then developmentApiServer
-    else Uri.unsafeParse(window.document.location.origin)
-
-  def configuredLayer: ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
+  /** The layer that can be used to create
+    */
+  private[ziolaminartapir] def configuredLayer
+      : ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
     val config = BackendClientConfig(backendBaseURL)

@@ -27,7 +27,7 @@ trait DifferentOriginBackendClient {
     * @param payload
     * @return
     */
-  def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
@@ -50,7 +50,12 @@ trait DifferentOriginBackendClient {
     *   the session with the token
     * @return
     */
-  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
+  private[ziolaminartapir] def securedEndpointRequestZIO[
+      UserToken <: WithToken,
+      I,
+      E <: Throwable,
+      O
+  ](
       baseUri: Uri,
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O]
@@ -60,7 +65,9 @@ trait DifferentOriginBackendClient {
 /** The live implementation of the BackendClient with a different origin.
   *
   * @param backend
+  *   the backend to use
   * @param interpreter
+  *   the interpreter to use
   */
 private class DifferentOriginBackendClientLive(
     backend: SttpBackend[Task, ZioStreamsWithWebSockets],
@@ -82,7 +89,8 @@ object DifferentOriginBackendClientLive {
 
   /** The layer to create the client.
     */
-  def configuredLayer: ULayer[DifferentOriginBackendClient] = {
+  private[ziolaminartapir] def configuredLayer
+      : ULayer[DifferentOriginBackendClient] = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
 

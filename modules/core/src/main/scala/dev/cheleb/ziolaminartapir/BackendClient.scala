@@ -23,28 +23,34 @@ private[ziolaminartapir] abstract class BackendClient(
     interpreter: SttpClientInterpreter
 ) {
 
-  /** Turn an endpoint into a function from Input => Request.
+  /** Turn an endpoint into a function:
+    *
+    * {{{
+    * Input => Request
+    * }}}
     *
     * @param endpoint
     * @return
     */
-
   private[ziolaminartapir] def endpointRequest[I, E, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   ): I => Request[Either[E, O], Any] =
     interpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
 
-  /** Turn a secured endpoint into curried functions from Token => Input =>
-    * Request.
+  /** Turn a secured endpoint into curried functions:
+    *
+    * {{{
+    *  SecurityInput => Input => Request.
+    * }}}
     *
     * @param endpoint
     * @return
     */
-  private[ziolaminartapir] def securedEndpointRequest[A, I, E, O](
+  private[ziolaminartapir] def securedEndpointRequest[SI, I, E, O](
       baseUri: Uri,
-      endpoint: Endpoint[A, I, E, O, Any]
-  ): A => I => Request[Either[E, O], Any] =
+      endpoint: Endpoint[SI, I, E, O, Any]
+  ): SI => I => Request[Either[E, O], Any] =
     interpreter.toSecureRequestThrowDecodeFailures(
       endpoint,
       Some(baseUri)
@@ -63,7 +69,7 @@ private[ziolaminartapir] abstract class BackendClient(
 
     } yield withToken.token
 
-  def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
@@ -74,7 +80,12 @@ private[ziolaminartapir] abstract class BackendClient(
       .map(_.body)
       .absolve
 
-  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
+  private[ziolaminartapir] def securedEndpointRequestZIO[
+      UserToken <: WithToken,
+      I,
+      E <: Throwable,
+      O
+  ](
       baseUri: Uri,
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =

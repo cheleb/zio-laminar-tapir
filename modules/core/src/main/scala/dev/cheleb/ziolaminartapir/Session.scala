@@ -10,12 +10,24 @@ import dev.cheleb.ziojwt.WithToken
 import sttp.model.Uri
 
 trait Session[UserToken <: WithToken] {
+
+  /** This method will return a Signal that will be updated when the user state
+    * changes.
+    *
+    * It takes two arguments to produce a value depending on the user state
+    *
+    * @param withoutSession
+    *   the value to produce when the user is not logged in
+    * @param withSession
+    *   the value to produce when the user is logged in
+    * @return
+    */
   def apply[A](withoutSession: => A)(
       withSession: UserToken => A
   ): Signal[A]
   def whenActive[A](callback: => A): Signal[Option[A]]
 
-  /** This method is used to produce an Option when the user is active.
+  /** This method returns true user is active.
     *
     * @return
     */
@@ -70,13 +82,6 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     } yield s"userToken@$host:$port")
       .getOrElse(s"userToken@${issuer.toString}")
 
-  /** This method is used to produce different values depending on the user
-    * state.
-    *
-    * @param withoutSession
-    * @param withSession
-    * @return
-    */
   def apply[A](
       withoutSession: => A
   )(withSession: UserToken => A): Signal[A] =
@@ -85,15 +90,6 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
       case None            => withoutSession
     }
 
-  /** This method is used to produce an Option when the user is active.
-    *
-    * Convenient to render an element only when the user is active.
-    *
-    * See ChildReceiver.maybe for more information.
-    *
-    * @param callback
-    * @return
-    */
   def whenActive[A](callback: => A): Signal[Option[A]] =
     userState.signal.map(_.map(_ => callback))
 
