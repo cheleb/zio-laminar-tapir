@@ -25,6 +25,7 @@ trait SecuredBaseController[SI, Principal](
       *   curryied function from user principal to request to response
       * @return
       */
+    @SuppressWarnings(Array("org.wartremover.warts.Any"))
     def securedServerLogic(
         logic: Principal => I => Task[O]
     ): ServerEndpoint[R, Task] =

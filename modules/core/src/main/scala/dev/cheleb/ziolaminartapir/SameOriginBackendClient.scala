@@ -9,21 +9,16 @@ import org.scalajs.dom.window
 import scala.scalajs.LinkingInfo
 import scala.scalajs.js
 
-import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
 import sttp.client3.impl.zio.FetchZioBackend
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
-import sttp.capabilities.WebSockets
 
 import zio.*
 import sttp.model.Uri
 
-type ZioStreamsWithWebSockets = ZioStreams & WebSockets
-
-case class RestrictedEndpointException(message: String)
-    extends RuntimeException(message)
-
+/** A client to the backend, extending the endpoints as methods.
+  */
 trait SameOriginBackendClient {
 
   /** Call an endpoint with a payload.
@@ -37,7 +32,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
@@ -54,7 +49,12 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
+  private[ziolaminartapir] def securedEndpointRequestZIO[
+      UserToken <: WithToken,
+      I,
+      E <: Throwable,
+      O
+  ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): Task[O]
 }
@@ -75,28 +75,60 @@ private class SameOriginBackendClientLive(
 ) extends BackendClient(backend, interpreter)
     with SameOriginBackendClient {
 
-  def endpointRequestZIO[I, E <: Throwable, O](
+  /** Call an endpoint with a payload.
+    * @param endpoint
+    * @param payload
+    * @return
+    */
+  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
   ): ZIO[Any, Throwable, O] =
     endpointRequestZIO(config.baseUrl, endpoint)(payload)
 
-  def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
+    /** Call a secured endpoint with a payload.
+      * @param endpoint
+      * @param payload
+      * @return
+      */
+  private[ziolaminartapir] def securedEndpointRequestZIO[
+      UserToken <: WithToken,
+      I,
+      E <: Throwable,
+      O
+  ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
     securedEndpointRequestZIO(config.baseUrl, endpoint)(payload)
 
 }
 
+/** The live implementation of the BackendClient.
+  */
 object SameOriginBackendClientLive {
 
-  def developmentApiServer =
+  /** The base URL of the backend in development mode. It is the value of the
+    */
+  private def developmentApiServer =
     if js.typeOf(js.Dynamic.global.DEV_API_URL) == "string"
     then Uri.unsafeParse(js.Dynamic.global.DEV_API_URL.toString)
     else Uri.unsafeParse("http://localhost:8080")
 
-  def layer: ZLayer[
+  /** The base URL of the backend. It is the origin of the current page in
+    * production mode, and localhost:8080 or the DEV_API_URL environment
+    * variable in development mode.
+    * {{{
+    * DEV_API_URL ="http://localhost:9999/";
+    * }}}
+    */
+  lazy val backendBaseURL =
+    if LinkingInfo.developmentMode then developmentApiServer
+    else Uri.unsafeParse(window.document.location.origin)
+
+    /** The layer that can be used to create a client.
+      */
+  private def layer: ZLayer[
     SttpBackend[Task, ZioStreamsWithWebSockets] &
       (SttpClientInterpreter & BackendClientConfig),
     Nothing,
@@ -104,30 +136,10 @@ object SameOriginBackendClientLive {
   ] =
     ZLayer.derive[SameOriginBackendClientLive]
 
-  def configurableLayer(baseUri: Uri): ZLayer[
-    SttpBackend[Task, ZioStreamsWithWebSockets] & SttpClientInterpreter,
-    Nothing,
-    SameOriginBackendClientLive
-  ] =
-    ZLayer.succeed(BackendClientConfig(baseUri)) >>> ZLayer
-      .derive[SameOriginBackendClientLive]
-
-  val backendBaseURL =
-    if LinkingInfo.developmentMode then developmentApiServer
-    else Uri.unsafeParse(window.document.location.origin)
-
-  def configuredLayer(
-      baseURL: Uri
-  ): ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
-    val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
-    val interpreter = SttpClientInterpreter()
-    val config = BackendClientConfig(baseURL)
-
-    ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
-      config
-    ) >>> layer
-  }
-  def configuredLayer: ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
+  /** The layer that can be used to create
+    */
+  private[ziolaminartapir] def configuredLayer
+      : ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
     val config = BackendClientConfig(backendBaseURL)
