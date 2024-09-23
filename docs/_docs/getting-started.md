@@ -7,7 +7,7 @@ title: Getting Started
 
 ```sbt
 // ScalaJs
-libraryDependencies += "dev.cheleb"    %%% "zio-laminar-tapir"  % "0.0.2"
+libraryDependencies += "dev.cheleb"    %%% "zio-laminar-tapir"  % "{{ projectVersion}}"
 ```
 
 
