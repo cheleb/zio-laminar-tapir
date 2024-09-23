@@ -70,12 +70,11 @@ private class SameOriginBackendClientLive(
 ) extends BackendClient(backend, interpreter)
     with SameOriginBackendClient {
 
-      /**
-       * Call an endpoint with a payload.
-       * @param endpoint
-       * @param payload
-       * @return
-       */
+  /** Call an endpoint with a payload.
+    * @param endpoint
+    * @param payload
+    * @return
+    */
   def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
@@ -83,21 +82,20 @@ private class SameOriginBackendClientLive(
   ): ZIO[Any, Throwable, O] =
     endpointRequestZIO(config.baseUrl, endpoint)(payload)
 
-    /**
-     * Call a secured endpoint with a payload.
-     * @param endpoint
-     * @param payload
-     * @return
-     */
+    /** Call a secured endpoint with a payload.
+      * @param endpoint
+      * @param payload
+      * @return
+      */
   def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
     securedEndpointRequestZIO(config.baseUrl, endpoint)(payload)
 
 }
-/**
- * The live implementation of the BackendClient.
- */
+
+/** The live implementation of the BackendClient.
+  */
 object SameOriginBackendClientLive {
 
   private def developmentApiServer =
@@ -114,8 +112,6 @@ object SameOriginBackendClientLive {
     SameOriginBackendClientLive
   ] =
     ZLayer.derive[SameOriginBackendClientLive]
-
-  
 
   val backendBaseURL =
     if LinkingInfo.developmentMode then developmentApiServer
