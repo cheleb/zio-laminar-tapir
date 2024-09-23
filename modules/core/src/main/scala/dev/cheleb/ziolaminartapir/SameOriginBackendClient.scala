@@ -91,7 +91,7 @@ private class SameOriginBackendClientLive(
 
 object SameOriginBackendClientLive {
 
-  def developmentApiServer =
+  private def developmentApiServer =
     if js.typeOf(js.Dynamic.global.DEV_API_URL) == "string"
     then Uri.unsafeParse(js.Dynamic.global.DEV_API_URL.toString)
     else Uri.unsafeParse("http://localhost:8080")

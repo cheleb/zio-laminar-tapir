@@ -37,6 +37,11 @@ trait Session[UserToken <: WithToken] {
     */
   def getToken(issuer: Uri): Option[UserToken]
 
+  /** Load the user state from the storage with Same Origin issuer. This method
+    * is used to log in the user.
+    */
+  def loadUserState(): Unit
+
   /** Load the user state from the storage. This method is used to log in the
     *
     * @param issuer
@@ -112,6 +117,8 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     loadUserState(issuer)
     userState.now()
 
+  def loadUserState(): Unit =
+    loadUserState(SameOriginBackendClientLive.backendBaseURL)
   def loadUserState(issuer: Uri): Unit =
     Storage
       .get[UserToken](userTokenKey(issuer))
