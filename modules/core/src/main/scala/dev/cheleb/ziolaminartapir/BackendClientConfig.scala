@@ -2,6 +2,10 @@ package dev.cheleb.ziolaminartapir
 
 import sttp.model.Uri
 
+/** Configuration for the backend client.
+  *
+  * @param baseUrl
+  */
 final case class BackendClientConfig(
     baseUrl: Uri
 ):

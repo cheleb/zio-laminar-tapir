@@ -11,13 +11,45 @@ import zio.*
 import sttp.model.Uri
 import dev.cheleb.ziojwt.WithToken
 
+/** A client to the backend, extending the endpoints as methods.
+  *
+  * This client is used to call the backend from the frontend, but base URI must
+  * be provided at each call.
+  */
 trait DifferentOriginBackendClient {
+
+  /** Call an endpoint with a payload.
+    *
+    * @param baseUri
+    *   the base URI of the backend
+    * @param endpoint
+    *   the endpoint to call
+    * @param payload
+    * @return
+    */
   def endpointRequestZIO[I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
   ): Task[O]
+
+  /** Call a secured endpoint with a payload.
+    *
+    * Token will be taken from the session aka the user state aka the storage.
+    *
+    * Token are stored by issuer (the host and port of the issuer).
+    *
+    * @param baseUri
+    *   the base URI of the backend
+    * @param endpoint
+    *   the endpoint to call
+    * @param payload
+    *   the payload of the request
+    * @param session
+    *   the session with the token
+    * @return
+    */
   def securedEndpointRequestZIO[UserToken <: WithToken, I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[String, I, E, O, Any]
@@ -25,32 +57,32 @@ trait DifferentOriginBackendClient {
 
 }
 
-/** The live implementation of the BackendClient.
+/** The live implementation of the BackendClient with a different origin.
   *
   * @param backend
   * @param interpreter
-  * @param config
   */
 private class DifferentOriginBackendClientLive(
     backend: SttpBackend[Task, ZioStreamsWithWebSockets],
     interpreter: SttpClientInterpreter
 ) extends BackendClient(backend, interpreter)
-    with DifferentOriginBackendClient {
+    with DifferentOriginBackendClient {}
 
-  def isSameIssuer(token: WithToken): Boolean = true
-
-}
-
+/** The live implementation of the BackendClient with a different origin.
+  */
 object DifferentOriginBackendClientLive {
 
-  def layer: ZLayer[
+  /** The layer to create the client from the backend and the interpreter.
+    */
+  private def layer: URLayer[
     SttpBackend[Task, ZioStreamsWithWebSockets] & (SttpClientInterpreter),
-    Nothing,
     DifferentOriginBackendClient
   ] =
     ZLayer.derive[DifferentOriginBackendClientLive]
 
-  def configuredLayer: ZLayer[Any, Nothing, DifferentOriginBackendClient] = {
+  /** The layer to create the client.
+    */
+  def configuredLayer: ULayer[DifferentOriginBackendClient] = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
 

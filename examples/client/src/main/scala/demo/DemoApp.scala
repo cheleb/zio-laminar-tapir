@@ -9,7 +9,6 @@ import sttp.model.Uri
 val httpbin = Uri.unsafeParse("https://httpbin.org")
 
 val myApp =
-
   val eventBus = new EventBus[GetResponse]()
 //  val errorBus = new EventBus[Throwable]()
 
@@ -30,9 +29,9 @@ val myApp =
     button(
       "emitTo",
       onClick --> (_ =>
-        HttpBinEndpoints
-          .get(())
-          .emitTo(httpbin, eventBus)
+        HttpBinEndpoints.get
+          .on(httpbin)(())
+          .emitTo(eventBus)
       )
     )
   )
