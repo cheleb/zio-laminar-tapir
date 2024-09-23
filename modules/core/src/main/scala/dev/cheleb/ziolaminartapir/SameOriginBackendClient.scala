@@ -113,7 +113,7 @@ object SameOriginBackendClientLive {
   ] =
     ZLayer.derive[SameOriginBackendClientLive]
 
-  val backendBaseURL =
+  lazy val backendBaseURL: Uri =
     if LinkingInfo.developmentMode then developmentApiServer
     else Uri.unsafeParse(window.document.location.origin)
 
