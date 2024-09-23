@@ -46,7 +46,8 @@ inThisBuild(
       "-deprecation",
       "-feature",
       "-Xfatal-warnings"
-    )
+    ),
+    wartremoverErrors ++= Warts.all
   )
 )
 
