@@ -45,7 +45,8 @@ inThisBuild(
     scalacOptions ++= Seq(
       "-deprecation",
       "-feature",
-      "-Xfatal-warnings"
+      "-Xfatal-warnings",
+      "-Wunused:all"
     ),
     wartremoverErrors ++= Warts.all
   )
@@ -78,8 +79,7 @@ val usedScalacOptions = Seq(
   "-unchecked",
   "-language:higherKinds",
   "-language:implicitConversions",
-  "-Xmax-inlines:64",
-  "-Wunused:all"
+  "-Xmax-inlines:64"
 )
 
 lazy val shared = crossProject(JSPlatform, JVMPlatform)

@@ -1,7 +1,5 @@
 package dev.cheleb.ziojwt
 
-import sttp.model.Uri
-
 /** A trait to represent a token with an expiration date.
   */
 trait WithToken {
