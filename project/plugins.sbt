@@ -8,7 +8,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-web-scalajs-bundler" % "0.21.1")
 
 addSbtPlugin("org.scalameta"  % "sbt-scalafmt"        % "2.5.2")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype"        % "3.12.0")
-addSbtPlugin("com.github.sbt" % "sbt-ci-release"      % "1.6.1")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release"      % "1.7.0")
 addSbtPlugin("com.eed3si9n"   % "sbt-assembly"        % "2.2.0")
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.10.4")
 //addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.2.4")
