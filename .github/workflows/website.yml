@@ -35,10 +35,11 @@ jobs:
         with:
           java-version: "22"
           distribution: "zulu"
+      - uses: sbt/setup-sbt@v1          
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 21
 #          cache: 'npm'
       - name: Install dependencies
         run: |
@@ -50,8 +51,8 @@ jobs:
           npm run build
           popd
           sbt makeSite
-        env:
-          NODE_OPTIONS: "--openssl-legacy-provider"
+#        env:
+#          NODE_OPTIONS: "--openssl-legacy-provider"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
