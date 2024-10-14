@@ -218,10 +218,9 @@ extension [I, E <: Throwable, O](
     * @return
     */
   def apply(payload: I): RIO[SameOriginBackendClient, O] =
-    ZIO.debug(payload.toString()) *>
-      ZIO
-        .service[SameOriginBackendClient]
-        .flatMap(_.endpointRequestZIO(endpoint)(payload))
+    ZIO
+      .service[SameOriginBackendClient]
+      .flatMap(_.endpointRequestZIO(endpoint)(payload))
 
   /** Call the endpoint with a payload on a different backend than the origin,
     * and get a ZIO back.
