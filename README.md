@@ -1,9 +1,9 @@
-## ZIO, Lamibar and Tapir
+## ZIO, Laminar and Tapir
 
 This a project to use ZIO, Laminar and Tapir to communicate with a REST API.
 
 * ZIO: A type-safe, composable library for asynchronous and concurrent programming in Scala.
-* Lamibar: A library for building REST APIs in Scala.
+* Laminar: A library for building simple, expressive and safe UI in Scala.
 * Tapir: A library for defining HTTP API endpoints as immutable data structures.
 
 This project will provide:
