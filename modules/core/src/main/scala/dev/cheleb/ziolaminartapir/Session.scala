@@ -41,6 +41,13 @@ trait Session[UserToken <: WithToken] {
     */
   def saveToken(issuer: Uri, token: UserToken): Unit
 
+  /** Save the token in the storage. Tokens are stored by issuer (the host and
+    * port of the issuer).
+    *
+    * @param token
+    */
+  def saveToken(token: UserToken): Unit
+
   /** Get the token from the storage. Tokens are stored by issuer (the host and
     * port of the issuer).
     *
@@ -107,6 +114,11 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
   def saveToken(issuer: Uri, token: UserToken): Unit = {
     userState.set(Option(token))
     Storage.set(userTokenKey(issuer), token)
+  }
+
+  def saveToken(token: UserToken): Unit = {
+    userState.set(Option(token))
+    Storage.set(userTokenKey(SameOriginBackendClientLive.backendBaseURL), token)
   }
 
   def getToken(issuer: Uri): Option[UserToken] =
