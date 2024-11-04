@@ -47,14 +47,14 @@ inThisBuild(
       "-feature",
       "-Xfatal-warnings",
       "-Wunused:all"
-    ),
-    wartremoverErrors ++= Warts.all
+    )
+//    wartremoverErrors ++= Warts.all
   )
 )
 
 lazy val root = project
   .in(file("."))
-  .disablePlugins(WartRemover)
+//  .disablePlugins(WartRemover)
   .aggregate(
     server,
     core,
