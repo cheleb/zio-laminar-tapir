@@ -4,7 +4,9 @@ name: Deploy static content to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["master", "website"]
+    tags:
+      - "v*"
+    branches: ["website"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Fetch tags
+        run: git fetch --prune --unshallow --tags  
       - name: Setup JVM
         uses: actions/setup-java@v4
         with:
@@ -47,6 +51,8 @@ jobs:
           npm i
       - name: Vite build
         run: |
+          export VERSION=`git describe --tags --abbrev=0 | sed "s/v//"`
+          echo "Documentation version: $VERSION"
           pushd examples/client
           npm run build
           popd
