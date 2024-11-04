@@ -54,6 +54,7 @@ inThisBuild(
 
 lazy val root = project
   .in(file("."))
+  .disablePlugins(WartRemover)
   .aggregate(
     server,
     core,
