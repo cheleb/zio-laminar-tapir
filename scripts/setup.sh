@@ -1,6 +1,25 @@
+#!/usr/bin/env bash
+
 . ./scripts/env.sh
 
 rm -f $NPM_DEV_STARTED
+
+if [ ! -e $BUILD_ENV_FILE ]; then
+    echo "Waiting for $BUILD_ENV_FILE to be generated..."
+    echo '  Import the project !!!'
+    echo
+
+    until [ -e $BUILD_ENV_FILE ]; do
+        echo -n "."
+        sleep 4
+    done
+
+    echo
+    echo
+    echo " Good job 🚀"
+    echo
+
+fi
 
 filename_lock=node_modules/.package-lock.json
 
