@@ -74,7 +74,7 @@ private[ziolaminartapir] abstract class BackendClient(
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
-  ): ZIO[Any, Throwable, O] =
+  ): Task[O] =
     backend
       .send(endpointRequest(baseUri, endpoint)(payload))
       .map(_.body)
