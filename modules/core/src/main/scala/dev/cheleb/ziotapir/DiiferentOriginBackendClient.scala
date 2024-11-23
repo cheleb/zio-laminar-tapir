@@ -1,4 +1,4 @@
-package dev.cheleb.ziolaminartapir
+package dev.cheleb.ziotapir
 
 import izumi.reflect.Tag
 
@@ -27,7 +27,7 @@ trait DifferentOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
@@ -50,7 +50,7 @@ trait DifferentOriginBackendClient {
     *   the session with the token
     * @return
     */
-  private[ziolaminartapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedEndpointRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -89,7 +89,7 @@ object DifferentOriginBackendClientLive {
 
   /** The layer to create the client.
     */
-  private[ziolaminartapir] def configuredLayer
+  private[ziotapir] def configuredLayer
       : ULayer[DifferentOriginBackendClient] = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()

@@ -1,4 +1,4 @@
-package dev.cheleb.ziolaminartapir
+package dev.cheleb.ziotapir
 
 import dev.cheleb.ziojwt.WithToken
 
@@ -32,7 +32,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
@@ -49,7 +49,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziolaminartapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedEndpointRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -80,7 +80,7 @@ private class SameOriginBackendClientLive(
     * @param payload
     * @return
     */
-  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
@@ -92,7 +92,7 @@ private class SameOriginBackendClientLive(
       * @param payload
       * @return
       */
-  private[ziolaminartapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedEndpointRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -138,7 +138,7 @@ object SameOriginBackendClientLive {
 
   /** The layer that can be used to create
     */
-  private[ziolaminartapir] def configuredLayer
+  private[ziotapir] def configuredLayer
       : ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
     val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
     val interpreter = SttpClientInterpreter()

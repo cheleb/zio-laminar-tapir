@@ -1,4 +1,4 @@
-package dev.cheleb.ziojwt
+package dev.cheleb.ziotapir
 
 import zio.*
 
@@ -13,7 +13,7 @@ import sttp.tapir.ztapir.*
   */
 trait SecuredBaseController[SI, Principal](
     principalExtractor: SI => Task[Principal]
-):
+) extends BaseController:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])

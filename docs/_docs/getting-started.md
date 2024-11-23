@@ -7,7 +7,7 @@ title: Getting Started
 
 ```sbt
 // ScalaJs
-libraryDependencies += "dev.cheleb"    %%% "zio-laminar-tapir"  % "{{ projectVersion}}"
+libraryDependencies += "dev.cheleb"    %%% "zio-tapir-laminar"  % "{{ projectVersion}}"
 ```
 
 
@@ -40,7 +40,7 @@ In your Laminar app:
 
 ```scala sc:nocompile
 
-import dev.cheleb.ziolaminartapir.*                 // (1)
+import dev.cheleb.ziotapir.laminar.*                 // (1)
 
 val eventBus = new EventBus[GetResponse]()          // (2)
 val errorBus = new EventBus[Throwable]()            // (3)

@@ -6,11 +6,12 @@ val dev = sys.env.get("DEV").getOrElse("demo")
 val scala33 = "3.5.2"
 
 val Versions = new {
+  val chimney = "1.5.0"
   val laminar = "17.1.0"
-  val tapir = "1.11.8"
-  val sttp = "3.9.8"
+  val tapir = "1.11.9"
+  val sttp = "3.10.1"
   val sttpModel = "1.7.11"
-  val zio = "2.1.11"
+  val zio = "2.1.13"
   val zioJson = "0.7.3"
 }
 
@@ -67,7 +68,7 @@ lazy val root = project
 
 lazy val server = project
   .in(file("modules/server"))
-  .settings(name := "zio-jwt-server")
+  .settings(name := "zio-tapir-server")
   .settings(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
@@ -87,10 +88,14 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/shared"))
   .settings(
-    name := "zio-jwt"
+    name := "zio-tapir-shared"
   )
   .settings(
-    libraryDependencies += "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModel
+    libraryDependencies ++= Seq(
+//      "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModel,
+      "io.scalaland" %% "chimney" % Versions.chimney,
+      "dev.zio" %%% "zio" % Versions.zio
+    )
   )
 
 lazy val sharedJvm = shared.jvm
@@ -98,7 +103,7 @@ lazy val sharedJs = shared.js
 
 lazy val core = scalajsProject("core", false)
   .settings(
-    name := "zio-laminar-tapir"
+    name := "zio-tapir-laminar"
   )
   .dependsOn(sharedJs)
   .settings(scalacOptions ++= usedScalacOptions)
