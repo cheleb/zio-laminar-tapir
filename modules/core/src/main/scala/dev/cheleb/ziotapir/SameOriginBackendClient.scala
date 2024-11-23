@@ -16,6 +16,7 @@ import sttp.tapir.client.sttp.SttpClientInterpreter
 
 import zio.*
 import sttp.model.Uri
+import laminar.Session
 
 /** A client to the backend, extending the endpoints as methods.
   */

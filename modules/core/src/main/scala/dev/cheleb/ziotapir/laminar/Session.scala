@@ -1,4 +1,4 @@
-package dev.cheleb.ziotapir
+package dev.cheleb.ziotapir.laminar
 
 import scala.scalajs.js.Date
 
@@ -7,6 +7,9 @@ import com.raquo.laminar.api.L.*
 
 import zio.json.*
 import dev.cheleb.ziojwt.WithToken
+import dev.cheleb.ziotapir.Storage
+import dev.cheleb.ziotapir.SameOriginBackendClientLive
+
 import sttp.model.Uri
 
 trait Session[UserToken <: WithToken] {
