@@ -3,7 +3,7 @@ package demo
 import org.scalajs.dom
 import com.raquo.laminar.api.L.*
 
-import dev.cheleb.ziolaminartapir.*
+import dev.cheleb.ziotapir.laminar.*
 import sttp.model.Uri
 
 val httpbin = Uri.unsafeParse("https://httpbin.org")

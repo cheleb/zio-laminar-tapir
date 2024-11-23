@@ -103,7 +103,7 @@ lazy val sharedJs = shared.js
 
 lazy val core = scalajsProject("core", false)
   .settings(
-    name := "zio-laminar-tapir"
+    name := "zio-tapir-laminar"
   )
   .dependsOn(sharedJs)
   .settings(scalacOptions ++= usedScalacOptions)

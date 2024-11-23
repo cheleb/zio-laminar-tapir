@@ -1,4 +1,4 @@
-package dev.cheleb.ziolaminartapir
+package dev.cheleb.ziotapir
 
 import sttp.model.Uri
 

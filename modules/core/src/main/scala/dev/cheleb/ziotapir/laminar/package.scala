@@ -1,4 +1,4 @@
-package dev.cheleb.ziolaminartapir
+package dev.cheleb.ziotapir.laminar
 
 import zio.*
 
@@ -7,6 +7,7 @@ import scala.annotation.targetName
 import com.raquo.laminar.api.L.*
 import sttp.tapir.Endpoint
 import dev.cheleb.ziojwt.WithToken
+import dev.cheleb.ziotapir.*
 import sttp.model.Uri
 import sttp.capabilities.zio.ZioStreams
 import sttp.capabilities.WebSockets
@@ -20,17 +21,6 @@ import sttp.capabilities.WebSockets
   * Also, there are two kinds of ZIO, and associated 2 extensions:
   *   - SameOriginBackendClient: for requests to the same origin
   *   - DifferentOriginBackendClient: for requests to a different origin
-  */
-
-type ZioStreamsWithWebSockets = ZioStreams & WebSockets
-
-/** Typed exception for restricted endpoints.
-  * @param message
-  */
-case class RestrictedEndpointException(message: String)
-    extends RuntimeException(message)
-
-/** ZIO JS extension methods.
   *
   * This object contains:
   *   - convenience methods for calling endpoints.
@@ -40,6 +30,7 @@ case class RestrictedEndpointException(message: String)
 
 /** Extension to ZIO[SameOriginBackendClient, E, A] that allows us to run in JS.
   */
+
 extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
 
   /** Run the underlying request to the default backend.

@@ -1,4 +1,4 @@
-package dev.cheleb.ziolaminartapir
+package dev.cheleb.ziotapir
 
 import dev.cheleb.ziojwt.WithToken
 
@@ -18,7 +18,7 @@ import sttp.model.Uri
   * @param interpreter
   * @param config
   */
-private[ziolaminartapir] abstract class BackendClient(
+private[ziotapir] abstract class BackendClient(
     backend: SttpBackend[Task, ZioStreamsWithWebSockets],
     interpreter: SttpClientInterpreter
 ) {
@@ -32,7 +32,7 @@ private[ziolaminartapir] abstract class BackendClient(
     * @param endpoint
     * @return
     */
-  private[ziolaminartapir] def endpointRequest[I, E, O](
+  private[ziotapir] def endpointRequest[I, E, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   ): I => Request[Either[E, O], Any] =
@@ -47,7 +47,7 @@ private[ziolaminartapir] abstract class BackendClient(
     * @param endpoint
     * @return
     */
-  private[ziolaminartapir] def securedEndpointRequest[SI, I, E, O](
+  private[ziotapir] def securedEndpointRequest[SI, I, E, O](
       baseUri: Uri,
       endpoint: Endpoint[SI, I, E, O, Any]
   ): SI => I => Request[Either[E, O], Any] =
@@ -57,7 +57,7 @@ private[ziolaminartapir] abstract class BackendClient(
     )
 
   /** Get the token from the session, or fail with an exception. */
-  private[ziolaminartapir] def tokenOfFail[UserToken <: WithToken](
+  private[ziotapir] def tokenOfFail[UserToken <: WithToken](
       issuer: Uri
   )(using
       session: Session[UserToken]
@@ -69,7 +69,7 @@ private[ziolaminartapir] abstract class BackendClient(
 
     } yield withToken.token
 
-  private[ziolaminartapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
@@ -80,7 +80,7 @@ private[ziolaminartapir] abstract class BackendClient(
       .map(_.body)
       .absolve
 
-  private[ziolaminartapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedEndpointRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
