@@ -1,6 +1,7 @@
 package dev.cheleb.ziotapir.laminar
 
 import zio.*
+import zio.stream.*
 
 import scala.annotation.targetName
 
@@ -247,3 +248,21 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
     ZIO
       .service[DifferentOriginBackendClient]
       .flatMap(_.securedEndpointRequestZIO(baseUri, endpoint)(payload))
+
+extension [I, O](
+    endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
+)
+
+  @targetName("streamOn")
+  def on(
+      baseUri: Uri
+  )(payload: I): RIO[DifferentOriginBackendClient, Stream[Throwable, O]] =
+    ZIO
+      .service[DifferentOriginBackendClient]
+      .flatMap(_.streamRequestZIO(baseUri, endpoint)(payload))
+
+  @targetName("streamApply")
+  def apply(payload: I): RIO[SameOriginBackendClient, Stream[Throwable, O]] =
+    ZIO
+      .service[SameOriginBackendClient]
+      .flatMap(_.streamRequestZIO(endpoint)(payload))

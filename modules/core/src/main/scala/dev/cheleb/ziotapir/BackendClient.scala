@@ -2,11 +2,13 @@ package dev.cheleb.ziotapir
 
 import dev.cheleb.ziojwt.WithToken
 
+import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
 
 import zio.*
+import zio.stream.*
 import sttp.model.Uri
 import laminar.Session
 
@@ -37,6 +39,18 @@ private[ziotapir] abstract class BackendClient(
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   ): I => Request[Either[E, O], Any] =
+    interpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
+
+  private[ziotapir] def streamRequest[I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[
+        Unit,
+        I,
+        Throwable,
+        Stream[Throwable, O],
+        ZioStreams
+      ]
+  ): I => Request[Either[Throwable, Stream[Throwable, O]], ZioStreams] =
     interpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
 
   /** Turn a secured endpoint into curried functions:
@@ -99,5 +113,20 @@ private[ziotapir] abstract class BackendClient(
         .map(_.body)
         .absolve
     } yield res
+
+  private[ziotapir] def streamRequestZIO[I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[
+        Unit,
+        I,
+        Throwable,
+        Stream[Throwable, O],
+        ZioStreams
+      ]
+  )(payload: I): Task[Stream[Throwable, O]] =
+    backend
+      .send(streamRequest(baseUri, endpoint)(payload))
+      .map(_.body)
+      .absolve
 
 }

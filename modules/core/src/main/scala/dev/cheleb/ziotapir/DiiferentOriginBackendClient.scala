@@ -6,8 +6,10 @@ import sttp.client3.*
 import sttp.client3.impl.zio.FetchZioBackend
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
+import sttp.capabilities.zio.ZioStreams
 
 import zio.*
+import zio.stream.*
 import sttp.model.Uri
 import dev.cheleb.ziojwt.WithToken
 import laminar.Session
@@ -61,6 +63,10 @@ trait DifferentOriginBackendClient {
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O]
 
+  private[ziotapir] def streamRequestZIO[I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I): Task[Stream[Throwable, O]]
 }
 
 /** The live implementation of the BackendClient with a different origin.

@@ -13,8 +13,10 @@ import sttp.client3.*
 import sttp.client3.impl.zio.FetchZioBackend
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
+import sttp.capabilities.zio.ZioStreams
 
 import zio.*
+import zio.stream.*
 import sttp.model.Uri
 import laminar.Session
 
@@ -58,6 +60,10 @@ trait SameOriginBackendClient {
   ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): Task[O]
+
+  private[ziotapir] def streamRequestZIO[I, O](
+      endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I): Task[Stream[Throwable, O]]
 }
 
 /** A client to the backend, extending the endpoints as methods.
@@ -103,6 +109,10 @@ private class SameOriginBackendClientLive(
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
     securedEndpointRequestZIO(config.baseUrl, endpoint)(payload)
 
+  private[ziotapir] def streamRequestZIO[I, O](
+      endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I): Task[Stream[Throwable, O]] =
+    streamRequestZIO(config.baseUrl, endpoint)(payload)
 }
 
 /** The live implementation of the BackendClient.
