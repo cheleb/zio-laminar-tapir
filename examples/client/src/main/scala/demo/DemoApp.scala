@@ -6,6 +6,10 @@ import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.laminar.*
 import sttp.model.Uri
 
+import zio.stream.*
+import zio.*
+import zio.json.*
+
 val httpbin = Uri.unsafeParse("https://httpbin.org")
 val localhost = Uri.unsafeParse("http://localhost:8080")
 
@@ -23,7 +27,21 @@ val myApp =
     p("Localhost requests (will fail):"),
     button(
       "runJs localhost",
-      onClick --> (_ => HttpBinEndpoints.allStream.on(localhost)(()).runJs)
+      onClick --> (_ =>
+        HttpBinEndpoints.allStream
+          .on(localhost)(())
+          .tap(stream => Console.printLine(stream))
+          .flatMap(stream =>
+            stream
+              .via(ZPipeline.utf8Decode)
+              .via(ZPipeline.splitLines)
+              .tap(line => Console.printLine(line))
+              .via(ZPipeline.map(_.fromJson[Organisation].toOption.get))
+              .tap(organisation => Console.printLine(organisation))
+              .runForeach(organisation => Console.printLine(organisation))
+          )
+          .runJs
+      )
     ),
     p(
       s"Click the buttons below to make requests to the backend $httpbin."
