@@ -71,6 +71,15 @@ private[ziotapir] abstract class BackendClient(
       Some(baseUri)
     )
 
+  private[ziotapir] def securedStreamRequest[SI, I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[SI, I, Throwable, Stream[Throwable, O], ZioStreams]
+  ): SI => I => Request[Either[Throwable, Stream[Throwable, O]], ZioStreams] =
+    interpreter.toSecureRequestThrowDecodeFailures(
+      endpoint,
+      Some(baseUri)
+    )
+
   /** Get the token from the session, or fail with an exception. */
   private[ziotapir] def tokenOfFail[UserToken <: WithToken](
       issuer: Uri
@@ -128,5 +137,19 @@ private[ziotapir] abstract class BackendClient(
       .send(streamRequest(baseUri, endpoint)(payload))
       .map(_.body)
       .absolve
+
+  def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]] =
+    for {
+      token <- tokenOfFail(baseUri)
+      res <- backend
+        .send(
+          securedStreamRequest(baseUri, endpoint)(token)(payload)
+        )
+        .map(_.body)
+        .absolve
+    } yield res
 
 }

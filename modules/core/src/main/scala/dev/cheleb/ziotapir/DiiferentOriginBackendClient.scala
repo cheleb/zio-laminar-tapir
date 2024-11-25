@@ -67,6 +67,11 @@ trait DifferentOriginBackendClient {
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
   )(payload: I): Task[Stream[Throwable, O]]
+
+  private[ziotapir] def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]]
 }
 
 /** The live implementation of the BackendClient with a different origin.

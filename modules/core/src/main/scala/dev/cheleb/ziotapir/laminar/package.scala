@@ -249,6 +249,9 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
       .service[DifferentOriginBackendClient]
       .flatMap(_.securedEndpointRequestZIO(baseUri, endpoint)(payload))
 
+/** Extension that allows us to turn a stream endpoint to a function from a
+  * payload to a ZIO.
+  */
 extension [I, O](
     endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
 )
@@ -266,3 +269,28 @@ extension [I, O](
     ZIO
       .service[SameOriginBackendClient]
       .flatMap(_.streamRequestZIO(endpoint)(payload))
+
+/** Extension that allows us to turn a stream endpoint to a function from a
+  * payload to a ZIO.
+  */
+extension [I, O](
+    endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+)
+
+  @targetName("securedStreamOn")
+  def on[UserToken <: WithToken](
+      baseUri: Uri
+  )(payload: I)(using
+      session: Session[UserToken]
+  ): RIO[DifferentOriginBackendClient, Stream[Throwable, O]] =
+    ZIO
+      .service[DifferentOriginBackendClient]
+      .flatMap(_.securedStreamRequestZIO(baseUri, endpoint)(payload))
+
+  @targetName("securedStreamApply")
+  def apply[UserToken <: WithToken](payload: I)(using
+      session: Session[UserToken]
+  ): RIO[SameOriginBackendClient, Stream[Throwable, O]] =
+    ZIO
+      .service[SameOriginBackendClient]
+      .flatMap(_.securedStreamRequestZIO(endpoint)(payload))

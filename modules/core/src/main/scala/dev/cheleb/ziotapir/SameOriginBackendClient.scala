@@ -64,6 +64,11 @@ trait SameOriginBackendClient {
   private[ziotapir] def streamRequestZIO[I, O](
       endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
   )(payload: I): Task[Stream[Throwable, O]]
+
+  private[ziotapir] def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+      endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]]
+
 }
 
 /** A client to the backend, extending the endpoints as methods.
@@ -87,6 +92,7 @@ private class SameOriginBackendClientLive(
     * @param payload
     * @return
     */
+
   private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
@@ -113,6 +119,12 @@ private class SameOriginBackendClientLive(
       endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
   )(payload: I): Task[Stream[Throwable, O]] =
     streamRequestZIO(config.baseUrl, endpoint)(payload)
+
+  private[ziotapir] def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+      endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]] =
+    securedStreamRequestZIO(config.baseUrl, endpoint)(payload)
+
 }
 
 /** The live implementation of the BackendClient.

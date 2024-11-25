@@ -23,7 +23,7 @@ val myApp =
     p("Localhost requests (will fail):"),
     button(
       "runJs localhost",
-      onClick --> (_ => HttpBinEndpoints.allStream(()).runJs)
+      onClick --> (_ => HttpBinEndpoints.allStream.on(localhost)(()).runJs)
     ),
     p(
       s"Click the buttons below to make requests to the backend $httpbin."
