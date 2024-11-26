@@ -33,7 +33,6 @@ import zio.json.JsonCodec
 
 /** Extension to ZIO[SameOriginBackendClient, E, A] that allows us to run in JS.
   */
-
 extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
 
   /** Run the underlying request to the default backend.
@@ -214,7 +213,7 @@ extension [I, E <: Throwable, O](
   def apply(payload: I): RIO[SameOriginBackendClient, O] =
     ZIO
       .service[SameOriginBackendClient]
-      .flatMap(_.endpointRequestZIO(endpoint)(payload))
+      .flatMap(_.requestZIO(endpoint)(payload))
 
   /** Call the endpoint with a payload on a different backend than the origin,
     * and get a ZIO back.
@@ -223,7 +222,7 @@ extension [I, E <: Throwable, O](
   def on(baseUri: Uri)(payload: I): RIO[DifferentOriginBackendClient, O] =
     ZIO
       .service[DifferentOriginBackendClient]
-      .flatMap(_.endpointRequestZIO(baseUri, endpoint)(payload))
+      .flatMap(_.requestZIO(baseUri, endpoint)(payload))
 
 /** Extension that allows us to turn a secured endpoint to a function from a
   * payload to a ZIO.
@@ -239,7 +238,7 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
   )(using session: Session[UserToken]): RIO[SameOriginBackendClient, O] =
     ZIO
       .service[SameOriginBackendClient]
-      .flatMap(_.securedEndpointRequestZIO(endpoint)(payload))
+      .flatMap(_.securedRequestZIO(endpoint)(payload))
 
   /** Call the secured endpoint with a payload on a different backend than the
     * origin, and get a ZIO back.
@@ -249,7 +248,7 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
   )(using session: Session[UserToken]): RIO[DifferentOriginBackendClient, O] =
     ZIO
       .service[DifferentOriginBackendClient]
-      .flatMap(_.securedEndpointRequestZIO(baseUri, endpoint)(payload))
+      .flatMap(_.securedRequestZIO(baseUri, endpoint)(payload))
 
 /** Extension that allows us to turn a stream endpoint to a function from a
   * payload to a ZIO.
@@ -258,6 +257,9 @@ extension [I, O](
     endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
 )
 
+  /** Call the endpoint with a payload on a different backend than the origin,
+    * and get a ZIO back.
+    */
   @targetName("streamOn")
   def on(
       baseUri: Uri
@@ -266,6 +268,8 @@ extension [I, O](
       .service[DifferentOriginBackendClient]
       .flatMap(_.streamRequestZIO(baseUri, endpoint)(payload))
 
+    /** Call the endpoint with a payload, and get a ZIO back.
+      */
   @targetName("streamApply")
   def apply(payload: I): RIO[SameOriginBackendClient, Stream[Throwable, O]] =
     ZIO
@@ -279,6 +283,9 @@ extension [I, O](
     endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
 )
 
+  /** Call the secured stream endpoint with a payload on a different backend
+    * than the origin, and get a ZIO back.
+    */
   @targetName("securedStreamOn")
   def on[UserToken <: WithToken](
       baseUri: Uri
@@ -289,6 +296,8 @@ extension [I, O](
       .service[DifferentOriginBackendClient]
       .flatMap(_.securedStreamRequestZIO(baseUri, endpoint)(payload))
 
+  /** Call the secured stream endpoint with a payload, and get a ZIO back.
+    */
   @targetName("securedStreamApply")
   def apply[UserToken <: WithToken](payload: I)(using
       session: Session[UserToken]
@@ -297,6 +306,9 @@ extension [I, O](
       .service[SameOriginBackendClient]
       .flatMap(_.securedStreamRequestZIO(endpoint)(payload))
 
+/** Extension methods for ZIO[SameOriginBackendClient, Throwable, ZStream], that
+  * parse JSONL.
+  */
 extension (
     zio: ZIO[
       SameOriginBackendClient,
@@ -304,6 +316,8 @@ extension (
       ZStream[Any, Throwable, Byte]
     ]
 )
+  /** Parse a JSONL stream.
+    */
   def jsonl[I: JsonCodec, O](f: I => Task[O]) =
     zio
       .flatMap(stream =>
@@ -314,6 +328,10 @@ extension (
           .runForeach(f)
       )
       .runJs
+
+/** Extension methods for ZIO[DifferentOriginBackendClient, Throwable, ZStream],
+  * that parse JSONL.
+  */
 extension (
     zio: ZIO[
       DifferentOriginBackendClient,
@@ -321,6 +339,8 @@ extension (
       ZStream[Any, Throwable, Byte]
     ]
 )
+  /** Parse a JSONL stream.
+    */
   @targetName("djsonl")
   def jsonl[I: JsonCodec, O](f: I => Task[O]) =
     zio

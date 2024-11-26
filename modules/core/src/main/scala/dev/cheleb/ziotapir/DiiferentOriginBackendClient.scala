@@ -30,7 +30,7 @@ trait DifferentOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def requestZIO[I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
@@ -53,7 +53,7 @@ trait DifferentOriginBackendClient {
     *   the session with the token
     * @return
     */
-  private[ziotapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -68,7 +68,11 @@ trait DifferentOriginBackendClient {
       endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
   )(payload: I): Task[Stream[Throwable, O]]
 
-  private[ziotapir] def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+  private[ziotapir] def securedStreamRequestZIO[
+      UserToken <: WithToken,
+      I,
+      O
+  ](
       baseUri: Uri,
       endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
   )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]]

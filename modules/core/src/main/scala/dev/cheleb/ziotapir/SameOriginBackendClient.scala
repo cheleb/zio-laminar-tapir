@@ -35,7 +35,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def requestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
@@ -52,7 +52,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziotapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -93,19 +93,19 @@ private class SameOriginBackendClientLive(
     * @return
     */
 
-  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def requestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
   ): ZIO[Any, Throwable, O] =
-    endpointRequestZIO(config.baseUrl, endpoint)(payload)
+    requestZIO(config.baseUrl, endpoint)(payload)
 
     /** Call a secured endpoint with a payload.
       * @param endpoint
       * @param payload
       * @return
       */
-  private[ziotapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -113,7 +113,7 @@ private class SameOriginBackendClientLive(
   ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
-    securedEndpointRequestZIO(config.baseUrl, endpoint)(payload)
+    securedRequestZIO(config.baseUrl, endpoint)(payload)
 
   private[ziotapir] def streamRequestZIO[I, O](
       endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
