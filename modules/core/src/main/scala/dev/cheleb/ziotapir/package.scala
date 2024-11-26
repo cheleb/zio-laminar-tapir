@@ -1,7 +1,7 @@
 package dev.cheleb.ziotapir
 
-import sttp.capabilities.zio.ZioStreams
 import sttp.capabilities.WebSockets
+import sttp.capabilities.zio.ZioStreams
 
 /** Type alias for ZIO streams with websockets.
   *

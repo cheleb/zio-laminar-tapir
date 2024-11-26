@@ -1,10 +1,10 @@
 package dev.cheleb.ziotapir
 
-import sttp.tapir.ztapir.*
-import sttp.tapir.server.ServerEndpoint
-import sttp.capabilities.zio.ZioStreams
-
 import zio.Task
+
+import sttp.capabilities.zio.ZioStreams
+import sttp.tapir.server.ServerEndpoint
+import sttp.tapir.ztapir.*
 
 trait BaseController {
 

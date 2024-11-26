@@ -1,14 +1,15 @@
 package demo
 
-import sttp.tapir.*
-
-import zio.stream.*
 import zio.json.*
-import sttp.tapir.json.zio.*
-import sttp.tapir.generic.auto.*
-import sttp.model.StatusCode
-import sttp.capabilities.zio.ZioStreams
+import zio.stream.*
+
 import java.util.UUID
+
+import sttp.capabilities.zio.ZioStreams
+import sttp.model.StatusCode
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
+import sttp.tapir.json.zio.*
 
 case class GetResponse(args: Map[String, String]) derives JsonCodec
 

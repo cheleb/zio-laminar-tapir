@@ -1,8 +1,9 @@
 package dev.cheleb.ziochimney
 
 import zio.Task
-import io.scalaland.chimney.dsl.*
+
 import io.scalaland.chimney.Transformer
+import io.scalaland.chimney.dsl.*
 
 /** Extension methods for `Task` that allow to transform the result of the task
   * using Chimney.

@@ -2,18 +2,17 @@ package dev.cheleb.ziotapir.laminar
 
 import zio.*
 import zio.json.*
+import zio.json.JsonCodec
 import zio.stream.*
 
 import scala.annotation.targetName
 
 import com.raquo.laminar.api.L.*
-import sttp.tapir.Endpoint
 import dev.cheleb.ziojwt.WithToken
 import dev.cheleb.ziotapir.*
-import sttp.model.Uri
 import sttp.capabilities.zio.ZioStreams
-import sttp.capabilities.WebSockets
-import zio.json.JsonCodec
+import sttp.model.Uri
+import sttp.tapir.Endpoint
 
 /** Extension methods for ZIO JS.
   *

@@ -1,15 +1,15 @@
 package dev.cheleb.ziotapir
 
-import dev.cheleb.ziojwt.WithToken
+import zio.*
+import zio.stream.*
 
+import dev.cheleb.ziojwt.WithToken
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
+import sttp.model.Uri
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
 
-import zio.*
-import zio.stream.*
-import sttp.model.Uri
 import laminar.Session
 
 /** A client to the backend, extending the endpoints as methods.

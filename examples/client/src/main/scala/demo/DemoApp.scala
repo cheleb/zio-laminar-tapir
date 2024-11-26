@@ -1,14 +1,11 @@
 package demo
 
-import org.scalajs.dom
-import com.raquo.laminar.api.L.*
-
-import dev.cheleb.ziotapir.laminar.*
-import sttp.model.Uri
-
-import zio.stream.*
 import zio.*
-import zio.json.*
+
+import com.raquo.laminar.api.L.*
+import dev.cheleb.ziotapir.laminar.*
+import org.scalajs.dom
+import sttp.model.Uri
 
 val httpbin = Uri.unsafeParse("https://httpbin.org")
 val localhost = Uri.unsafeParse("http://localhost:8080")

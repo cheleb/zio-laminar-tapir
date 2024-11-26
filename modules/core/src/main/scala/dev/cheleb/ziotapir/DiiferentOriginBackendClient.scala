@@ -1,17 +1,17 @@
 package dev.cheleb.ziotapir
 
-import izumi.reflect.Tag
-
-import sttp.client3.*
-import sttp.client3.impl.zio.FetchZioBackend
-import sttp.tapir.Endpoint
-import sttp.tapir.client.sttp.SttpClientInterpreter
-import sttp.capabilities.zio.ZioStreams
-
 import zio.*
 import zio.stream.*
-import sttp.model.Uri
+
 import dev.cheleb.ziojwt.WithToken
+import izumi.reflect.Tag
+import sttp.capabilities.zio.ZioStreams
+import sttp.client3.*
+import sttp.client3.impl.zio.FetchZioBackend
+import sttp.model.Uri
+import sttp.tapir.Endpoint
+import sttp.tapir.client.sttp.SttpClientInterpreter
+
 import laminar.Session
 
 /** A client to the backend, extending the endpoints as methods.

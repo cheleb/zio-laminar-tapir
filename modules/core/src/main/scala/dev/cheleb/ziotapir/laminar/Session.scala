@@ -1,15 +1,14 @@
 package dev.cheleb.ziotapir.laminar
 
+import zio.json.*
+
 import scala.scalajs.js.Date
 
 import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.*
-
-import zio.json.*
 import dev.cheleb.ziojwt.WithToken
-import dev.cheleb.ziotapir.Storage
 import dev.cheleb.ziotapir.SameOriginBackendClientLive
-
+import dev.cheleb.ziotapir.Storage
 import sttp.model.Uri
 
 trait Session[UserToken <: WithToken] {
