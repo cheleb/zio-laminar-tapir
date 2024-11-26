@@ -4,7 +4,7 @@ layout: main
 
 # Streaming
 
-Th `streaming` module provides a way to stream data from a source to a destination. This is useful when you want to process data in chunks, or when you want to avoid loading the entire data into memory.
+The `streaming` module provides a way to stream data from a source to a destination. This is useful when you want to process data in chunks, or when you want to avoid loading the entire data into memory.
 
 ## Usage
 
