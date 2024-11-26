@@ -4,3 +4,10 @@ subsection:
     page: getting-started.html
   - title: Usage
     index: usage.html
+    directory: advanced
+  - title: Advanced
+    subsection:
+      - title: Origin
+        page: origin.html
+      - title: Streaming
+        page: streaming.html

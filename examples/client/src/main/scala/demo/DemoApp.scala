@@ -27,9 +27,7 @@ val myApp =
       onClick --> (_ =>
         HttpBinEndpoints.allStream
           .on(localhost)(())
-          .jsonl[Organisation, Unit](organisation =>
-            Console.printLine(organisation)
-          )
+          .jsonl[Organisation](organisation => Console.printLine(organisation))
       )
     ),
     p(

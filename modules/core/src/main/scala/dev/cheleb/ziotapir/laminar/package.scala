@@ -341,7 +341,7 @@ extension (
   /** Parse a JSONL stream.
     */
   @targetName("djsonl")
-  def jsonl[I: JsonCodec, O](f: I => Task[O]) =
+  def jsonl[I: JsonCodec](f: I => Task[Unit]) =
     zio
       .flatMap(stream =>
         stream

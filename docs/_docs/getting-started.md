@@ -40,7 +40,7 @@ In your Laminar app:
 
 ```scala sc:nocompile
 
-import dev.cheleb.ziotapir.laminar.*                 // (1)
+import dev.cheleb.ziotapir.laminar.*                // (1)
 
 val eventBus = new EventBus[GetResponse]()          // (2)
 val errorBus = new EventBus[Throwable]()            // (3)
@@ -50,7 +50,7 @@ val errorBus = new EventBus[Throwable]()            // (3)
 button(
     "runJs",
     onClick --> (_ => HttpBinEndpoints.get(())      // (4)
-                        .runJs(eventBus, errorBus)  // ()
+                        .runJs(eventBus, errorBus)  // (5)
   )
 )
 ```
