@@ -30,17 +30,9 @@ val myApp =
       onClick --> (_ =>
         HttpBinEndpoints.allStream
           .on(localhost)(())
-          .tap(stream => Console.printLine(stream))
-          .flatMap(stream =>
-            stream
-              .via(ZPipeline.utf8Decode)
-              .via(ZPipeline.splitLines)
-              .tap(line => Console.printLine(line))
-              .via(ZPipeline.map(_.fromJson[Organisation].toOption.get))
-              .tap(organisation => Console.printLine(organisation))
-              .runForeach(organisation => Console.printLine(organisation))
+          .jsonl[Organisation, Unit](organisation =>
+            Console.printLine(organisation)
           )
-          .runJs
       )
     ),
     p(

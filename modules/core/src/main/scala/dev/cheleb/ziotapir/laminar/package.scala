@@ -1,6 +1,7 @@
 package dev.cheleb.ziotapir.laminar
 
 import zio.*
+import zio.json.*
 import zio.stream.*
 
 import scala.annotation.targetName
@@ -12,6 +13,7 @@ import dev.cheleb.ziotapir.*
 import sttp.model.Uri
 import sttp.capabilities.zio.ZioStreams
 import sttp.capabilities.WebSockets
+import zio.json.JsonCodec
 
 /** Extension methods for ZIO JS.
   *
@@ -294,3 +296,39 @@ extension [I, O](
     ZIO
       .service[SameOriginBackendClient]
       .flatMap(_.securedStreamRequestZIO(endpoint)(payload))
+
+extension (
+    zio: ZIO[
+      SameOriginBackendClient,
+      Throwable,
+      ZStream[Any, Throwable, Byte]
+    ]
+)
+  def jsonl[I: JsonCodec, O](f: I => Task[O]) =
+    zio
+      .flatMap(stream =>
+        stream
+          .via(ZPipeline.utf8Decode)
+          .via(ZPipeline.splitLines)
+          .via(ZPipeline.map(_.fromJson[I].toOption.get))
+          .runForeach(f)
+      )
+      .runJs
+extension (
+    zio: ZIO[
+      DifferentOriginBackendClient,
+      Throwable,
+      ZStream[Any, Throwable, Byte]
+    ]
+)
+  @targetName("djsonl")
+  def jsonl[I: JsonCodec, O](f: I => Task[O]) =
+    zio
+      .flatMap(stream =>
+        stream
+          .via(ZPipeline.utf8Decode)
+          .via(ZPipeline.splitLines)
+          .via(ZPipeline.map(_.fromJson[I].toOption.get))
+          .runForeach(f)
+      )
+      .runJs

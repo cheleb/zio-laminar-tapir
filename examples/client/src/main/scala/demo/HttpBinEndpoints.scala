@@ -45,7 +45,10 @@ object HttpBinEndpoints extends BaseEndpoint {
       .get
       .in("api" / "organisation" / "stream")
       .out(
-        streamBody(ZioStreams)(summon[Schema[Organisation]], CodecFormat.Json())
+        streamBody(ZioStreams)(
+          summon[Schema[Organisation]],
+          CodecFormat.TextEventStream()
+        )
       )
       .description("Get all organisations")
 
