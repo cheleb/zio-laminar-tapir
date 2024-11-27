@@ -1,13 +1,13 @@
 index: index.html
 subsection:
   - title: Getting Started
-    page: getting-started.html
+    page: getting-started.md
   - title: Usage
-    index: usage.html
-    directory: advanced
+    page: usage.md
   - title: Advanced
+    index: advanced.md
     subsection:
       - title: Origin
-        page: origin.html
+        page: advanced/origin.md
       - title: Streaming
-        page: streaming.html
+        page: advanced/streaming.md

@@ -1,9 +1,4 @@
----
-layout: main
----
-
 # Usage
-
 
 For a simple example, visit [DemoApp](https://github.com/cheleb/zio-laminar-tapir/blob/master/examples/client/src/main/scala/demo/DemoApp.scala)
 

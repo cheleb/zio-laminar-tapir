@@ -2,7 +2,7 @@
 layout: main
 ---
 
-# CORS 
+# CORS
 
 To enable CORS in your application, you can use the `CORS` middleware. This middleware is included in the `cors` package, so you need to install it first.
 
