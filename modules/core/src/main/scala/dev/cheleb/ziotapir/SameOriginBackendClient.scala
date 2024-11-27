@@ -1,21 +1,21 @@
 package dev.cheleb.ziotapir
 
-import dev.cheleb.ziojwt.WithToken
-
-import izumi.reflect.Tag
-
-import org.scalajs.dom.window
+import zio.*
+import zio.stream.*
 
 import scala.scalajs.LinkingInfo
 import scala.scalajs.js
 
+import dev.cheleb.ziojwt.WithToken
+import izumi.reflect.Tag
+import org.scalajs.dom.window
+import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
 import sttp.client3.impl.zio.FetchZioBackend
+import sttp.model.Uri
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
 
-import zio.*
-import sttp.model.Uri
 import laminar.Session
 
 /** A client to the backend, extending the endpoints as methods.
@@ -33,7 +33,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
+  private[ziotapir] def requestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
@@ -50,7 +50,7 @@ trait SameOriginBackendClient {
     * @param payload
     * @return
     */
-  private[ziotapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -58,6 +58,15 @@ trait SameOriginBackendClient {
   ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): Task[O]
+
+  private[ziotapir] def streamRequestZIO[I, O](
+      endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I): Task[Stream[Throwable, O]]
+
+  private[ziotapir] def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+      endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]]
+
 }
 
 /** A client to the backend, extending the endpoints as methods.
@@ -81,19 +90,20 @@ private class SameOriginBackendClientLive(
     * @param payload
     * @return
     */
-  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
+
+  private[ziotapir] def requestZIO[I, E <: Throwable, O](
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
   ): ZIO[Any, Throwable, O] =
-    endpointRequestZIO(config.baseUrl, endpoint)(payload)
+    requestZIO(config.baseUrl, endpoint)(payload)
 
     /** Call a secured endpoint with a payload.
       * @param endpoint
       * @param payload
       * @return
       */
-  private[ziotapir] def securedEndpointRequestZIO[
+  private[ziotapir] def securedRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -101,7 +111,17 @@ private class SameOriginBackendClientLive(
   ](
       endpoint: Endpoint[String, I, E, O, Any]
   )(payload: I)(using session: Session[UserToken]): ZIO[Any, Throwable, O] =
-    securedEndpointRequestZIO(config.baseUrl, endpoint)(payload)
+    securedRequestZIO(config.baseUrl, endpoint)(payload)
+
+  private[ziotapir] def streamRequestZIO[I, O](
+      endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I): Task[Stream[Throwable, O]] =
+    streamRequestZIO(config.baseUrl, endpoint)(payload)
+
+  private[ziotapir] def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+      endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]] =
+    securedStreamRequestZIO(config.baseUrl, endpoint)(payload)
 
 }
 

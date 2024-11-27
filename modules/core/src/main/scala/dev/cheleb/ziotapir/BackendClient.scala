@@ -1,13 +1,15 @@
 package dev.cheleb.ziotapir
 
-import dev.cheleb.ziojwt.WithToken
+import zio.*
+import zio.stream.*
 
+import dev.cheleb.ziojwt.WithToken
+import sttp.capabilities.zio.ZioStreams
 import sttp.client3.*
+import sttp.model.Uri
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp.SttpClientInterpreter
 
-import zio.*
-import sttp.model.Uri
 import laminar.Session
 
 /** A client to the backend, extending the endpoints as methods.
@@ -33,10 +35,31 @@ private[ziotapir] abstract class BackendClient(
     * @param endpoint
     * @return
     */
-  private[ziotapir] def endpointRequest[I, E, O](
+  private[ziotapir] def request[I, E, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   ): I => Request[Either[E, O], Any] =
+    interpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
+
+  /** Turn a stream endpoint into a function:
+    * {{{
+    * Input => Request
+    * }}}
+    *
+    * @param baseUri
+    * @param endpoint
+    * @return
+    */
+  private[ziotapir] def streamRequest[I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[
+        Unit,
+        I,
+        Throwable,
+        Stream[Throwable, O],
+        ZioStreams
+      ]
+  ): I => Request[Either[Throwable, Stream[Throwable, O]], ZioStreams] =
     interpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
 
   /** Turn a secured endpoint into curried functions:
@@ -48,10 +71,29 @@ private[ziotapir] abstract class BackendClient(
     * @param endpoint
     * @return
     */
-  private[ziotapir] def securedEndpointRequest[SI, I, E, O](
+  private[ziotapir] def securedRequest[SI, I, E, O](
       baseUri: Uri,
       endpoint: Endpoint[SI, I, E, O, Any]
   ): SI => I => Request[Either[E, O], Any] =
+    interpreter.toSecureRequestThrowDecodeFailures(
+      endpoint,
+      Some(baseUri)
+    )
+
+  /** Turn a secured stream endpoint into curried functions:
+    *
+    * {{{
+    *  SecurityInput => Input => Request.
+    * }}}
+    *
+    * @param baseUri
+    * @param endpoint
+    * @return
+    */
+  private[ziotapir] def securedStreamRequest[SI, I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[SI, I, Throwable, Stream[Throwable, O], ZioStreams]
+  ): SI => I => Request[Either[Throwable, Stream[Throwable, O]], ZioStreams] =
     interpreter.toSecureRequestThrowDecodeFailures(
       endpoint,
       Some(baseUri)
@@ -70,18 +112,32 @@ private[ziotapir] abstract class BackendClient(
 
     } yield withToken.token
 
-  private[ziotapir] def endpointRequestZIO[I, E <: Throwable, O](
+  /** Call an endpoint with a payload, and get a ZIO back.
+    *
+    * @param baseUri
+    * @param endpoint
+    * @param payload
+    * @return
+    */
+  private[ziotapir] def requestZIO[I, E <: Throwable, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
   )(
       payload: I
   ): Task[O] =
     backend
-      .send(endpointRequest(baseUri, endpoint)(payload))
+      .send(request(baseUri, endpoint)(payload))
       .map(_.body)
       .absolve
 
-  private[ziotapir] def securedEndpointRequestZIO[
+  /** Call a secured endpoint with a payload, and get a ZIO back.
+    *
+    * @param baseUri
+    * @param endpoint
+    * @param payload
+    * @return
+    */
+  private[ziotapir] def securedRequestZIO[
       UserToken <: WithToken,
       I,
       E <: Throwable,
@@ -94,7 +150,36 @@ private[ziotapir] abstract class BackendClient(
       token <- tokenOfFail(baseUri)
       res <- backend
         .send(
-          securedEndpointRequest(baseUri, endpoint)(token)(payload)
+          securedRequest(baseUri, endpoint)(token)(payload)
+        )
+        .map(_.body)
+        .absolve
+    } yield res
+
+  private[ziotapir] def streamRequestZIO[I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[
+        Unit,
+        I,
+        Throwable,
+        Stream[Throwable, O],
+        ZioStreams
+      ]
+  )(payload: I): Task[Stream[Throwable, O]] =
+    backend
+      .send(streamRequest(baseUri, endpoint)(payload))
+      .map(_.body)
+      .absolve
+
+  def securedStreamRequestZIO[UserToken <: WithToken, I, O](
+      baseUri: Uri,
+      endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
+  )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]] =
+    for {
+      token <- tokenOfFail(baseUri)
+      res <- backend
+        .send(
+          securedStreamRequest(baseUri, endpoint)(token)(payload)
         )
         .map(_.body)
         .absolve

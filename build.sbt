@@ -42,13 +42,8 @@ inThisBuild(
     startYear := Some(2023),
     licenses += ("Apache-2.0", url(
       "http://www.apache.org/licenses/LICENSE-2.0"
-    )),
-    scalacOptions ++= Seq(
-      "-deprecation",
-      "-feature",
-      "-Xfatal-warnings",
-      "-Wunused:all"
-    )
+    ))
+
 //    wartremoverErrors ++= Warts.all
   )
 )
@@ -70,6 +65,9 @@ lazy val server = project
   .in(file("modules/server"))
   .settings(name := "zio-tapir-server")
   .settings(
+    scalacOptions ++= usedScalacOptions
+  )
+  .settings(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
     )
@@ -81,7 +79,12 @@ val usedScalacOptions = Seq(
   "-unchecked",
   "-language:higherKinds",
   "-language:implicitConversions",
-  "-Xmax-inlines:64"
+  "-Xmax-inlines:64",
+  "-deprecation",
+  "-feature",
+  "-Xfatal-warnings",
+  "-Wunused:all",
+  "-Wunused:imports"
 )
 
 lazy val shared = crossProject(JSPlatform, JVMPlatform)
@@ -143,10 +146,7 @@ def scalajsProject(projectId: String, sample: Boolean): Project =
     .settings(Test / requireJsDomEnv := true)
     .settings(
       scalacOptions := Seq(
-        "-scalajs",
-        "-deprecation",
-        "-feature",
-        "-Xfatal-warnings"
+        "-scalajs"
       )
     )
 def nexusNpmSettings =

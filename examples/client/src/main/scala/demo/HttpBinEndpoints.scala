@@ -1,13 +1,26 @@
 package demo
 
-import sttp.tapir.*
-
 import zio.json.*
-import sttp.tapir.json.zio.*
-import sttp.tapir.generic.auto.*
+import zio.stream.*
+
+import java.util.UUID
+
+import sttp.capabilities.zio.ZioStreams
 import sttp.model.StatusCode
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
+import sttp.tapir.json.zio.*
 
 case class GetResponse(args: Map[String, String]) derives JsonCodec
+
+case class LatLon(lat: Double, lon: Double) derives JsonCodec, Schema
+
+case class Organisation(
+    id: UUID,
+    name: String,
+    location: Option[LatLon]
+) derives JsonCodec,
+      Schema
 
 trait BaseEndpoint {
   val baseEndpoint: Endpoint[Unit, Unit, Throwable, Unit, Any] = endpoint
@@ -24,6 +37,21 @@ object HttpBinEndpoints extends BaseEndpoint {
   val get = baseEndpoint.get.in("get").out(jsonBody[GetResponse])
   val getInt =
     baseEndpoint.get.in("get").in(query[Int]("int")).out(jsonBody[GetResponse])
+
+  val allStream
+      : Endpoint[Unit, Unit, Throwable, Stream[Throwable, Byte], ZioStreams] =
+    baseEndpoint
+      .tag("Admin")
+      .name("organisation stream")
+      .get
+      .in("api" / "organisation" / "stream")
+      .out(
+        streamBody(ZioStreams)(
+          summon[Schema[Organisation]],
+          CodecFormat.TextEventStream()
+        )
+      )
+      .description("Get all organisations")
 
 }
 

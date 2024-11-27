@@ -1,6 +1,0 @@
-index: index.html
-subsection:
-  - title: Getting Started
-    page: getting-started.html
-  - title: Usage
-    index: usage.html

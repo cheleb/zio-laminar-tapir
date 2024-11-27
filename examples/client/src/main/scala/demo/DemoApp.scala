@@ -1,26 +1,37 @@
 package demo
 
-import org.scalajs.dom
-import com.raquo.laminar.api.L.*
+import zio.*
 
+import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.laminar.*
+import org.scalajs.dom
 import sttp.model.Uri
 
 val httpbin = Uri.unsafeParse("https://httpbin.org")
+val localhost = Uri.unsafeParse("http://localhost:8080")
 
 val myApp =
   val eventBus = new EventBus[GetResponse]()
 //  val errorBus = new EventBus[Throwable]()
 
   div(
-    h1("Hello, world!"),
-    p("This is a simple example of a Laminar app using ZIO and Tapir."),
-    p(
-      s"Click the buttons below to make requests to the backend $httpbin."
-    ),
+    h1("ZIO and Tapir."),
+    p("Same origin requests (will fail):"),
     button(
       "runJs some origin",
       onClick --> (_ => HttpBinEndpoints.get(()).runJs)
+    ),
+    p("Localhost requests (will fail):"),
+    button(
+      "runJs localhost",
+      onClick --> (_ =>
+        HttpBinEndpoints.allStream
+          .on(localhost)(())
+          .jsonl[Organisation](organisation => Console.printLine(organisation))
+      )
+    ),
+    p(
+      s"Click the buttons below to make requests to the backend $httpbin."
     ),
     button(
       "runJs remote",
