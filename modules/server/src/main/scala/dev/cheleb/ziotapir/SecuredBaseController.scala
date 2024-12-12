@@ -26,7 +26,7 @@ trait SecuredBaseController[SI, Principal](
       * @return
       */
     @SuppressWarnings(Array("org.wartremover.warts.Any"))
-    def securedServerLogic(
+    def zServerAuthenticatedLogic(
         logic: Principal => I => Task[O]
     ): ServerEndpoint[R, Task] =
       endpoint
