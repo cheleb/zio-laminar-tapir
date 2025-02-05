@@ -7,7 +7,7 @@ addSbtPlugin("org.scala-js"  % "sbt-jsdependencies" % "1.0.2")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler"     % "0.21.1")
 addSbtPlugin("ch.epfl.scala" % "sbt-web-scalajs-bundler" % "0.21.1")
 
-addSbtPlugin("org.scalameta"  % "sbt-scalafmt"        % "2.5.3")
+addSbtPlugin("org.scalameta"  % "sbt-scalafmt"        % "2.5.4")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype"        % "3.12.2")
 addSbtPlugin("com.github.sbt" % "sbt-ci-release"      % "1.9.2")
 addSbtPlugin("com.eed3si9n"   % "sbt-assembly"        % "2.3.1")
