@@ -1,6 +1,7 @@
 package dev.cheleb.ziotapir
 
 import zio.*
+
 import sttp.tapir.server.ServerEndpoint
 
 /** A trait that provides a method to gather all the routes from a controllers.

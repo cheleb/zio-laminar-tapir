@@ -22,6 +22,7 @@ inThisBuild(
     homepage := Some(url("https://github.com/cheleb/")),
     sonatypeCredentialHost := "s01.oss.sonatype.org",
     sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
+    scalacOptions ++= usedScalacOptions,
     pgpPublicRing := file("/tmp/public.asc"),
     pgpSecretRing := file("/tmp/secret.asc"),
     pgpPassphrase := sys.env.get("PGP_PASSWORD").map(_.toArray),
@@ -64,9 +65,6 @@ lazy val root = project
 lazy val server = project
   .in(file("modules/server"))
   .settings(name := "zio-tapir-server")
-  .settings(
-    scalacOptions ++= usedScalacOptions
-  )
   .settings(
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
