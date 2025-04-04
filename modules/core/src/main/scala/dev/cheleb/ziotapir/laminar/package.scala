@@ -2,7 +2,6 @@ package dev.cheleb.ziotapir.laminar
 
 import zio.*
 import zio.json.*
-import zio.json.JsonCodec
 import zio.stream.*
 
 import scala.annotation.targetName
