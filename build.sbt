@@ -6,13 +6,10 @@ val dev = sys.env.get("DEV").getOrElse("demo")
 val scala33 = "3.6.4"
 
 val Versions = new {
-  val chimney = "1.6.0"
   val laminar = "17.2.1"
   val tapir = "1.11.24"
   val sttp = "4.0.2"
-  val sttpModel = "1.7.11"
-  val zio = "2.1.16"
-  val zioJson = "0.7.38"
+  val zio = "2.1.17"
 }
 
 inThisBuild(
@@ -96,8 +93,6 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   )
   .settings(
     libraryDependencies ++= Seq(
-//      "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModel,
-      "io.scalaland" %% "chimney" % Versions.chimney,
       "dev.zio" %%% "zio" % Versions.zio
     )
   )
@@ -116,8 +111,7 @@ lazy val core = scalajsProject("core", false)
       "com.raquo" %%% "laminar" % Versions.laminar,
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
-      "com.softwaremill.sttp.client4" %%% "zio" % Versions.sttp,
-      "dev.zio" %%% "zio-json" % Versions.zioJson
+      "com.softwaremill.sttp.client4" %%% "zio" % Versions.sttp
     )
   )
 
