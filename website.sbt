@@ -30,7 +30,7 @@ Compile / doc / scalacOptions ++= Seq(
   "-project-footer",
   s"Copyright (c) 2022-$currentYear, Olivier NOUGUIER",
   // custom::https://www.linkedin.com/in/olivier-nouguier::linkedinday.png::linkedinnight.png
-  "-social-links:github::https://github.com/cheleb,twitter::https://twitter.com/oNouguier",
+  "-social-links:github::https://github.com/cheleb/zio-laminar-tapir,twitter::https://twitter.com/oNouguier",
   "-Ygenerate-inkuire",
   "-skip-by-regex:demo\\..*",
   "-skip-by-regex:html\\..*",
