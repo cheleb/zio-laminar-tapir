@@ -5,12 +5,13 @@ import zio.stream.*
 
 import dev.cheleb.ziojwt.WithToken
 import sttp.capabilities.zio.ZioStreams
-import sttp.client3.*
+import sttp.client4.*
 import sttp.model.Uri
 import sttp.tapir.Endpoint
-import sttp.tapir.client.sttp.SttpClientInterpreter
 
 import laminar.Session
+import sttp.tapir.client.sttp4.SttpClientInterpreter
+import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
 
 /** A client to the backend, extending the endpoints as methods.
   */
@@ -22,8 +23,9 @@ import laminar.Session
   * @param config
   */
 private[ziotapir] abstract class BackendClient(
-    backend: SttpBackend[Task, ZioStreamsWithWebSockets],
-    interpreter: SttpClientInterpreter
+    backend: WebSocketStreamBackend[Task, ZioStreams],
+    interpreter: SttpClientInterpreter,
+    streamInterpreter: StreamSttpClientInterpreter
 ) {
 
   /** Turn an endpoint into a function:
@@ -38,7 +40,7 @@ private[ziotapir] abstract class BackendClient(
   private[ziotapir] def request[I, E, O](
       baseUri: Uri,
       endpoint: Endpoint[Unit, I, E, O, Any]
-  ): I => Request[Either[E, O], Any] =
+  ): I => Request[Either[E, O]] =
     interpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
 
   /** Turn a stream endpoint into a function:
@@ -59,8 +61,8 @@ private[ziotapir] abstract class BackendClient(
         Stream[Throwable, O],
         ZioStreams
       ]
-  ): I => Request[Either[Throwable, Stream[Throwable, O]], ZioStreams] =
-    interpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
+  ): I => StreamRequest[Either[Throwable, Stream[Throwable, O]], ZioStreams] =
+    streamInterpreter.toRequestThrowDecodeFailures(endpoint, Some(baseUri))
 
   /** Turn a secured endpoint into curried functions:
     *
@@ -74,7 +76,7 @@ private[ziotapir] abstract class BackendClient(
   private[ziotapir] def securedRequest[SI, I, E, O](
       baseUri: Uri,
       endpoint: Endpoint[SI, I, E, O, Any]
-  ): SI => I => Request[Either[E, O], Any] =
+  ): SI => I => Request[Either[E, O]] =
     interpreter.toSecureRequestThrowDecodeFailures(
       endpoint,
       Some(baseUri)
@@ -93,8 +95,11 @@ private[ziotapir] abstract class BackendClient(
   private[ziotapir] def securedStreamRequest[SI, I, O](
       baseUri: Uri,
       endpoint: Endpoint[SI, I, Throwable, Stream[Throwable, O], ZioStreams]
-  ): SI => I => Request[Either[Throwable, Stream[Throwable, O]], ZioStreams] =
-    interpreter.toSecureRequestThrowDecodeFailures(
+  ): SI => I => StreamRequest[
+    Either[Throwable, Stream[Throwable, O]],
+    ZioStreams
+  ] =
+    streamInterpreter.toSecureRequestThrowDecodeFailures(
       endpoint,
       Some(baseUri)
     )

@@ -8,8 +8,8 @@ val scala33 = "3.6.4"
 val Versions = new {
   val chimney = "1.6.0"
   val laminar = "17.2.1"
-  val tapir = "1.11.22"
-  val sttp = "3.10.1"
+  val tapir = "1.11.24"
+  val sttp = "4.0.2"
   val sttpModel = "1.7.11"
   val zio = "2.1.16"
   val zioJson = "0.7.38"
@@ -41,9 +41,12 @@ inThisBuild(
       )
     ),
     startYear := Some(2023),
-    licenses += ("Apache-2.0", url(
-      "http://www.apache.org/licenses/LICENSE-2.0"
-    ))
+    licenses += (
+      "Apache-2.0",
+      url(
+        "http://www.apache.org/licenses/LICENSE-2.0"
+      )
+    )
 
 //    wartremoverErrors ++= Warts.all
   )
@@ -111,9 +114,9 @@ lazy val core = scalajsProject("core", false)
   .settings(
     libraryDependencies ++= Seq(
       "com.raquo" %%% "laminar" % Versions.laminar,
-      "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client" % Versions.tapir,
+      "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
-      "com.softwaremill.sttp.client3" %%% "zio" % Versions.sttp,
+      "com.softwaremill.sttp.client4" %%% "zio" % Versions.sttp,
       "dev.zio" %%% "zio-json" % Versions.zioJson
     )
   )
