@@ -6,13 +6,14 @@ import zio.stream.*
 import dev.cheleb.ziojwt.WithToken
 import izumi.reflect.Tag
 import sttp.capabilities.zio.ZioStreams
-import sttp.client3.*
-import sttp.client3.impl.zio.FetchZioBackend
+import sttp.client4.*
+import sttp.client4.impl.zio.FetchZioBackend
 import sttp.model.Uri
 import sttp.tapir.Endpoint
-import sttp.tapir.client.sttp.SttpClientInterpreter
 
 import laminar.Session
+import sttp.tapir.client.sttp4.SttpClientInterpreter
+import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
 
 /** A client to the backend, extending the endpoints as methods.
   *
@@ -86,9 +87,10 @@ trait DifferentOriginBackendClient {
   *   the interpreter to use
   */
 private class DifferentOriginBackendClientLive(
-    backend: SttpBackend[Task, ZioStreamsWithWebSockets],
-    interpreter: SttpClientInterpreter
-) extends BackendClient(backend, interpreter)
+    backend: WebSocketStreamBackend[Task, ZioStreams],
+    interpreter: SttpClientInterpreter,
+    streamInterpreter: StreamSttpClientInterpreter
+) extends BackendClient(backend, interpreter, streamInterpreter)
     with DifferentOriginBackendClient {}
 
 /** The live implementation of the BackendClient with a different origin.
@@ -97,20 +99,21 @@ object DifferentOriginBackendClientLive {
 
   /** The layer to create the client from the backend and the interpreter.
     */
-  private def layer: URLayer[
-    SttpBackend[Task, ZioStreamsWithWebSockets] & (SttpClientInterpreter),
-    DifferentOriginBackendClient
-  ] =
+  private def layer =
     ZLayer.derive[DifferentOriginBackendClientLive]
 
   /** The layer to create the client.
     */
   private[ziotapir] def configuredLayer
       : ULayer[DifferentOriginBackendClient] = {
-    val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
+    val backend: WebSocketStreamBackend[Task, ZioStreams] =
+      FetchZioBackend()
     val interpreter = SttpClientInterpreter()
+    val streamInterpreter = StreamSttpClientInterpreter()
 
-    ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) >>> layer
+    ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
+      streamInterpreter
+    ) >>> layer
   }
 
 }

@@ -10,13 +10,14 @@ import dev.cheleb.ziojwt.WithToken
 import izumi.reflect.Tag
 import org.scalajs.dom.window
 import sttp.capabilities.zio.ZioStreams
-import sttp.client3.*
-import sttp.client3.impl.zio.FetchZioBackend
+import sttp.client4.*
+import sttp.client4.impl.zio.FetchZioBackend
 import sttp.model.Uri
 import sttp.tapir.Endpoint
-import sttp.tapir.client.sttp.SttpClientInterpreter
 
 import laminar.Session
+import sttp.tapir.client.sttp4.SttpClientInterpreter
+import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
 
 /** A client to the backend, extending the endpoints as methods.
   */
@@ -79,10 +80,11 @@ trait SameOriginBackendClient {
   * @param config
   */
 private class SameOriginBackendClientLive(
-    backend: SttpBackend[Task, ZioStreamsWithWebSockets],
+    backend: WebSocketStreamBackend[Task, ZioStreams],
     interpreter: SttpClientInterpreter,
+    streamInterpreter: StreamSttpClientInterpreter,
     config: BackendClientConfig
-) extends BackendClient(backend, interpreter)
+) extends BackendClient(backend, interpreter, streamInterpreter)
     with SameOriginBackendClient {
 
   /** Call an endpoint with a payload.
@@ -149,23 +151,21 @@ object SameOriginBackendClientLive {
 
     /** The layer that can be used to create a client.
       */
-  private def layer: ZLayer[
-    SttpBackend[Task, ZioStreamsWithWebSockets] &
-      (SttpClientInterpreter & BackendClientConfig),
-    Nothing,
-    SameOriginBackendClientLive
-  ] =
+  private def layer =
     ZLayer.derive[SameOriginBackendClientLive]
 
   /** The layer that can be used to create
     */
   private[ziotapir] def configuredLayer
       : ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
-    val backend: SttpBackend[Task, ZioStreamsWithWebSockets] = FetchZioBackend()
+    val backend = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
+    val streamInterpreter = StreamSttpClientInterpreter()
     val config = BackendClientConfig(backendBaseURL)
 
     ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
+      streamInterpreter
+    ) ++ ZLayer.succeed(
       config
     ) >>> layer
   }
