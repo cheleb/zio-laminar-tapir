@@ -17,4 +17,6 @@ Live demo: [🚀 Click me for a live demo](https://cheleb.github.io/zio-laminar-
 
 See [docs](https://cheleb.github.io/zio-laminar-tapir/docs/index.html)
 
-TBD
+For Sttp 3.x use version < 1.x
+
+For Sttp 4.x use version >= 1.x

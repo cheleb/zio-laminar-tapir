@@ -5,10 +5,15 @@ title: Getting Started
 
 ## Installation
 
+
 ```sbt
 // ScalaJs
 libraryDependencies += "dev.cheleb"    %%% "zio-tapir-laminar"  % "{{ projectVersion}}"
 ```
+
+Last version is `{{ projectVersion }} it depends on sttp 4.x.
+
+For sttp 3.x use version < 1.x
 
 
 ## Sample

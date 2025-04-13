@@ -27,5 +27,9 @@ It depends on:
 Incredible thanks to incredible people who made this possible, authors and contributors of:
 
 * librairies this project depends on !
+  * [ZIO](https://zio.dev/)
+  * [Laminar](https://laminar.dev/)
+  * [Tapir](https://tapir.softwaremill.com/en/latest/)
+  * [Scala 3](https://docs.scala-lang.org/scala3/)
 * Strongly inspired by non less incredible <3 Daniel Ciocîrlan's blogs, videos and courses <3 from Rock the JVM [ZIO Laminar](https://rockthejvm.com/p/zio-rite-of-passage) course
 
