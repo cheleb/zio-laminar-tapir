@@ -17,8 +17,25 @@ inThisBuild(
     scalaVersion := scala33,
     organization := "dev.cheleb",
     homepage := Some(url("https://github.com/cheleb/")),
-    sonatypeCredentialHost := "s01.oss.sonatype.org",
-    sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
+    publishTo := {
+      val centralSnapshots =
+        "https://central.sonatype.com/repository/maven-snapshots/"
+      if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+      else localStaging.value
+    },
+    versionScheme := Some("early-semver"),
+    credentials += Credentials(
+      "Sonatype Nexus Repository Manager",
+      "central.sonatype.com",
+      sys.env.getOrElse("NEXUS_USERNAME", ""),
+      sys.env.getOrElse("NEXUS_PASSWORD", "")
+    ),
+    credentials += Credentials(
+      "GnuPG Key ID",
+      "gpg",
+      "D8674BC7118AE928BA45C41365CAE4532FF05F2D", // key identifier
+      "ignored" // this field is ignored; passwords are supplied by pinentry
+    ),
     scalacOptions ++= usedScalacOptions,
     pgpPublicRing := file("/tmp/public.asc"),
     pgpSecretRing := file("/tmp/secret.asc"),
