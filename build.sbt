@@ -17,6 +17,10 @@ inThisBuild(
     scalaVersion := scala33,
     organization := "dev.cheleb",
     homepage := Some(url("https://github.com/cheleb/")),
+    scalacOptions ++= usedScalacOptions,
+    pgpPublicRing := file("/tmp/public.asc"),
+    pgpSecretRing := file("/tmp/secret.asc"),
+    pgpPassphrase := sys.env.get("PGP_PASSWORD").map(_.toArray),
     publishTo := {
       val centralSnapshots =
         "https://central.sonatype.com/repository/maven-snapshots/"
@@ -30,16 +34,6 @@ inThisBuild(
       sys.env.getOrElse("NEXUS_USERNAME", ""),
       sys.env.getOrElse("NEXUS_PASSWORD", "")
     ),
-    credentials += Credentials(
-      "GnuPG Key ID",
-      "gpg",
-      "D8674BC7118AE928BA45C41365CAE4532FF05F2D", // key identifier
-      "ignored" // this field is ignored; passwords are supplied by pinentry
-    ),
-    scalacOptions ++= usedScalacOptions,
-    pgpPublicRing := file("/tmp/public.asc"),
-    pgpSecretRing := file("/tmp/secret.asc"),
-    pgpPassphrase := sys.env.get("PGP_PASSWORD").map(_.toArray),
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/cheleb/zio-laminar-tapir/"),
