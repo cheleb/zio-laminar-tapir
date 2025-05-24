@@ -316,14 +316,25 @@ extension (
 )
   /** Parse a JSONL stream.
     */
-  def jsonl[I: JsonCodec, O](f: I => Task[O]) =
+  def jsonlZIO[O: JsonCodec](f: Either[String, O] => Task[Unit]) =
     zio
       .flatMap(stream =>
         stream
           .via(ZPipeline.utf8Decode)
           .via(ZPipeline.splitLines)
-          .via(ZPipeline.map(_.fromJson[I].toOption.get))
+          .via(ZPipeline.map(_.fromJson[O]))
           .runForeach(f)
+      )
+      .runJs
+
+  def jsonl[O: JsonCodec](f: Either[String, O] => Unit) =
+    zio
+      .flatMap(stream =>
+        stream
+          .via(ZPipeline.utf8Decode)
+          .via(ZPipeline.splitLines)
+          .via(ZPipeline.map(_.fromJson[O]))
+          .runForeach(o => ZIO.attempt(f(o)))
       )
       .runJs
 
@@ -339,14 +350,28 @@ extension (
 )
   /** Parse a JSONL stream.
     */
-  @targetName("djsonl")
-  def jsonl[I: JsonCodec](f: I => Task[Unit]) =
+  @targetName("djsonlZIO")
+  def jsonlZIO[O: JsonCodec](f: Either[String, O] => Task[Unit]) =
     zio
       .flatMap(stream =>
         stream
           .via(ZPipeline.utf8Decode)
           .via(ZPipeline.splitLines)
-          .via(ZPipeline.map(_.fromJson[I].toOption.get))
+          .via(ZPipeline.map(_.fromJson[O]))
           .runForeach(f)
+      )
+      .runJs
+
+  /** Parse a JSONL stream.
+    */
+  @targetName("djsonl")
+  def jsonl[O: JsonCodec](f: Either[String, O] => Unit) =
+    zio
+      .flatMap(stream =>
+        stream
+          .via(ZPipeline.utf8Decode)
+          .via(ZPipeline.splitLines)
+          .via(ZPipeline.map(_.fromJson[O]))
+          .runForeach(o => ZIO.attempt(f(o)))
       )
       .runJs
