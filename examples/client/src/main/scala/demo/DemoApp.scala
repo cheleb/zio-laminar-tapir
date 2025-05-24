@@ -18,16 +18,28 @@ val myApp =
   div(
     div(
       h1("ZIO and Tapir."),
-      button(
-        s"Strealing jsonl sameorigin ($localhost)",
-        onClick --> (_ =>
-          LocalEndpoints
-            // .allStream(())
-            .allStream
-            .on(localhost)(())
-            .jsonl[Organisation](organisation =>
-              result.update(strs => strs :+ organisation.toJsonPretty)
-            )
+      div(
+        button(
+          s"Streaming jsonl sameorigin ($localhost)",
+          onClick --> (_ =>
+            LocalEndpoints
+              .allStream(())
+              .jsonl[Organisation](organisation =>
+                result.update(strs => strs :+ organisation.toJsonPretty)
+              )
+          )
+        )
+      ),
+      div(
+        button(
+          s"Streaming jsonl different origin",
+          onClick --> (_ =>
+            LocalEndpoints.allStream
+              .on(localhost)(())
+              .jsonl[Organisation](organisation =>
+                result.update(strs => strs :+ organisation.toJsonPretty)
+              )
+          )
         )
       ),
       p(
