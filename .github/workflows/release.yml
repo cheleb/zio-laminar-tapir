@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 21
       - name: Release
-        run: DEV=prod sbt ci-release
+        run: DEV=prod sbt "publishSigned sonaRelease"
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
