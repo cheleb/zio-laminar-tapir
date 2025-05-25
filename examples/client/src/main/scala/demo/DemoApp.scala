@@ -10,7 +10,7 @@ import sttp.model.Uri
 val httpbin = Uri.unsafeParse("https://httpbin.org")
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
-var result = Var[List[String]](List.empty)
+var result = EventBus[String]()
 
 val myApp =
   val eventBus = new EventBus[GetResponse]()
@@ -25,7 +25,7 @@ val myApp =
             LocalEndpoints
               .allStream(())
               .jsonl[Organisation](organisation =>
-                result.update(strs => strs :+ organisation.toJsonPretty)
+                result.emit(organisation.toJsonPretty)
               )
           )
         )
@@ -37,7 +37,7 @@ val myApp =
             LocalEndpoints.allStream
               .on(localhost)(())
               .jsonl[Organisation](organisation =>
-                result.update(strs => strs :+ organisation.toJsonPretty)
+                result.emit(organisation.toJsonPretty)
               )
           )
         )
@@ -60,7 +60,10 @@ val myApp =
     ),
     div(
       h3("Responses:"),
-      children <-- result.signal.map(strs => strs.map(str => div(str)))
+      child <-- result.events
+        .mergeWith(eventBus.events.map(_.toJsonPretty))
+        .scanLeft("")((acc, next) => acc + "\n" + next)
+        .map(text => pre(text))
     )
   )
 

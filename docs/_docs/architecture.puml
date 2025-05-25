@@ -1,0 +1,56 @@
+@startuml "ZioTapir Architecture Overview"
+
+class BackendClient {
+  - backend: WebSocketStreamBackend
+  - interpreter: SttpClientInterpreter
+  - streamInterpreter: StreamSttpClientInterpreter
+  --
+  +request()
+  +streamRequest()
+  +securedRequest()
+  +securedStreamRequest()
+  +tokenOfFail()
+  +requestZIO()
+  +securedRequestZIO()
+  +streamRequestZIO()
+  +securedStreamRequestZIO()
+}
+
+
+class Session
+
+
+
+package "sttp.client4" {
+  class WebSocketStreamBackend
+  class SttpClientInterpreter
+  class StreamSttpClientInterpreter
+}
+
+
+class WithToken
+
+
+' Relationships
+
+BackendClient --> WebSocketStreamBackend
+BackendClient --> SttpClientInterpreter
+BackendClient --> StreamSttpClientInterpreter
+BackendClient --> Session
+BackendClient --> WithToken
+
+interface SameOriginBackendClient
+
+class SameOriginBackendClientLive
+
+SameOriginBackendClientLive --|> BackendClient
+SameOriginBackendClientLive ..|> SameOriginBackendClient
+
+interface DifferentOriginBackendClient
+
+class DifferentOriginBackendClientLive
+
+DifferentOriginBackendClientLive --|> BackendClient
+DifferentOriginBackendClientLive ..|> DifferentOriginBackendClient
+
+@enduml

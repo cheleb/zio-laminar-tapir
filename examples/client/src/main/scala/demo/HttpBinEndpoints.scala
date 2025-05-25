@@ -6,7 +6,8 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.zio.*
 
-case class GetResponse(args: Map[String, String]) derives JsonCodec
+case class GetResponse(args: Map[String, String], headers: Map[String, String])
+    derives JsonCodec
 
 trait BaseEndpoint {
   val baseEndpoint: Endpoint[Unit, Unit, Throwable, Unit, Any] = endpoint
