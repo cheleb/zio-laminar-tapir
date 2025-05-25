@@ -7,6 +7,8 @@ addSbtPlugin("org.scala-js"  % "sbt-jsdependencies" % "1.0.2")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler"     % "0.21.1")
 addSbtPlugin("ch.epfl.scala" % "sbt-web-scalajs-bundler" % "0.21.1")
 
+addSbtPlugin("dev.cheleb" % "sbt-plantuml" % "0.1.2")
+
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.4")
 
 addSbtPlugin("com.github.sbt" % "sbt-ci-release"      % "1.11.0")
@@ -16,6 +18,7 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
 
 addSbtPlugin("org.playframework.twirl" % "sbt-twirl"                % "2.0.8")
 addSbtPlugin("org.portable-scala"      % "sbt-scalajs-crossproject" % "1.3.2")
+addSbtPlugin("org.scalameta"           % "sbt-mdoc"                 % "2.6.5")
 //addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("com.github.sbt" % "sbt-unidoc"  % "0.5.0")
 addSbtPlugin("com.github.sbt" % "sbt-ghpages" % "0.8.0")

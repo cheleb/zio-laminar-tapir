@@ -56,6 +56,11 @@ inThisBuild(
 
 lazy val root = project
   .in(file("."))
+  .enablePlugins(PlantUMLPlugin)
+  .settings(
+    plantUMLSource := baseDirectory.value / "docs" / "_docs",
+    plantUMLTarget := "site/docs"
+  )
 //  .disablePlugins(WartRemover)
   .aggregate(
     server,

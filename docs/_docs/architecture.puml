@@ -1,4 +1,4 @@
-@startuml "ZioTapir Architecture Overview"
+@startuml "architecture"
 
 class BackendClient {
   - backend: WebSocketStreamBackend

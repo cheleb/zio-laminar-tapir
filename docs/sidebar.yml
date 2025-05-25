@@ -4,6 +4,8 @@ subsection:
     page: getting-started.md
   - title: Usage
     page: usage.md
+  - title: Architecture
+    page: architecture.md
   - title: Advanced
     index: advanced.md
     subsection:
