@@ -9,7 +9,7 @@ val Versions = new {
   val laminar = "17.2.1"
   val tapir = "1.11.30"
   val sttp = "4.0.2"
-  val zio = "2.1.18"
+  val zio = "2.1.19"
 }
 
 inThisBuild(
