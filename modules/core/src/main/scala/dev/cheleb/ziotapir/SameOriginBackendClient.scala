@@ -149,6 +149,13 @@ object SameOriginBackendClientLive {
     if LinkingInfo.developmentMode then developmentApiServer
     else Uri.unsafeParse(window.document.location.origin)
 
+  /** Convenience method to create a URL for the backend.
+    *
+    * The base URL of the backend.
+    */
+  def url(paths: String*): Uri =
+    backendBaseURL.addPath(paths)
+
     /** The layer that can be used to create a client.
       */
   private def layer =
