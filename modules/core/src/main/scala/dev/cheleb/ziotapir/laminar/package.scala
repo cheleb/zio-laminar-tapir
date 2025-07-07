@@ -338,6 +338,21 @@ extension (
       )
       .runJs
 
+  /** Parse a JSONL stream.
+    */
+  def jsonlFoldZIO[S, O: JsonCodec](
+      s: S
+  )(f: (S, Either[String, O]) => Task[S]) =
+    zio
+      .flatMap(stream =>
+        stream
+          .via(ZPipeline.utf8Decode)
+          .via(ZPipeline.splitLines)
+          .via(ZPipeline.map(_.fromJson[O]))
+          .runFoldZIO(s)(f)
+      )
+      .runJs
+
 /** Extension methods for ZIO[DifferentOriginBackendClient, Throwable, ZStream],
   * that parse JSONL.
   */
