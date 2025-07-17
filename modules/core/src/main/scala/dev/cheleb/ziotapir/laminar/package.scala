@@ -315,6 +315,13 @@ extension (
     ]
 )
   /** Parse a JSONL stream.
+    * @param f
+    *   function to apply to each parsed JSON object, which is an Either[String,
+    *   O] where O is the parsed object, and String is an error message if
+    *   parsing failed.
+    * @tparam O
+    *   the type of the parsed object, which must have a JsonCodec instance
+    *   available.
     */
   def jsonlZIO[O: JsonCodec](f: Either[String, O] => Task[Unit]) =
     zio
@@ -327,6 +334,36 @@ extension (
       )
       .runJs
 
+  /** Parse a JSONL stream.
+    * @param f
+    *   function to apply to each parsed JSON object, which is an Either[String,
+    *   O] where O is the parsed object, and String is an error message if
+    *   parsing failed.
+    * @tparam O
+    *   the type of the parsed object, which must have a JsonCodec instance
+    *   available.
+    */
+  def jsonlZIOSuccess[O: JsonCodec](f: O => Task[Unit]) =
+    zio
+      .flatMap(stream =>
+        stream
+          .via(ZPipeline.utf8Decode)
+          .via(ZPipeline.splitLines)
+          .via(ZPipeline.map(_.fromJson[O]))
+          .collectRight
+          .runForeach(f)
+      )
+      .runJs
+
+  /** Parse a JSONL stream.
+    * @param f
+    *   function to apply to each parsed JSON object, which is an Either[String,
+    *   O] where O is the parsed object, and String is an error message if
+    *   parsing failed.
+    * @tparam O
+    *   the type of the parsed object, which must have a JsonCodec instance
+    *   available.
+    */
   def jsonl[O: JsonCodec](f: Either[String, O] => Unit) =
     zio
       .flatMap(stream =>
@@ -338,7 +375,33 @@ extension (
       )
       .runJs
 
-  /** Parse a JSONL stream.
+  /** Parse a JSONL stream and fold it over a state.
+    *
+    * This method allows you to fold over the stream with an initial state and a
+    * function that processes each parsed JSON object.
+    *
+    * This is useful when you want to accumulate results or maintain a state,
+    * like a cache.
+    *
+    * The stream is parsed line by line, and each line is parsed as a JSON
+    * object. If a line cannot be parsed, it is skipped, and the error message
+    * is returned as a Left in the Either. The final result is a ZIO that
+    * returns the final state after folding over the stream.
+    *
+    * @param s
+    *   initial state to fold over the stream
+    * @param f
+    *   function to apply to each parsed JSON object, which is an Either[String,
+    *   O] where O is the parsed object, and String is an error message if
+    *   parsing failed.
+    * @tparam S
+    *   the type of the state to fold over the stream
+    * @tparam O
+    *   the type of the parsed object, which must have a JsonCodec instance
+    *   available.
+    *
+    * @return
+    *   a ZIO that returns the final state after folding over the stream.
     */
   def jsonlFoldZIO[S, O: JsonCodec](
       s: S
