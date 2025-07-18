@@ -33,9 +33,9 @@ val myApp =
         button(
           s"Streaming jsonl different origin",
           onClick --> (_ =>
-            LocalEndpoints.allStream
-              .on(localhost)(())
-              .jsonl[Organisation](organisation =>
+            LocalEndpoints
+              .allStream(())
+              .jsonlOn[Organisation](localhost)(organisation =>
                 result.emit(organisation.toJsonPretty)
               )
           )
@@ -46,14 +46,14 @@ val myApp =
       ),
       button(
         "runJs remote",
-        onClick --> (_ => HttpBinEndpoints.get.on(httpbin)(()).runJs)
+        onClick --> (_ => HttpBinEndpoints.get(()).runJsOn(httpbin))
       ),
       button(
         "emitTo",
         onClick --> (_ =>
-          HttpBinEndpoints.get
-            .on(httpbin)(())
-            .emitTo(eventBus)
+          HttpBinEndpoints
+            .get(())
+            .emitOn(httpbin)(eventBus)
         )
       )
     ),

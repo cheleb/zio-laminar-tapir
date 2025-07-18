@@ -87,6 +87,17 @@ extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
       .tap(a => ZIO.attempt(bus.emit(a)))
       .exec
 
+  /** Emit the result of the ZIO to an EventBus.
+    *
+    * Underlying request to the default backend.
+    * @param bus
+    */
+  def emitOn(uri: Uri)(bus: EventBus[A]): Unit =
+    zio
+      .tapError(th => Console.printLineError(th.getMessage()))
+      .tap(a => ZIO.attempt(bus.emit(a)))
+      .execOn(uri)
+
   /** Emit the result and error of the ZIO to an EventBus.
     *
     * Underlying request to the default backend.
@@ -390,6 +401,17 @@ extension (
           .runForeach(o => ZIO.attempt(f(o)))
       )
       .runJs
+
+  def jsonlOn[O: JsonCodec](uri: Uri)(f: Either[String, O] => Unit) =
+    zio
+      .flatMap(stream =>
+        stream
+          .via(ZPipeline.utf8Decode)
+          .via(ZPipeline.splitLines)
+          .via(ZPipeline.map(_.fromJson[O]))
+          .runForeach(o => ZIO.attempt(f(o)))
+      )
+      .runJsOn(uri)
 
   /** Parse a JSONL stream and fold it over a state.
     *
