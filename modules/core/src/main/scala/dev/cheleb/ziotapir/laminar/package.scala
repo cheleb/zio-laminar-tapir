@@ -137,94 +137,6 @@ extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
     eventBus.events
   }
 
-/** Extension to ZIO[DifferentOriginBackendClient, E, A] that allows us to run
-  * in JS.
-  */
-extension [E <: Throwable, A](zio: ZIO[DifferentOriginBackendClient, E, A])
-  /** Run the underlying request to the default backend.
-    */
-  @targetName("dexec")
-  private def exec: Unit =
-    Unsafe.unsafe { implicit unsafe =>
-      Runtime.default.unsafe.fork(
-        zio.provide(DifferentOriginBackendClientLive.configuredLayer)
-      )
-    }
-
-  /** Run the ZIO in JS.
-    *
-    * @return
-    */
-  @targetName("drunJs")
-  def runJs: Unit =
-    zio
-      .tapError(th => Console.printLineError(th.getMessage()))
-      .exec
-
-  /** Run the ZIO in JS, and emit the error to an EventBus.
-    * @param errorBus
-    *   the event bus to emit the error to
-    */
-  @targetName("drunJs")
-  def runJs(errorBus: EventBus[E]): Unit =
-    zio
-      .tapError(e => ZIO.attempt(errorBus.emit(e)))
-      .exec
-
-  /** Emit the result of the ZIO to an EventBus.
-    *
-    * Underlying request to the default backend.
-    * @param bus
-    */
-  @targetName("demitTo")
-  def emitTo(bus: EventBus[A]): Unit =
-    zio
-      .tapError(th => Console.printLineError(th.getMessage()))
-      .tap(a => ZIO.attempt(bus.emit(a)))
-      .exec
-
-  /** Emit the result and error of the ZIO to an EventBus.
-    *
-    * Underlying request to the default backend.
-    *
-    * @param bus
-    * @param error
-    */
-  @targetName("demitTo")
-  def emitTo(
-      bus: EventBus[A],
-      error: EventBus[E]
-  ): Unit =
-    zio
-      .tapError(e => ZIO.attempt(error.emit(e)))
-      .tap(a => ZIO.attempt(bus.emit(a)))
-      .exec
-
-  /** Emit the result of the ZIO to an EventBus of Either.
-    *
-    * Underlying request to the default backend.
-    *
-    * @param bus
-    *   event bus to emit the result to
-    */
-  @targetName("demitToEither")
-  def emitToEither(
-      bus: EventBus[Either[E, A]]
-  ): Unit =
-    zio
-      .tapError(e => ZIO.attempt(bus.emit(Left(e))))
-      .tap(a => ZIO.attempt(bus.emit(Right(a))))
-      .exec
-
-  /** Emit the result of the ZIO to an EventBus, and return the EventStream.
-    */
-  @targetName("dtoEventStream")
-  def toEventStream: EventStream[A] = {
-    val eventBus = EventBus[A]()
-    emitTo(eventBus)
-    eventBus.events
-  }
-
 /** Extension that allows us to turn an unsecure endpoint to a function from a
   * payload to a ZIO.
   */
@@ -239,15 +151,6 @@ extension [I, E <: Throwable, O](
     ZIO
       .service[SameOriginBackendClient]
       .flatMap(_.requestZIO(endpoint)(payload))
-
-  /** Call the endpoint with a payload on a different backend than the origin,
-    * and get a ZIO back.
-    */
-  @targetName("dapply")
-  def on(baseUri: Uri)(payload: I): RIO[DifferentOriginBackendClient, O] =
-    ZIO
-      .service[DifferentOriginBackendClient]
-      .flatMap(_.requestZIO(baseUri, endpoint)(payload))
 
 /** Extension that allows us to turn a secured endpoint to a function from a
   * payload to a ZIO.
@@ -265,16 +168,6 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
       .service[SameOriginBackendClient]
       .flatMap(_.securedRequestZIO(endpoint)(payload))
 
-  /** Call the secured endpoint with a payload on a different backend than the
-    * origin, and get a ZIO back.
-    */
-  def on[UserToken <: WithToken](baseUri: Uri)(
-      payload: I
-  )(using session: Session[UserToken]): RIO[DifferentOriginBackendClient, O] =
-    ZIO
-      .service[DifferentOriginBackendClient]
-      .flatMap(_.securedRequestZIO(baseUri, endpoint)(payload))
-
 /** Extension that allows us to turn a stream endpoint to a function from a
   * payload to a ZIO.
   */
@@ -282,19 +175,8 @@ extension [I, O](
     endpoint: Endpoint[Unit, I, Throwable, Stream[Throwable, O], ZioStreams]
 )
 
-  /** Call the endpoint with a payload on a different backend than the origin,
-    * and get a ZIO back.
+  /** Call the endpoint with a payload, and get a ZIO back.
     */
-  @targetName("streamOn")
-  def on(
-      baseUri: Uri
-  )(payload: I): RIO[DifferentOriginBackendClient, Stream[Throwable, O]] =
-    ZIO
-      .service[DifferentOriginBackendClient]
-      .flatMap(_.streamRequestZIO(baseUri, endpoint)(payload))
-
-    /** Call the endpoint with a payload, and get a ZIO back.
-      */
   @targetName("streamApply")
   def apply(payload: I): RIO[SameOriginBackendClient, Stream[Throwable, O]] =
     ZIO
@@ -307,19 +189,6 @@ extension [I, O](
 extension [I, O](
     endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
 )
-
-  /** Call the secured stream endpoint with a payload on a different backend
-    * than the origin, and get a ZIO back.
-    */
-  @targetName("securedStreamOn")
-  def on[UserToken <: WithToken](
-      baseUri: Uri
-  )(payload: I)(using
-      session: Session[UserToken]
-  ): RIO[DifferentOriginBackendClient, Stream[Throwable, O]] =
-    ZIO
-      .service[DifferentOriginBackendClient]
-      .flatMap(_.securedStreamRequestZIO(baseUri, endpoint)(payload))
 
   /** Call the secured stream endpoint with a payload, and get a ZIO back.
     */
@@ -451,43 +320,5 @@ extension (
           .via(ZPipeline.splitLines)
           .via(ZPipeline.map(_.fromJson[O]))
           .runFoldZIO(s)(f)
-      )
-      .runJs
-
-/** Extension methods for ZIO[DifferentOriginBackendClient, Throwable, ZStream],
-  * that parse JSONL.
-  */
-extension (
-    zio: ZIO[
-      DifferentOriginBackendClient,
-      Throwable,
-      ZStream[Any, Throwable, Byte]
-    ]
-)
-  /** Parse a JSONL stream.
-    */
-  @targetName("djsonlZIO")
-  def jsonlZIO[O: JsonCodec](f: Either[String, O] => Task[Unit]) =
-    zio
-      .flatMap(stream =>
-        stream
-          .via(ZPipeline.utf8Decode)
-          .via(ZPipeline.splitLines)
-          .via(ZPipeline.map(_.fromJson[O]))
-          .runForeach(f)
-      )
-      .runJs
-
-  /** Parse a JSONL stream.
-    */
-  @targetName("djsonl")
-  def jsonl[O: JsonCodec](f: Either[String, O] => Unit) =
-    zio
-      .flatMap(stream =>
-        stream
-          .via(ZPipeline.utf8Decode)
-          .via(ZPipeline.splitLines)
-          .via(ZPipeline.map(_.fromJson[O]))
-          .runForeach(o => ZIO.attempt(f(o)))
       )
       .runJs
