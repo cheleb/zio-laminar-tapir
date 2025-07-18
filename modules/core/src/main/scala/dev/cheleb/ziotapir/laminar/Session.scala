@@ -7,7 +7,7 @@ import scala.scalajs.js.Date
 import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.*
 import dev.cheleb.ziojwt.WithToken
-import dev.cheleb.ziotapir.SameOriginBackendClientLive
+import dev.cheleb.ziotapir.BackendClientLive
 import dev.cheleb.ziotapir.Storage
 import sttp.model.Uri
 
@@ -105,7 +105,7 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
   def isActive = userState
     .now()
     .map(_.expiration * 1000 > new Date().getTime()) match {
-    case Some(true) => true
+    case Some(true)  => true
     case Some(false) =>
       userState.set(Option.empty[UserToken])
       Storage.removeAll()
@@ -120,7 +120,7 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
 
   def saveToken(token: UserToken): Unit = {
     userState.set(Option(token))
-    Storage.set(userTokenKey(SameOriginBackendClientLive.backendBaseURL), token)
+    Storage.set(userTokenKey(BackendClientLive.backendBaseURL), token)
   }
 
   def getToken(issuer: Uri): Option[UserToken] =
@@ -128,7 +128,7 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     userState.now()
 
   def loadUserState(): Unit =
-    loadUserState(SameOriginBackendClientLive.backendBaseURL)
+    loadUserState(BackendClientLive.backendBaseURL)
   def loadUserState(issuer: Uri): Unit =
     Storage
       .get[UserToken](userTokenKey(issuer))

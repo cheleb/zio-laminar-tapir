@@ -31,21 +31,21 @@ import sttp.tapir.Endpoint
 
 /** Extension to ZIO[SameOriginBackendClient, E, A] that allows us to run in JS.
   */
-extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
+extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
 
   /** Run the underlying request to the default backend.
     */
   private def exec: Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
-        zio.provide(SameOriginBackendClientLive.configuredLayer)
+        zio.provide(BackendClientLive.configuredLayer)
       )
     }
 
   private def execOn(uri: Uri): Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
-        zio.provide(SameOriginBackendClientLive.configuredLayerOn(uri))
+        zio.provide(BackendClientLive.configuredLayerOn(uri))
       )
     }
 
@@ -147,9 +147,9 @@ extension [I, E <: Throwable, O](
     * @param payload
     * @return
     */
-  def apply(payload: I): RIO[SameOriginBackendClient, O] =
+  def apply(payload: I): RIO[BackendClient, O] =
     ZIO
-      .service[SameOriginBackendClient]
+      .service[BackendClient]
       .flatMap(_.requestZIO(endpoint)(payload))
 
 /** Extension that allows us to turn a secured endpoint to a function from a
@@ -163,9 +163,9 @@ extension [I, E <: Throwable, O](endpoint: Endpoint[String, I, E, O, Any])
   @targetName("securedApply")
   def apply[UserToken <: WithToken](
       payload: I
-  )(using session: Session[UserToken]): RIO[SameOriginBackendClient, O] =
+  )(using session: Session[UserToken]): RIO[BackendClient, O] =
     ZIO
-      .service[SameOriginBackendClient]
+      .service[BackendClient]
       .flatMap(_.securedRequestZIO(endpoint)(payload))
 
 /** Extension that allows us to turn a stream endpoint to a function from a
@@ -178,9 +178,9 @@ extension [I, O](
   /** Call the endpoint with a payload, and get a ZIO back.
     */
   @targetName("streamApply")
-  def apply(payload: I): RIO[SameOriginBackendClient, Stream[Throwable, O]] =
+  def apply(payload: I): RIO[BackendClient, Stream[Throwable, O]] =
     ZIO
-      .service[SameOriginBackendClient]
+      .service[BackendClient]
       .flatMap(_.streamRequestZIO(endpoint)(payload))
 
 /** Extension that allows us to turn a stream endpoint to a function from a
@@ -195,17 +195,17 @@ extension [I, O](
   @targetName("securedStreamApply")
   def apply[UserToken <: WithToken](payload: I)(using
       session: Session[UserToken]
-  ): RIO[SameOriginBackendClient, Stream[Throwable, O]] =
+  ): RIO[BackendClient, Stream[Throwable, O]] =
     ZIO
-      .service[SameOriginBackendClient]
+      .service[BackendClient]
       .flatMap(_.securedStreamRequestZIO(endpoint)(payload))
 
-/** Extension methods for ZIO[SameOriginBackendClient, Throwable, ZStream], that
-  * parse JSONL.
+/** Extension methods for ZIO[BackendClient, Throwable, ZStream], that parse
+  * JSONL.
   */
 extension (
     zio: ZIO[
-      SameOriginBackendClient,
+      BackendClient,
       Throwable,
       ZStream[Any, Throwable, Byte]
     ]
