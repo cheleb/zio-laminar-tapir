@@ -177,4 +177,19 @@ object SameOriginBackendClientLive {
     ) >>> layer
   }
 
+  private[ziotapir] def configuredLayerOn(
+      uri: Uri
+  ): ZLayer[Any, Nothing, SameOriginBackendClientLive] = {
+    val backend = FetchZioBackend()
+    val interpreter = SttpClientInterpreter()
+    val streamInterpreter = StreamSttpClientInterpreter()
+    val config = BackendClientConfig(uri)
+
+    ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
+      streamInterpreter
+    ) ++ ZLayer.succeed(
+      config
+    ) >>> layer
+  }
+
 }

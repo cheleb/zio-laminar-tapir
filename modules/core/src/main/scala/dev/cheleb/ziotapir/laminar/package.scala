@@ -42,6 +42,13 @@ extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
       )
     }
 
+  private def execOn(uri: Uri): Unit =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.fork(
+        zio.provide(SameOriginBackendClientLive.configuredLayerOn(uri))
+      )
+    }
+
   /** Run the ZIO in JS.
     *
     * @return
@@ -50,6 +57,15 @@ extension [E <: Throwable, A](zio: ZIO[SameOriginBackendClient, E, A])
     zio
       .tapError(th => Console.printLineError(th.getMessage()))
       .exec
+
+  /** Run the ZIO in JS.
+    *
+    * @return
+    */
+  def runJsOn(uri: Uri): Unit =
+    zio
+      .tapError(th => Console.printLineError(th.getMessage()))
+      .execOn(uri)
 
   /** Run the ZIO in JS, and emit the error to an EventBus.
     * @param errorBus

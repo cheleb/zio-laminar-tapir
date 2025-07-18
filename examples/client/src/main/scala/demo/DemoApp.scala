@@ -7,7 +7,7 @@ import dev.cheleb.ziotapir.laminar.*
 import org.scalajs.dom
 import sttp.model.Uri
 
-val httpbin = Uri.unsafeParse("https://httpbin.org")
+given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
 var result = EventBus[String]()
@@ -24,9 +24,8 @@ val myApp =
           onClick --> (_ =>
             LocalEndpoints
               .allStream(())
-              .jsonl[Organisation](organisation =>
+              .jsonl[Organisation]: organisation =>
                 result.emit(organisation.toJsonPretty)
-              )
           )
         )
       ),
