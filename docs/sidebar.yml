@@ -1,11 +1,10 @@
-index: index.html
+index: index.md
 subsection:
   - title: Getting Started
     page: getting-started.md
   - title: Usage
     page: usage.md
-  - title: Advanced
-    index: advanced.md
+  - index: advanced/index.md
     subsection:
       - title: Origin
         page: advanced/origin.md

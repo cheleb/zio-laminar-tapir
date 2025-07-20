@@ -11,6 +11,12 @@ import dev.cheleb.ziotapir.BackendClientLive
 import dev.cheleb.ziotapir.Storage
 import sttp.model.Uri
 
+/** A session management interface for Laminar applications.
+  *
+  * @tparam UserToken
+  *   The type of the user token, which should extend
+  *   [[dev.cheleb.ziojwt.WithToken]].
+  */
 trait Session[UserToken <: WithToken] {
 
   /** This method will return a Signal that will be updated when the user state

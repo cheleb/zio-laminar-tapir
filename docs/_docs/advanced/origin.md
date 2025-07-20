@@ -11,9 +11,8 @@ When CORS is enabled, the server will respond to preflight requests and add the 
 ```scala sc:nocompile
 val httpbin = Uri.unsafeParse("https://httpbin.org")
 
-HttpBinEndpoints.get
-          .on(httpbin)(()) // (1) Note the `on` method
-          .emitTo(eventBus)
+HttpBinEndpoints.get(()) // (1) Note the `on` method
+          .emit(httpbin, eventBus)
 ```
 
 1. The `on` method is used to specify the base URL for the request. This is where the request will be sent.

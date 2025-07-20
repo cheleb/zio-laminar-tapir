@@ -53,15 +53,15 @@ val errorBus = new EventBus[Throwable]()            // (3)
 // ...
 
 button(
-    "runJs",
+    "run",
     onClick --> (_ => HttpBinEndpoints.get(())      // (4)
-                        .runJs(eventBus, errorBus)  // (5)
+                        .run(eventBus, errorBus)    // (5)
   )
 )
 ```
 
-1. Import the library, which provides extensions method on `Endpoint` instances (like in first approximation `runJs`).
-2. Create an `EventBus` for the response type.
-3. Create an `EventBus` for the error type.
-4. Use the endpoint as a function from `Input => ZIO`.
-5. Call the `runJs` method on the endpoint, passing the `EventBus` instances.
+1. Import the library, which provides extensions method on `Endpoint` instances (like in first approximation `run`).
+2. Create an `EventBus` for the GetResponse.
+3. Create an `EventBus` for the error Throwable.
+4. Use the endpoint as a function from `Input => ZIO[Backend, Throwable, GetResponse]`.
+5. Call the `run` method on the endpoint, passing the `EventBus` instances.

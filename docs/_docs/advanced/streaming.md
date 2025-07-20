@@ -31,9 +31,8 @@ val allStream
 You can then use the `jsonl` method to stream the data:
 
 ```scala sc:nocompile
-HttpBinEndpoints.allStream
-          .on(localhost)(())
-          .jsonl[Organisation](organisation => Console.printLine(organisation))
+HttpBinEndpoints.allStream(())
+          .jsonl[Organisation](localhost, organisation => Console.printLine(organisation))
 ```
 
 The `jsonl` method will parse the incoming data as JSON and emit it to the provided sink.

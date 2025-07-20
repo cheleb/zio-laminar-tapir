@@ -1,6 +1,7 @@
 package demo
 
 import zio.json.*
+
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
