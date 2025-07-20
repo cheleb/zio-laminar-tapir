@@ -4,37 +4,36 @@ This document outlines the design principles and architecture of the ZIO Laminar
 
 ## Overview
 
-The ZIO Laminar Tapir library is designed to provide a seamless integration between ZIO, Laminar, and Tapir, enabling developers to build reactive web applications with ease. The library leverages the power of ZIO for effect management, Laminar for reactive UI components, and Tapir for defining HTTP endpoints.
+The ZIO Laminar Tapir library is designed to provide a seamless integration between ZIO, Laminar, and Tapir, enabling developers to build reactive web applications with ease.
 
-## Key Components
+The library leverages the power of ZIO for effect management, Laminar for reactive UI components, and Tapir for defining HTTP endpoints.
 
-### 1. Endpoint Definition
+- **ZIO**: A powerful effect system for managing asynchronous and concurrent computations in Scala.
+- **Laminar**: A reactive UI library for building web applications in Scala, providing a declarative way to create and manage UI components.
+- **Tapir**: A library for defining
 
-Endpoints are defined using the Tapir DSL, allowing developers to specify the input, output, and error types of HTTP requests. The library extends the Tapir `Endpoint` class with additional methods to facilitate ZIO integration.
+## Backend client
 
-### 2. EventBus
+Backend client is based on [sttp Fetch backend](https://sttp.softwaremill.com/en/latest/backends/javascript/fetch.html), which provides a simple and efficient way to handle HTTP requests and responses in a reactive manner.
 
-The EventBus is a key component that facilitates communication between different parts of the application. It allows for the emission and subscription of events, enabling a reactive programming model. The EventBus is designed to work seamlessly with ZIO, providing a powerful mechanism for handling asynchronous events.
+It will be responsible for building ZIO effects from Tapir endpoints.
 
-### 3. Error Handling
-Error handling is managed through the `HttpError` class, which provides methods to encode and decode errors. This ensures that errors can be propagated through the ZIO effect system while maintaining type safety and clarity.
-
-### 4. JSON Serialization
-The library uses ZIO JSON for serialization and deserialization of data types. This allows for easy conversion between Scala case classes and JSON representations, making it straightforward to work with HTTP request and response bodies
-
-### 5. Integration with Laminar
-The library provides extensions for Laminar components, allowing developers to create reactive UI elements that can respond to events emitted by the EventBus. This integration enables a smooth flow of data between the backend and frontend, making it easy to build dynamic web applications.
-
-## Design Principles
+It will be able to handle:
+- Request and response marshalling
+- JWT token management when needed
+- Streaming responses
 
 
-### 1. Type Safety
-Type safety is a core principle of the library. By leveraging Scala's strong type system, the library ensures that errors are caught at compile time rather than runtime. This reduces the likelihood of bugs and improves the overall reliability of the application.
+## Architecture
 
-### 2. Reactive Programming
-The library embraces reactive programming principles, allowing developers to build applications that can respond to changes in data and user interactions. The use of ZIO and Laminar enables a declarative approach to building UI components and handling asynchronous events.
-
-### 3. Simplicity
-Simplicity is a key design goal. The library aims to provide a straightforward API that is easy to understand and use. By minimizing complexity, developers can focus on building features rather than wrestling with the underlying framework.
 
 ![Architecture Diagram](/images/architecture.png)
+
+This diagram illustrates the architecture of the ZIO Laminar Tapir library, showing how the key components interact with each other.
+
+## Extensions
+
+Scala 3 extensions and enhancements have been made to improve the usability and functionality of the library. These include:
+
+- **Endpoint** extensions for ZIO**: Simplifying the creation of ZIO effects from Tapir endpoints.
+- **RIO[BackendClient, O]** extension: Run ZIO effects and emit responses to Laminar event buses.

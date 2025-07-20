@@ -25,8 +25,9 @@ trait BaseEndpoint {
 }
 
 object HttpBinEndpoints extends BaseEndpoint {
-  val get = baseEndpoint.get.in("get").out(jsonBody[GetResponse])
-  val getInt =
+  val get: Endpoint[Unit, Unit, Throwable, GetResponse, Any] =
+    baseEndpoint.get.in("get").out(jsonBody[GetResponse])
+  val getInt: Endpoint[Unit, Int, Throwable, GetResponse, Any] =
     baseEndpoint.get.in("get").in(query[Int]("int")).out(jsonBody[GetResponse])
 
 }

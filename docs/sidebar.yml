@@ -4,6 +4,8 @@ subsection:
     page: getting-started.md
   - title: Design
     page: design.md
+  - title: Usage
+    page: usage.md
   - index: advanced/index.md
     subsection:
       - title: Origin

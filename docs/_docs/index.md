@@ -36,17 +36,6 @@ It will handle:
 
 
 
-## Dependencies
-
-This project is built on top of:
-
-* [Scala 3](https://docs.scala-lang.org/scala3/) for compile-time metaprogramming and [ScalaJS](https://www.scala-js.org/) for client-side rendering.
-* [ZIO](https://zio.dev/) for functional effects and concurrency
-* [Laminar](https://laminar.dev)
-* [Tapir](https://tapir.softwaremill.com/en/latest/) for endpoint definition
-
-
-
 ## Credits
 
 Incredible thanks to incredible peoples who made this possible, authors and contributors of:
