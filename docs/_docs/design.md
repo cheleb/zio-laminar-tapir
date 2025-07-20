@@ -37,4 +37,4 @@ The library embraces reactive programming principles, allowing developers to bui
 ### 3. Simplicity
 Simplicity is a key design goal. The library aims to provide a straightforward API that is easy to understand and use. By minimizing complexity, developers can focus on building features rather than wrestling with the underlying framework.
 
-
+![Architecture Diagram](/images/architecture.png)

@@ -59,6 +59,7 @@ lazy val root = project
   .in(file("."))
 //  .disablePlugins(WartRemover)
   .aggregate(
+    docs,
     server,
     core,
     sharedJs,
@@ -66,6 +67,38 @@ lazy val root = project
   )
   .settings(
     publish / skip := true
+  )
+
+lazy val docs = project // new documentation project
+  .in(file("zio-laminar-tapir-docs")) // important: it must not be docs/
+  .dependsOn(core, sharedJs, sharedJvm)
+  .settings(
+    publish / skip := true,
+    moduleName := "zio-laminar-tapir-docs",
+    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
+      core,
+      sharedJs,
+      sharedJvm
+    ),
+    ScalaUnidoc / unidoc / target := (LocalRootProject / baseDirectory).value / "website" / "static" / "api",
+    cleanFiles += (ScalaUnidoc / unidoc / target).value,
+    mdocVariables := Map(
+      "VERSION" -> sys.env.getOrElse("VERSION", version.value),
+      "ORG" -> organization.value
+    )
+  )
+//  .disablePlugins(WartRemover)
+  .enablePlugins(
+    MdocPlugin,
+//    ScalaUnidocPlugin,
+    PlantUMLPlugin
+  )
+  .settings(
+    plantUMLSource := file("docs/_docs"),
+    Compile / plantUMLTarget := "mdoc/_assets/images"
+  )
+  .settings(
+    libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.18"
   )
 
 lazy val server = project
