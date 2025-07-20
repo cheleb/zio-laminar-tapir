@@ -2,8 +2,8 @@ index: index.md
 subsection:
   - title: Getting Started
     page: getting-started.md
-  - title: Usage
-    page: usage.md
+  - title: Design
+    page: design.md
   - index: advanced/index.md
     subsection:
       - title: Origin

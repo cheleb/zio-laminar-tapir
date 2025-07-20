@@ -1,14 +1,12 @@
-//> using jsModuleKind es
-//> using deps "dev.cheleb::zio-laminar-tapir:2.0.0-local"
-
 import dev.cheleb.ziotapir.laminar.*
 
 import zio.json.*
 import sttp.tapir.*
 import sttp.tapir.json.zio.*
 import sttp.tapir.generic.auto.*
-import demo.HttpError
+
 import com.raquo.airstream.eventbus.EventBus
+import dev.cheleb.ziotapir.HttpError
 
 object `getting-started`:
   case class GetResponse(

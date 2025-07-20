@@ -9,6 +9,7 @@ val Versions = new {
   val laminar = "17.2.1"
   val tapir = "1.11.35"
   val sttp = "4.0.2"
+  val sttpModelCore = "1.7.14"
   val zio = "2.1.19"
 }
 
@@ -98,7 +99,8 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   )
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio" % Versions.zio
+      "dev.zio" %%% "zio" % Versions.zio,
+      "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore
     )
   )
 
