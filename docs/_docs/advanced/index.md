@@ -3,9 +3,11 @@ title: Advanced
 description: Advanced usage of ZIO Laminar Tapir
 ---
 
-# Advanced ll
+# Advanced usage
 
-Option are mm:
-* Secured endpoint (JWT token)
-* stream mode
-* Same origin policy
+
+
+  
+
+## Secured endpoint (JWT token)
+## Stream mode
