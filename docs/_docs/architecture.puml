@@ -1,56 +1,69 @@
-@startuml "ZioTapir Architecture Overview"
+@startuml "architecture"
 
-class BackendClient {
-  - backend: WebSocketStreamBackend
-  - interpreter: SttpClientInterpreter
-  - streamInterpreter: StreamSttpClientInterpreter
-  --
-  +request()
-  +streamRequest()
-  +securedRequest()
-  +securedStreamRequest()
-  +tokenOfFail()
+interface BackendClient {
   +requestZIO()
   +securedRequestZIO()
   +streamRequestZIO()
   +securedStreamRequestZIO()
 }
 
+class BackendClientLive {
+  - backend: WebSocketStreamBackend
+  - interpreter: SttpClientInterpreter
+  - streamInterpreter: StreamSttpClientInterpreter
+  - config: BackendClientConfig
+  --
+  -request()
+  -streamRequest()
+  -securedRequest()
+  -securedStreamRequest()
+  -tokenOfFail()
+  +requestZIO()
+  +securedRequestZIO()
+  +streamRequestZIO()
+  +securedStreamRequestZIO()
+}
 
-class Session
+object BackendClientLive {
+  +backendBaseURL
+  +url()
+  +configuredLayer()
+  +configuredLayerOn()
+}
 
-
-
-package "sttp.client4" {
-  class WebSocketStreamBackend
-  class SttpClientInterpreter
-  class StreamSttpClientInterpreter
+class BackendClientConfig {
+  +baseUrl: Uri
+  +baseUrlAsOption: Option[Uri]
 }
 
 
-class WithToken
+interface Session <<WithToken>> {
+  +getToken(): Option[WithToken]
+  +setToken(token: WithToken): Unit
+  +removeToken(): Unit
+}
 
+class SessionLive extends Session 
+
+class Storage {
+  +get(key: String): Option[String]
+  +set(key: String, value: String): Unit
+  +remove(key: String): Unit
+}
+
+
+class WithToken {
+  +token: String
+  +expiration: Long
+}
 
 ' Relationships
+BackendClientLive .up.|> BackendClient
 
-BackendClient --> WebSocketStreamBackend
-BackendClient --> SttpClientInterpreter
-BackendClient --> StreamSttpClientInterpreter
-BackendClient --> Session
-BackendClient --> WithToken
+BackendClientLive -left-> BackendClientConfig
+Session -right- WithToken
+BackendClientLive --> Session
+SessionLive --> Storage
 
-interface SameOriginBackendClient
-
-class SameOriginBackendClientLive
-
-SameOriginBackendClientLive --|> BackendClient
-SameOriginBackendClientLive ..|> SameOriginBackendClient
-
-interface DifferentOriginBackendClient
-
-class DifferentOriginBackendClientLive
-
-DifferentOriginBackendClientLive --|> BackendClient
-DifferentOriginBackendClientLive ..|> DifferentOriginBackendClient
 
 @enduml

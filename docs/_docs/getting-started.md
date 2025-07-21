@@ -18,8 +18,6 @@ For sttp 3.x use version < 1.x
 
 ## Sample
 
-From a classical tapir endpoint definition:
-
 
 
 ```scala sc:nocompile
@@ -27,41 +25,40 @@ import zio.*
 import zio.json.*
 import sttp.tapir.*
 
-case class GetResponse(args: Map[String, String]) derives JsonCodec
-
-trait BaseEndpoint {
-  val baseEndpoint: Endpoint[Unit, Unit, Throwable, Unit, Any] = endpoint
-    .errorOut(statusCode and plainBody[String])
-    .mapErrorOut[Throwable](HttpError.decode)(HttpError.encode)
-
-  val baseSecuredEndpoint: Endpoint[String, Unit, Throwable, Unit, Any] =
-    baseEndpoint
-      .securityIn(auth.bearer[String]())
-}
-
-```
-
-In your Laminar app:
-
-```scala sc:nocompile
-
 import dev.cheleb.ziotapir.laminar.*                // (1)
 
-val eventBus = new EventBus[GetResponse]()          // (2)
-val errorBus = new EventBus[Throwable]()            // (3)
+// From a classical tapir:
+// 
+// With a response type `GetResponse`
+case class GetResponse(
+     args: Map[String, String],
+     headers: Map[String, String]
+) derives JsonCodec
 
-// ...
+// Create an endpoint that handles a GET request
+val get = endpoint.get                             // (2)
+     .in("get")
+     .out(jsonBody[GetResponse])
+     .errorOut(statusCode and plainBody[String])
+     .mapErrorOut[Throwable](HttpError.decode)(HttpError.encode)
 
-button(
-    "runJs",
-    onClick --> (_ => HttpBinEndpoints.get(())      // (4)
-                        .runJs(eventBus, errorBus)  // (5)
-  )
-)
+// Create an event bus for the response type
+val eventBus = EventBus[GetResponse]()             // (3)
+
+// Use the endpoint as as  ZIO effect
+get(())                                            // (4) 
+ .emit(eventBus)                                   // (5)
 ```
 
-1. Import the library, which provides extensions method on `Endpoint` instances (like in first approximation `runJs`).
-2. Create an `EventBus` for the response type.
-3. Create an `EventBus` for the error type.
-4. Use the endpoint as a function from `Input => ZIO`.
-5. Call the `runJs` method on the endpoint, passing the `EventBus` instances.
+
+
+* (1) Import the library, which provides extensions method on `Endpoint` instances.
+  * Import the necessary classes and implicits from the library.
+  * Impot the `HttpError` class for error handling.
+* (2) Create an `Endpoint` instance using the Tapir DSL, defining the input, output, and error types.
+  * Notice that the output is a JSON body of type `GetResponse`, and the error output is a combination of a status code and a plain body.
+  * Error muste be encoded and decoded using `HttpError.encode` and `HttpError.decode`.
+
+* (3) Create an `EventBus` for the response `GetResponse`.
+* (4) Use the endpoint as a function from `Input => ZIO[Backend, Throwable, GetResponse]`.
+* (5) Call the `emit` method on the endpoint, passing the `EventBus` instances.

@@ -7,7 +7,7 @@ import dev.cheleb.ziotapir.laminar.*
 import org.scalajs.dom
 import sttp.model.Uri
 
-val httpbin = Uri.unsafeParse("https://httpbin.org")
+given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
 var result = EventBus[String]()
@@ -24,9 +24,8 @@ val myApp =
           onClick --> (_ =>
             LocalEndpoints
               .allStream(())
-              .jsonl[Organisation](organisation =>
+              .jsonlEither[Organisation]: organisation =>
                 result.emit(organisation.toJsonPretty)
-              )
           )
         )
       ),
@@ -34,11 +33,10 @@ val myApp =
         button(
           s"Streaming jsonl different origin",
           onClick --> (_ =>
-            LocalEndpoints.allStream
-              .on(localhost)(())
-              .jsonl[Organisation](organisation =>
+            LocalEndpoints
+              .allStream(())
+              .jsonlEither[Organisation](localhost): organisation =>
                 result.emit(organisation.toJsonPretty)
-              )
           )
         )
       ),
@@ -47,14 +45,14 @@ val myApp =
       ),
       button(
         "runJs remote",
-        onClick --> (_ => HttpBinEndpoints.get.on(httpbin)(()).runJs)
+        onClick --> (_ => HttpBinEndpoints.get(()).run(httpbin))
       ),
       button(
         "emitTo",
         onClick --> (_ =>
-          HttpBinEndpoints.get
-            .on(httpbin)(())
-            .emitTo(eventBus)
+          HttpBinEndpoints
+            .get(())
+            .emit(httpbin, eventBus)
         )
       )
     ),

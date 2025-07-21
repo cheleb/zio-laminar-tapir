@@ -1,3 +1,5 @@
+addCommandAlias("website", "docs/mdoc; makeSite")
+
 lazy val currentYear: String =
   java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString
 
@@ -13,11 +15,12 @@ addMappingsToSiteDir(
   ScalaUnidoc / packageDoc / mappings,
   ScalaUnidoc / siteSubdirName
 )
+
 git.remoteRepo := "git@github.com:cheleb/zio-laminar-tapir.git"
 ghpagesNoJekyll := true
 Compile / doc / scalacOptions ++= Seq(
   "-siteroot",
-  "docs",
+  "zio-laminar-tapir-docs/target/mdoc",
   "-project",
   "ZIO Laminar Tapir",
   "-groups",

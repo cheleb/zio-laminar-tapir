@@ -3,12 +3,13 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 
 val dev = sys.env.get("DEV").getOrElse("demo")
 
-val scala33 = "3.7.1"
+val scala33 = "3.3.6"
 
 val Versions = new {
   val laminar = "17.2.1"
   val tapir = "1.11.35"
   val sttp = "4.0.2"
+  val sttpModelCore = "1.7.14"
   val zio = "2.1.19"
 }
 
@@ -58,6 +59,7 @@ lazy val root = project
   .in(file("."))
 //  .disablePlugins(WartRemover)
   .aggregate(
+    docs,
     server,
     core,
     sharedJs,
@@ -65,6 +67,38 @@ lazy val root = project
   )
   .settings(
     publish / skip := true
+  )
+
+lazy val docs = project // new documentation project
+  .in(file("zio-laminar-tapir-docs")) // important: it must not be docs/
+  .dependsOn(core, sharedJs, sharedJvm)
+  .settings(
+    publish / skip := true,
+    moduleName := "zio-laminar-tapir-docs",
+    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
+      core,
+      sharedJs,
+      sharedJvm
+    ),
+    ScalaUnidoc / unidoc / target := (LocalRootProject / baseDirectory).value / "website" / "static" / "api",
+    cleanFiles += (ScalaUnidoc / unidoc / target).value,
+    mdocVariables := Map(
+      "VERSION" -> sys.env.getOrElse("VERSION", version.value),
+      "ORG" -> organization.value
+    )
+  )
+//  .disablePlugins(WartRemover)
+  .enablePlugins(
+    MdocPlugin,
+//    ScalaUnidocPlugin,
+    PlantUMLPlugin
+  )
+  .settings(
+    plantUMLSource := file("docs/_docs"),
+    Compile / plantUMLTarget := "mdoc/_assets/images"
+  )
+  .settings(
+    libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.18"
   )
 
 lazy val server = project
@@ -98,7 +132,8 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   )
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio" % Versions.zio
+      "dev.zio" %%% "zio" % Versions.zio,
+      "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore
     )
   )
 
