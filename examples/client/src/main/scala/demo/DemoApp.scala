@@ -24,7 +24,7 @@ val myApp =
           onClick --> (_ =>
             LocalEndpoints
               .allStream(())
-              .jsonl[Organisation]: organisation =>
+              .jsonlEither[Organisation]: organisation =>
                 result.emit(organisation.toJsonPretty)
           )
         )
@@ -35,7 +35,7 @@ val myApp =
           onClick --> (_ =>
             LocalEndpoints
               .allStream(())
-              .jsonl[Organisation](localhost): organisation =>
+              .jsonlEither[Organisation](localhost): organisation =>
                 result.emit(organisation.toJsonPretty)
           )
         )

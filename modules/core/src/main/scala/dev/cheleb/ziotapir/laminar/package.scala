@@ -304,7 +304,7 @@ extension (
     *   the type of the parsed object, which must have a JsonCodec instance
     *   available.
     */
-  def jsonlZIO[O: JsonCodec](f: Either[String, O] => Task[Unit]) =
+  def jsonlEitherZIO[O: JsonCodec](f: Either[String, O] => Task[Unit]) =
     zio
       .flatMap(stream =>
         stream.parse
@@ -321,7 +321,9 @@ extension (
     *   the type of the parsed object, which must have a JsonCodec instance
     *   available.
     */
-  def jsonlZIO[O: JsonCodec](uri: Uri)(f: Either[String, O] => Task[Unit]) =
+  def jsonlEitherZIO[O: JsonCodec](
+      uri: Uri
+  )(f: Either[String, O] => Task[Unit]) =
     zio
       .flatMap(stream =>
         stream.parse
@@ -340,7 +342,7 @@ extension (
     *   the type of the parsed object, which must have a JsonCodec instance
     *   available.
     */
-  def jsonlSuccessZIO[O: JsonCodec](f: O => Task[Unit]) =
+  def jsonlZIO[O: JsonCodec](f: O => Task[Unit]) =
     zio
       .flatMap(stream =>
         stream.parse.collectRight
@@ -359,7 +361,7 @@ extension (
     *   the type of the parsed object, which must have a JsonCodec instance
     *   available.
     */
-  def jsonlSuccessZIO[O: JsonCodec](uri: Uri)(f: O => Task[Unit]) =
+  def jsonlZIO[O: JsonCodec](uri: Uri)(f: O => Task[Unit]) =
     zio
       .flatMap(stream =>
         stream.parse.collectRight
@@ -376,10 +378,44 @@ extension (
     *   the type of the parsed object, which must have a JsonCodec instance
     *   available.
     */
-  def jsonl[O: JsonCodec](f: Either[String, O] => Unit) =
+  def jsonlEither[O: JsonCodec](f: Either[String, O] => Unit) =
     zio
       .flatMap(stream =>
         stream.parse
+          .runForeach(o => ZIO.attempt(f(o)))
+      )
+      .run
+
+  /** Parse a JSONL stream from a URI (different from origin) as a stream of O
+    * and apply a function to each one to Unit.
+    *
+    * @param f
+    *   function to apply
+    * @tparam O
+    *   the type of the parsed object, which must have a JsonCodec instance
+    *   available.
+    */
+  def jsonl[O: JsonCodec](uri: Uri)(f: O => Unit) =
+    zio
+      .flatMap(stream =>
+        stream.parse.collectRight
+          .runForeach(o => ZIO.attempt(f(o)))
+      )
+      .run(uri)
+
+  /** Parse a JSONL stream as a stream of O and apply a function to each one to
+    * Unit.
+    *
+    * @param f
+    *   function to apply
+    * @tparam O
+    *   the type of the parsed object, which must have a JsonCodec instance
+    *   available.
+    */
+  def jsonl[O: JsonCodec](f: O => Unit) =
+    zio
+      .flatMap(stream =>
+        stream.parse.collectRight
           .runForeach(o => ZIO.attempt(f(o)))
       )
       .run
@@ -393,7 +429,7 @@ extension (
     *   the type of the parsed object, which must have a JsonCodec instance
     *   available.
     */
-  def jsonl[O: JsonCodec](uri: Uri)(f: Either[String, O] => Unit) =
+  def jsonlEither[O: JsonCodec](uri: Uri)(f: Either[String, O] => Unit) =
     zio
       .flatMap(stream =>
         stream.parse
@@ -416,7 +452,7 @@ extension (
     * @return
     *   a ZIO that returns the final state after folding over the stream.
     */
-  def jsonlFoldZIO[S, O: JsonCodec](
+  def jsonlFoldEitherZIO[S, O: JsonCodec](
       s: S
   )(f: (S, Either[String, O]) => Task[S]) =
     zio
@@ -444,7 +480,7 @@ extension (
     * @return
     *   a ZIO that returns the final state after folding over the stream.
     */
-  def jsonlFoldZIO[S, O: JsonCodec](uri: Uri, s: S)(
+  def jsonlFoldEitherZIO[S, O: JsonCodec](uri: Uri, s: S)(
       f: (S, Either[String, O]) => Task[S]
   ) =
     zio
@@ -469,7 +505,7 @@ extension (
     * @return
     *   a ZIO that returns the final state after folding over the stream.
     */
-  def jsonlSuccessFoldZIO[S, O: JsonCodec](
+  def jsonlFoldZIO[S, O: JsonCodec](
       s: S
   )(f: (S, O) => Task[S]) =
     zio
@@ -497,7 +533,7 @@ extension (
     * @return
     *   a ZIO that returns the final state after folding over the stream.
     */
-  def jsonlSuccessFoldZIO[S, O: JsonCodec](uri: Uri, s: S)(
+  def jsonlFoldZIO[S, O: JsonCodec](uri: Uri, s: S)(
       f: (S, O) => Task[S]
   ) =
     zio
