@@ -12,11 +12,11 @@ import dev.cheleb.ziotapir.laminar.*
 
 This import provides access to the core functionality of the library, including the ability to build ZIO effects from Tapir endpoints and emit responses to Laminar event buses.
 
-## Building ZIO Effects from Tapir Endpoints
+### Building ZIO Effects
 
-To build a ZIO effect from a Tapir endpoint, you can use the `AnEndpoints` object. Here's an example:
+A first extension turn Tapir endpoints into functions from input to ZIO effects. `I => ZIO[R, E, Out]`
 
-1. From a Tapir endpoint definition:
+Then, from a Tapir endpoint definition:
 
 ```scala sc:nocompile
 val getEndpoint: Endpoint[Unit, Int, Throwable, GetResponse, Any] = ???     
@@ -24,13 +24,13 @@ val getEndpoint: Endpoint[Unit, Int, Throwable, GetResponse, Any] = ???
 
 This defines a Tapir endpoint that takes an `Int` as input and returns a `GetResponse` or an error of type `Throwable`.
 
-2. Build a ZIO effect from the endpoint:
+Bild a ZIO effect from the endpoint:
 
 ```scala sc:nocompile
   val getIO =  getEndpoint(1)
 ```
 
-Just by calling the endpoint with the required input, which in this case is an `Int` and a first extension applied to the endpoint, which will return a ZIO effect.
+Just by calling the endpoint with the required input, which in this case is an `Int`.
 
 ```scala sc:nocompile
   val getIO: RIO[BackendClient, GetResponse] = getEndpoint(1)
@@ -38,16 +38,19 @@ Just by calling the endpoint with the required input, which in this case is an `
 
 This ZIO effect can be run in the context of a `BackendClient`.
 
-3. Provide the necessary environment and run the effect:
+### Running the ZIO Effect
 
-To be able to run the ZIO effect, you need to provide the `BackendClient` environment.
+An another extension will provide the necessary environment, `BackendClient` and will run the effect:
 
-Another extension is provided to run the ZIO effect and emit the response to a Laminar event bus, which many different flavors are available, depending on the type of response you expect.
+
+## Handling Responses in UI
+
+Now you can run the ZIO effect and emit the response to a Laminar.
 
 ### For a `GetResponse`:
 
 ```scala sc:nocompile
-  getIO.emit(eventBus)
+  val _: Unit = getIO.emit(eventBus)
 ```
 
 The event bus will receive the response of type `GetResponse`, if error occurs the console will log the error.
@@ -57,7 +60,7 @@ The event bus will receive the response of type `GetResponse`, if error occurs t
 ### For a `GetResponse` or a `Throwable`:
 
 ```scala sc:nocompile
-  getIO.emit(eventBus, errorBus)
+  val _: Unit = getIO.emit(eventBus, errorBus)
 ```
 
 The `errorBus` will receive any error that occurs while running the ZIO effect.

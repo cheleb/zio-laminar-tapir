@@ -10,5 +10,9 @@ subsection:
     subsection:
       - title: Origin
         page: advanced/origin.md
+      - title: Secured Endpoints
+        page: advanced/secured.md
+      - title: Error Handling
+        page: advanced/error-handling.md
       - title: Streaming
         page: advanced/streaming.md
