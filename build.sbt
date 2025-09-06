@@ -10,7 +10,7 @@ val Versions = new {
   val tapir = "1.11.42"
   val sttp = "4.0.9"
   val sttpModelCore = "1.7.16"
-  val zio = "2.1.20"
+  val zio = "2.1.21"
 }
 
 inThisBuild(
