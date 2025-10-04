@@ -3,11 +3,11 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 
 val dev = sys.env.get("DEV").getOrElse("demo")
 
-val scala33 = "3.7.2"
+val scala33 = "3.7.3"
 
 val Versions = new {
   val laminar = "17.2.1"
-  val tapir = "1.11.42"
+  val tapir = "1.11.47"
   val sttp = "4.0.9"
   val sttpModelCore = "1.7.16"
   val zio = "2.1.21"
