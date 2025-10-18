@@ -9,8 +9,8 @@ val Versions = new {
   val laminar = "17.2.1"
   val tapir = "1.11.47"
   val sttp = "4.0.9"
-  val sttpModelCore = "1.7.16"
-  val zio = "2.1.21"
+  val sttpModelCore = "1.7.17"
+  val zio = "2.1.22"
 }
 
 inThisBuild(
@@ -177,22 +177,11 @@ def scalajsProject(projectId: String, sample: Boolean): Project =
     base = file(s"${if (sample) "examples" else "modules"}/$projectId")
   )
     .enablePlugins(ScalaJSPlugin)
-    .settings(nexusNpmSettings)
-    .settings(Test / requireJsDomEnv := true)
     .settings(
       scalacOptions := Seq(
         "-scalajs"
       )
     )
-def nexusNpmSettings =
-  sys.env
-    .get("NEXUS")
-    .map(url =>
-      npmExtraArgs ++= Seq(
-        s"--registry=$url/repository/npm-public/"
-      )
-    )
-    .toSeq
 
 Global / onLoad := {
   val scalaVersionValue = (example / scalaVersion).value
