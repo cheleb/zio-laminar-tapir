@@ -7,8 +7,8 @@ val scala33 = "3.7.3"
 
 val Versions = new {
   val laminar = "17.2.1"
-  val tapir = "1.11.47"
-  val sttp = "4.0.9"
+  val tapir = "1.12.0"
+  val sttp = "4.0.13"
   val sttpModelCore = "1.7.17"
   val zio = "2.1.22"
 }
