@@ -6,8 +6,14 @@ import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.laminar.*
 import org.scalajs.dom
 import sttp.model.Uri
+import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
+
+import zio.stream.ZStream
+import sttp.client4.impl.zio.FetchZioBackend
+import sttp.tapir.client.sttp4.ws.zio.* // for zio
 
 given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
+given websocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
 var result = EventBus[String]()
@@ -54,6 +60,45 @@ val myApp =
             .get(())
             .emit(httpbin, eventBus)
         )
+      )
+    ),
+    div(
+      hr(),
+      button(
+        "runJs WebSocket",
+        onClick --> { _ =>
+          val backend = FetchZioBackend()
+          val client = WebSocketSttpClientInterpreter()
+            .toClientThrowErrors(
+              WebsocketEndpoint.wsEndpoint,
+              Some(websocket),
+              backend
+            )
+          client(())
+            .flatMap { socket =>
+              println("WebSocket connected")
+
+              socket(ZStream("hello", "from", "websockets"))
+                .runForeach(msg => ZIO.attempt(result.emit(s"Received: $msg")))
+
+            }
+            .catchAll(th =>
+              ZIO.attempt {
+                println("WebSocket connection failed: " + th.getMessage)
+                result.emit(s"Failed")
+              }
+            )
+            .run
+
+//            .onComplete {
+          //   case Success(value) =>
+
+          //   case Failure(th) =>
+          //     println("WebSocket connection failed: " + th.getMessage)
+          //     ZIO.attempt(result.emit(s"Failed"))
+          // }
+
+        }
       )
     ),
     div(
