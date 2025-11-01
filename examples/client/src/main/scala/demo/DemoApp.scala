@@ -3,65 +3,64 @@ package demo
 import zio.*
 import zio.json.*
 import com.raquo.laminar.api.L.*
-import dev.cheleb.ziotapir.laminar.*
+
 import org.scalajs.dom
 import sttp.model.Uri
 
-given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
+import io.github.nguyenyou.webawesome.laminar.*
+
+val httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
+
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
 var result = EventBus[String]()
 
 val myApp =
   val eventBus = new EventBus[GetResponse]()
-//  val errorBus = new EventBus[Throwable]()
+  val clear = EventBus[String]()
   div(
+    h1("ZIO Laminar Tapir Demo Client"),
     div(
-      h1("ZIO and Tapir."),
-      div(
-        button(
-          s"Streaming jsonl sameorigin ($localhost)",
-          onClick --> (_ =>
-            LocalEndpoints
-              .allStream(())
-              .jsonlEither[Organisation]: organisation =>
-                result.emit(organisation.toJsonPretty)
-          )
-        )
+      // Make the TabGroup and the Responses panel appear side by side
+      styleAttr := "display: flex; align-items: flex-start; gap: 1rem; w",
+      TabGroup(_.placement.start, _.active := "websocket")(
+        Tab(_.panel := "batchSameOrigin")("Same Origin"),
+        Tab(_.panel := "batchDifferentOrigin")("Different Origin"),
+        Tab(_.panel := "streamingSameOrigin")("Streaming Same Origin"),
+        Tab(_.panel := "streamingDifferentOrigin")(
+          "Streaming Different Origin"
+        ),
+        Tab(_.panel := "websocket")("WebSocket"),
+        TabPanel(_.name := "batchSameOrigin")(batch.sameOrigin),
+        TabPanel(_.name := "batchDifferentOrigin")(
+          batch.differentOrigin(eventBus)
+        ),
+        TabPanel(_.name := "streamingSameOrigin")(streamingSameOrigin),
+        TabPanel(_.name := "streamingDifferentOrigin")(
+          streamingDifferentOrigin
+        ),
+        TabPanel(_.name := "websocket")(websocket)
       ),
       div(
-        button(
-          s"Streaming jsonl different origin",
-          onClick --> (_ =>
-            LocalEndpoints
-              .allStream(())
-              .jsonlEither[Organisation](localhost): organisation =>
-                result.emit(organisation.toJsonPretty)
-          )
-        )
-      ),
-      p(
-        s"Click the buttons below to make requests to the backend $httpbin."
-      ),
-      button(
-        "runJs remote",
-        onClick --> (_ => HttpBinEndpoints.get(()).run(httpbin))
-      ),
-      button(
-        "emitTo",
-        onClick --> (_ =>
-          HttpBinEndpoints
-            .get(())
-            .emit(httpbin, eventBus)
+        styleAttr := "margin-left: 1rem; width: 40%;",
+        Textarea(
+          _.cols := 100,
+          _.rows := 20,
+          _.value <-- result.events
+            .mergeWith(eventBus.events.map(_.toJsonPretty))
+            .mergeWith(clear.events)
+            .scanLeft("") { (acc, next) =>
+              if next == "" then ""
+              else acc + "\n" + next
+            },
+          _.value <-- clear.events.mapTo("")
+        )(
+        ),
+        Button()(
+          "Clear Responses",
+          onClick.mapTo("") --> clear
         )
       )
-    ),
-    div(
-      h3("Responses:"),
-      child <-- result.events
-        .mergeWith(eventBus.events.map(_.toJsonPretty))
-        .scanLeft("")((acc, next) => acc + "\n" + next)
-        .map(text => pre(text))
     )
   )
 

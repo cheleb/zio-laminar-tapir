@@ -25,6 +25,13 @@ import dev.cheleb.ziotapir.*
 import sttp.capabilities.zio.ZioStreams
 import sttp.model.Uri
 import sttp.tapir.Endpoint
+import sttp.capabilities.WebSockets
+import sttp.client4.Response
+
+extension [A](eventBus: EventBus[A])
+  def zEmit(value: A): Task[Unit] =
+    ZIO.attempt:
+      eventBus.emit(value)
 
 /** Extension that allows us to turn an unsecure endpoint to a function from a
   * payload to a ZIO.
@@ -88,6 +95,66 @@ extension [I, O](
     ZIO
       .service[BackendClient]
       .flatMap(_.securedStreamRequestZIO(endpoint)(payload))
+
+/** WebSocket extension methods.
+  */
+import sttp.tapir.client.sttp4.ws.zio.* // for zio
+
+extension [I, E, WI, WO](
+    wse: Endpoint[
+      Unit,
+      I,
+      E,
+      ZioStreams.Pipe[WI, WO],
+      ZioStreams & WebSockets
+    ]
+) // (using WebSocketToPipe[ZioStreams & WebSockets])
+  /** Call the WebSocket endpoint with a payload, and get a ZIO back.
+    */
+  def responseZIO(payload: I): RIO[BackendClient, Response[
+    ZioStreams.Pipe[WI, WO]
+  ]] = for {
+    backendClient <- ZIO.service[BackendClient]
+    response <- backendClient
+      .wsResponseZIO(wse)(payload)
+      .tapError(th =>
+        Console.printLineError(
+          s"WebSocket connection failed: ${th.getMessage()}"
+        )
+      )
+  } yield response
+
+  @targetName("wsApply")
+  def apply(payload: I): RIO[
+    BackendClient,
+    ZioStreams.Pipe[WI, WO]
+  ] =
+    for {
+      backendClient <- ZIO.service[BackendClient]
+      client <- backendClient
+        .wsClientZIO(wse)(payload)
+        .tapError(th =>
+          Console.printLineError(
+            s"WebSocket connection failed: ${th.getMessage()}"
+          )
+        )
+    } yield client
+
+/** Extension to ZIO[Any, E, A] that allows us to run in JS.
+  *
+  * @param zio
+  *   the ZIO to run
+  */
+extension [E <: Throwable, A](zio: ZIO[Any, E, A])
+
+  def runSyncUnsafe(): A =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe
+        .run(
+          zio
+        )
+        .getOrThrow()
+    }
 
 /** Extension to ZIO[BackendClient, E, A] that allows us to run in JS.
   *
@@ -542,3 +609,33 @@ extension (
           .runFoldZIO(s)(f)
       )
       .run(uri)
+
+/** Extension methods for ZIO[BackendClient, Throwable, Response[WebSocket]]
+  * that extract the WebSocket stream function.
+  */
+extension [WI, WO](
+    zio: RIO[BackendClient, Response[
+      ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
+    ]]
+)
+  /** Convert the response to a WebSocket stream function.
+    *
+    * Simply extracts the body from the response, and optionally logs the
+    * response for debugging purposes.
+    *
+    * Body is a function from ZStream of Input to ZStream of Output.
+    *
+    * @param debug
+    *   whether to enable debug logging
+    * @return
+    */
+  def asWebSocketStream(debug: Boolean = false): RIO[
+    BackendClient,
+    ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
+  ] =
+    zio
+      .tap(response =>
+        ZIO.when(debug):
+          ZIO.debug(s"WebSocket connected with response: ${response.show()}")
+      )
+      .map(_.body)
