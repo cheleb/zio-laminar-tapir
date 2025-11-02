@@ -8,11 +8,8 @@ import org.scalajs.dom
 import sttp.model.Uri
 
 import zio.stream.ZStream
-import sttp.client4.impl.zio.FetchZioBackend
-import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
 
 import sttp.tapir.client.sttp4.ws.zio.* // for zio
-//import sttp.client4.Response
 
 given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
 given websocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
@@ -66,59 +63,6 @@ val myApp =
             .emit(httpbin, eventBus)
         )
       )
-    ),
-    span(
-      hr(),
-      button(
-        "runJs WebSocket",
-        onClick --> { _ =>
-          val backend = FetchZioBackend()
-          val client = WebSocketSttpClientInterpreter()
-            .toClientThrowErrors(
-              WebsocketEndpoint.echo,
-              Some(websocket),
-              backend
-            )
-
-          // val clientZIO = WebsocketEndpoint.wsEndpoint.applyTT(())
-
-          val program = for {
-            _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
-            // client <- clientZIO
-            _ <- client(())
-              .flatMap { socket =>
-                ZIO.attempt(result.emit("WebSocket connected")) *>
-                  socket(
-                    ZStream
-                      .fromQueue(queue)
-                      .tap(msg =>
-                        ZIO.attempt {
-                          result.emit(s"Sending: $msg")
-                        }
-                      )
-                  )
-                    .runForeach(msg =>
-                      ZIO.attempt {
-                        result.emit(s"Received: $msg")
-                      }
-                    )
-              }
-              .catchAll(th =>
-                ZIO.attempt {
-                  result.emit(s"WebSocket connection failed: " + th.getMessage)
-                }
-              )
-          } yield ()
-          program.run
-
-        }
-      )
-    ),
-    button(
-      "Send message",
-      onClick --> { _ =>
-        queue.offer("Hello from client!").run
-      }
     ),
     span(
       hr(),
