@@ -586,6 +586,17 @@ extension [WI, WO](
       ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
     ]]
 )
+  /** Convert the response to a WebSocket stream function.
+    *
+    * Simply extracts the body from the response, and optionally logs the
+    * response for debugging purposes.
+    *
+    * Body is a function from ZStream of Input to ZStream of Output.
+    *
+    * @param debug
+    *   whether to enable debug logging
+    * @return
+    */
   def asWebSocketStream(debug: Boolean = false): ZIO[
     BackendClient,
     Throwable,

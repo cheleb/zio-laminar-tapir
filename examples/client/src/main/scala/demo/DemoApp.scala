@@ -67,14 +67,14 @@ val myApp =
     span(
       hr(),
       button(
-        "runJs WebSocket",
+        "WebSocket",
         onClick --> { _ =>
-          val clientZIO = WebsocketEndpoint.echo(())
-
           val program = for {
             _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
 
-            ws <- clientZIO.asWebSocketStream(debug = debugWS.now())
+            ws <- WebsocketEndpoint
+              .echo(())
+              .asWebSocketStream(debug = debugWS.now())
 
             _ <- ws(
               ZStream
