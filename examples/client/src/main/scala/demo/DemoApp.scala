@@ -21,15 +21,8 @@ var result = EventBus[String]()
 val myApp =
   val eventBus = new EventBus[GetResponse]()
   val newMesageBus = new EventBus[String]()
-  val queue =
-    Unsafe.unsafe { implicit unsafe =>
-      Runtime.default.unsafe
-        .run(
-          Queue.unbounded[String]
-        )
-        .getOrThrow()
-    }
-//  val errorBus = new EventBus[Throwable]()
+  val queue = Queue.unbounded[String].runSyncUnsafe()
+
   div(
     div(
       h1("ZIO and Tapir."),

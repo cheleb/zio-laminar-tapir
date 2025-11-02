@@ -89,6 +89,22 @@ extension [I, O](
       .service[BackendClient]
       .flatMap(_.securedStreamRequestZIO(endpoint)(payload))
 
+/** Extension to ZIO[Any, E, A] that allows us to run in JS.
+  *
+  * @param zio
+  *   the ZIO to run
+  */
+extension [E <: Throwable, A](zio: ZIO[Any, E, A])
+
+  def runSyncUnsafe(): A =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe
+        .run(
+          zio
+        )
+        .getOrThrow()
+    }
+
 /** Extension to ZIO[BackendClient, E, A] that allows us to run in JS.
   *
   * @param zio
