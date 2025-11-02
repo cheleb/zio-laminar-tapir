@@ -26,6 +26,8 @@ import sttp.capabilities.zio.ZioStreams
 import sttp.model.Uri
 import sttp.tapir.Endpoint
 import sttp.capabilities.WebSockets
+import sttp.client4.Response
+import sttp.tapir.client.sttp4.WebSocketToPipe
 
 /** Extension that allows us to turn an unsecure endpoint to a function from a
   * payload to a ZIO.
@@ -100,12 +102,11 @@ extension [I, E, WI, WO](
       ZioStreams.Pipe[WI, WO],
       ZioStreams & WebSockets
     ]
-)
+)(using WebSocketToPipe[ZioStreams & WebSockets])
   @targetName("wsApply")
-  def applyTT(payload: I): RIO[
-    BackendClient,
-    ZIO[Any, Throwable, ZioStreams.Pipe[WI, WO]]
-  ] = for {
+  def applyTT(payload: I): ZIO[BackendClient, Throwable, Response[
+    ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
+  ]] = for {
     backendClient <- ZIO.service[BackendClient]
     client <- backendClient.wsClientZIO(wse)(payload)
   } yield client

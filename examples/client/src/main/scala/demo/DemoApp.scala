@@ -6,11 +6,13 @@ import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.laminar.*
 import org.scalajs.dom
 import sttp.model.Uri
-import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
 
 import zio.stream.ZStream
 import sttp.client4.impl.zio.FetchZioBackend
+import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
+
 import sttp.tapir.client.sttp4.ws.zio.* // for zio
+import sttp.client4.Response
 
 given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
 given websocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
@@ -77,10 +79,11 @@ val myApp =
               backend
             )
 
-          WebsocketEndpoint.wsEndpoint.applyTT(())
+          // val clientZIO = WebsocketEndpoint.wsEndpoint.applyTT(())
 
           val program = for {
             _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
+            // client <- clientZIO
             _ <- client(())
               .flatMap { socket =>
                 ZIO.attempt(result.emit("WebSocket connected")) *>
@@ -106,6 +109,53 @@ val myApp =
               )
           } yield ()
           program.run
+
+        }
+      )
+    ),
+    button(
+      "Send message",
+      onClick --> { _ =>
+        queue.offer("Hello from client!").run
+      }
+    ),
+    span(
+      hr(),
+      button(
+        "runJs WebSocket",
+        onClick --> { _ =>
+          val clientZIO = WebsocketEndpoint.wsEndpoint.applyTT(())
+
+          val program = for {
+            _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
+            client <- clientZIO
+            _ <- client match
+              case Response(
+                    body,
+                    code,
+                    statusText,
+                    headers,
+                    history,
+                    request
+                  ) =>
+                body(
+                  ZStream
+                    .fromQueue(queue)
+                    .tap(msg =>
+                      ZIO.attempt {
+                        result.emit(s"Sending: $msg")
+                      }
+                    )
+                )
+                  .runForeach(msg =>
+                    ZIO.attempt {
+                      result.emit(s"Received: $msg")
+                    }
+                  )
+
+          } yield ()
+
+          program.run(websocket)
 
         }
       )
