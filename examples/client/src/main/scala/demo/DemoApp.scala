@@ -20,6 +20,15 @@ var result = EventBus[String]()
 
 val myApp =
   val eventBus = new EventBus[GetResponse]()
+  val newMesageBus = new EventBus[String]()
+  val queue =
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe
+        .run(
+          Queue.unbounded[String]
+        )
+        .getOrThrow()
+    }
 //  val errorBus = new EventBus[Throwable]()
   div(
     div(
@@ -62,7 +71,7 @@ val myApp =
         )
       )
     ),
-    div(
+    span(
       hr(),
       button(
         "runJs WebSocket",
@@ -74,32 +83,46 @@ val myApp =
               Some(websocket),
               backend
             )
-          client(())
-            .flatMap { socket =>
-              println("WebSocket connected")
-
-              socket(ZStream("hello", "from", "websockets"))
-                .runForeach(msg => ZIO.attempt(result.emit(s"Received: $msg")))
-
-            }
-            .catchAll(th =>
-              ZIO.attempt {
-                println("WebSocket connection failed: " + th.getMessage)
-                result.emit(s"Failed")
+          val program = for {
+            _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
+            _ <- client(())
+              .flatMap { socket =>
+                ZIO.attempt(result.emit("WebSocket connected")) *>
+                  socket(
+                    ZStream
+                      .fromQueue(queue)
+                      .tap(msg =>
+                        ZIO.attempt {
+                          result.emit(s"Sending: $msg")
+                        }
+                      )
+                  )
+                    .runForeach(msg =>
+                      ZIO.attempt {
+                        result.emit(s"Received: $msg")
+                      }
+                    )
               }
-            )
-            .run
-
-//            .onComplete {
-          //   case Success(value) =>
-
-          //   case Failure(th) =>
-          //     println("WebSocket connection failed: " + th.getMessage)
-          //     ZIO.attempt(result.emit(s"Failed"))
-          // }
+              .catchAll(th =>
+                ZIO.attempt {
+                  result.emit(s"WebSocket connection failed: " + th.getMessage)
+                }
+              )
+          } yield ()
+          program.run
 
         }
       )
+    ),
+    button(
+      "Send message",
+      onClick --> { _ =>
+        queue.offer("Hello from client!").run
+      }
+    ),
+    div(
+      h3("WebSocket Messages:"),
+      child <-- newMesageBus.events.map(msg => p(s"Sent: $msg"))
     ),
     div(
       h3("Responses:"),
