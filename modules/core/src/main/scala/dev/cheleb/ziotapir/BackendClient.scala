@@ -18,6 +18,11 @@ import sttp.tapir.Endpoint
 import laminar.Session
 import sttp.tapir.client.sttp4.SttpClientInterpreter
 import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
+import sttp.capabilities.WebSockets
+import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
+
+import sttp.capabilities.Streams
+import sttp.tapir.client.sttp4.WebSocketToPipe
 
 /** A client to the backend, extending the endpoints as methods.
   */
@@ -68,6 +73,23 @@ trait BackendClient {
       endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
   )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]]
 
+  private[ziotapir] def wsClientZIO[I, E, WI, WO](
+      wse: Endpoint[
+        Unit,
+        I,
+        E,
+        ZioStreams.Pipe[WI, WO],
+        ZioStreams & WebSockets
+      ]
+  )(payload: I): ZIO[
+    Any,
+    Throwable,
+    ZIO[
+      Any,
+      Throwable,
+      ZioStreams.Pipe[WI, WO]
+    ]
+  ]
 }
 
 /** A client to the backend, extending the endpoints as methods.
@@ -83,6 +105,7 @@ private class BackendClientLive(
     backend: WebSocketStreamBackend[Task, ZioStreams],
     interpreter: SttpClientInterpreter,
     streamInterpreter: StreamSttpClientInterpreter,
+    websocketInterpreter: WebSocketSttpClientInterpreter,
     config: BackendClientConfig
 ) extends BackendClient {
 
@@ -286,6 +309,34 @@ private class BackendClientLive(
   )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]] =
     securedStreamRequestZIO(config.baseUrl, endpoint)(payload)
 
+  def websocketRequest[I, E, WI, WO, R <: Streams[?] & WebSockets](
+      wse: Endpoint[Unit, I, E, ZioStreams.Pipe[WI, WO], R]
+  ): I => WebSocketRequest[
+    Task,
+    ZioStreams.Pipe[WI, WO]
+  ] =
+    websocketInterpreter.toRequestThrowErrors(wse, Some(config.baseUrl))
+
+  private[ziotapir] def wsClientZIO[I, E, WI, WO](
+      wse: Endpoint[
+        Unit,
+        I,
+        E,
+        ZioStreams.Pipe[WI, WO],
+        ZioStreams & WebSockets
+      ]
+  )(payload: I): ZIO[
+    Any,
+    Throwable,
+    ZIO[
+      Any,
+      Throwable,
+      ZioStreams.Pipe[WI, WO]
+    ]
+  ] =
+    websocketRequest(wse)(payload)
+    // .send(backend)
+    ???
 }
 
 /** The live implementation of the BackendClient.
@@ -329,10 +380,13 @@ object BackendClientLive {
     val backend = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
     val streamInterpreter = StreamSttpClientInterpreter()
+    val websocketInterpreter = WebSocketSttpClientInterpreter()
     val config = BackendClientConfig(backendBaseURL)
 
     ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
       streamInterpreter
+    ) ++ ZLayer.succeed(
+      websocketInterpreter
     ) ++ ZLayer.succeed(
       config
     ) >>> layer
@@ -344,11 +398,12 @@ object BackendClientLive {
     val backend = FetchZioBackend()
     val interpreter = SttpClientInterpreter()
     val streamInterpreter = StreamSttpClientInterpreter()
+    val websocketInterpreter = WebSocketSttpClientInterpreter()
     val config = BackendClientConfig(uri)
 
     ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
       streamInterpreter
-    ) ++ ZLayer.succeed(
+    ) ++ ZLayer.succeed(websocketInterpreter) ++ ZLayer.succeed(
       config
     ) >>> layer
   }

@@ -76,6 +76,9 @@ val myApp =
               Some(websocket),
               backend
             )
+
+          WebsocketEndpoint.wsEndpoint.applyTT(())
+
           val program = for {
             _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
             _ <- client(())

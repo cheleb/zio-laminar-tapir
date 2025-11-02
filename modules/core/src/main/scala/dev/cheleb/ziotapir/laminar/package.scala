@@ -25,6 +25,7 @@ import dev.cheleb.ziotapir.*
 import sttp.capabilities.zio.ZioStreams
 import sttp.model.Uri
 import sttp.tapir.Endpoint
+import sttp.capabilities.WebSockets
 
 /** Extension that allows us to turn an unsecure endpoint to a function from a
   * payload to a ZIO.
@@ -88,6 +89,26 @@ extension [I, O](
     ZIO
       .service[BackendClient]
       .flatMap(_.securedStreamRequestZIO(endpoint)(payload))
+
+/** WebSocket extension methods.
+  */
+extension [I, E, WI, WO](
+    wse: Endpoint[
+      Unit,
+      I,
+      E,
+      ZioStreams.Pipe[WI, WO],
+      ZioStreams & WebSockets
+    ]
+)
+  @targetName("wsApply")
+  def applyTT(payload: I): RIO[
+    BackendClient,
+    ZIO[Any, Throwable, ZioStreams.Pipe[WI, WO]]
+  ] = for {
+    backendClient <- ZIO.service[BackendClient]
+    client <- backendClient.wsClientZIO(wse)(payload)
+  } yield client
 
 /** Extension to ZIO[Any, E, A] that allows us to run in JS.
   *
