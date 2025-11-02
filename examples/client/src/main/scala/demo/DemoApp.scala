@@ -12,7 +12,7 @@ import sttp.client4.impl.zio.FetchZioBackend
 import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
 
 import sttp.tapir.client.sttp4.ws.zio.* // for zio
-import sttp.client4.Response
+//import sttp.client4.Response
 
 given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
 given websocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
@@ -24,6 +24,7 @@ val myApp =
   val eventBus = new EventBus[GetResponse]()
   val newMesageBus = new EventBus[String]()
   val queue = Queue.unbounded[String].runSyncUnsafe()
+  val debugWS = Var(false)
 
   div(
     div(
@@ -74,7 +75,7 @@ val myApp =
           val backend = FetchZioBackend()
           val client = WebSocketSttpClientInterpreter()
             .toClientThrowErrors(
-              WebsocketEndpoint.wsEndpoint,
+              WebsocketEndpoint.echo,
               Some(websocket),
               backend
             )
@@ -124,34 +125,27 @@ val myApp =
       button(
         "runJs WebSocket",
         onClick --> { _ =>
-          val clientZIO = WebsocketEndpoint.wsEndpoint.applyTT(())
+          val clientZIO = WebsocketEndpoint.echo(())
 
           val program = for {
             _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
-            client <- clientZIO
-            _ <- client match
-              case Response(
-                    body,
-                    code,
-                    statusText,
-                    headers,
-                    history,
-                    request
-                  ) =>
-                body(
-                  ZStream
-                    .fromQueue(queue)
-                    .tap(msg =>
-                      ZIO.attempt {
-                        result.emit(s"Sending: $msg")
-                      }
-                    )
+
+            ws <- clientZIO.asWebSocketStream(debug = debugWS.now())
+
+            _ <- ws(
+              ZStream
+                .fromQueue(queue)
+                .tap(msg =>
+                  ZIO.attempt {
+                    result.emit(s"Sending: $msg")
+                  }
                 )
-                  .runForeach(msg =>
-                    ZIO.attempt {
-                      result.emit(s"Received: $msg")
-                    }
-                  )
+            )
+              .runForeach(msg =>
+                ZIO.attempt {
+                  result.emit(s"Received: $msg")
+                }
+              )
 
           } yield ()
 
@@ -159,6 +153,13 @@ val myApp =
 
         }
       )
+    ),
+    input(
+      typ := "checkbox",
+      onChange.mapToChecked --> { debug =>
+        result.emit(s"WebSocket debug mode: $debug")
+        debugWS.set(debug)
+      }
     ),
     button(
       "Send message",

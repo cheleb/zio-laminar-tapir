@@ -13,7 +13,7 @@ import zio.json.JsonCodec
 
 case class Error(description: String) derives JsonCodec, Schema
 object WebsocketEndpoint extends BaseEndpoint {
-  val wsEndpoint: PublicEndpoint[
+  val echo: PublicEndpoint[
     Unit,
     Error,
     ZioStreams.Pipe[String, String],

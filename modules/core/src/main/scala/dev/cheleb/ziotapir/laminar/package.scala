@@ -104,7 +104,7 @@ extension [I, E, WI, WO](
     ]
 )(using WebSocketToPipe[ZioStreams & WebSockets])
   @targetName("wsApply")
-  def applyTT(payload: I): ZIO[BackendClient, Throwable, Response[
+  def apply(payload: I): ZIO[BackendClient, Throwable, Response[
     ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
   ]] = for {
     backendClient <- ZIO.service[BackendClient]
@@ -580,3 +580,20 @@ extension (
           .runFoldZIO(s)(f)
       )
       .run(uri)
+
+extension [WI, WO](
+    zio: ZIO[BackendClient, Throwable, Response[
+      ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
+    ]]
+)
+  def asWebSocketStream(debug: Boolean = false): ZIO[
+    BackendClient,
+    Throwable,
+    ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
+  ] =
+    zio
+      .tap(response =>
+        ZIO.when(debug):
+          ZIO.debug(s"WebSocket connected with response: ${response.show()}")
+      )
+      .map(_.body)
