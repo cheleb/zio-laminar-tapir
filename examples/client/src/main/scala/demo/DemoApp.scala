@@ -9,10 +9,8 @@ import sttp.model.Uri
 
 import zio.stream.ZStream
 
-import sttp.tapir.client.sttp4.ws.zio.* // for zio
-
 given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
-given websocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
+given echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
 var result = EventBus[String]()
@@ -22,6 +20,7 @@ val myApp =
   val newMesageBus = new EventBus[String]()
   val queue = Queue.unbounded[String].runSyncUnsafe()
   val debugWS = Var(false)
+  val closeWS = Promise.make[Nothing, Boolean].runSyncUnsafe()
 
   div(
     div(
@@ -70,7 +69,7 @@ val myApp =
         "WebSocket",
         onClick --> { _ =>
           val program = for {
-            _ <- ZIO.attempt(result.emit("Connecting to WebSocket..."))
+            _ <- result.zEmit("Connecting to WebSocket...")
 
             ws <- WebsocketEndpoint
               .echo(())
@@ -79,21 +78,15 @@ val myApp =
             _ <- ws(
               ZStream
                 .fromQueue(queue)
-                .tap(msg =>
-                  ZIO.attempt {
-                    result.emit(s"Sending: $msg")
-                  }
-                )
+                .tap(msg => result.zEmit(s"Sending: $msg"))
             )
-              .runForeach(msg =>
-                ZIO.attempt {
-                  result.emit(s"Received: $msg")
-                }
-              )
+              .runForeach(msg => result.zEmit(s"Received: $msg"))
+
+            _ <- result.zEmit("WebSocket closed.")
 
           } yield ()
 
-          program.run(websocket)
+          program.run(echoWebsocket)
 
         }
       )
@@ -109,6 +102,12 @@ val myApp =
       "Send message",
       onClick --> { _ =>
         queue.offer("Hello from client!").run
+      }
+    ),
+    button(
+      "Close WebSocket",
+      onClick --> { _ =>
+        closeWS.succeed(true).run
       }
     ),
     div(

@@ -27,7 +27,11 @@ import sttp.model.Uri
 import sttp.tapir.Endpoint
 import sttp.capabilities.WebSockets
 import sttp.client4.Response
-import sttp.tapir.client.sttp4.WebSocketToPipe
+
+extension [A](eventBus: EventBus[A])
+  def zEmit(value: A): Task[Unit] =
+    ZIO.attempt:
+      eventBus.emit(value)
 
 /** Extension that allows us to turn an unsecure endpoint to a function from a
   * payload to a ZIO.
@@ -94,6 +98,8 @@ extension [I, O](
 
 /** WebSocket extension methods.
   */
+import sttp.tapir.client.sttp4.ws.zio.* // for zio
+
 extension [I, E, WI, WO](
     wse: Endpoint[
       Unit,
@@ -102,13 +108,21 @@ extension [I, E, WI, WO](
       ZioStreams.Pipe[WI, WO],
       ZioStreams & WebSockets
     ]
-)(using WebSocketToPipe[ZioStreams & WebSockets])
+) // (using WebSocketToPipe[ZioStreams & WebSockets])
+  /** Call the WebSocket endpoint with a payload, and get a ZIO back.
+    */
   @targetName("wsApply")
   def apply(payload: I): ZIO[BackendClient, Throwable, Response[
     ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
   ]] = for {
     backendClient <- ZIO.service[BackendClient]
-    client <- backendClient.wsClientZIO(wse)(payload)
+    client <- backendClient
+      .wsClientZIO(wse)(payload)
+      .tapError(th =>
+        Console.printLineError(
+          s"WebSocket connection failed: ${th.getMessage()}"
+        )
+      )
   } yield client
 
 /** Extension to ZIO[Any, E, A] that allows us to run in JS.
@@ -581,6 +595,9 @@ extension (
       )
       .run(uri)
 
+/** Extension methods for ZIO[BackendClient, Throwable, Response[WebSocket]]
+  * that extract the WebSocket stream function.
+  */
 extension [WI, WO](
     zio: ZIO[BackendClient, Throwable, Response[
       ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
