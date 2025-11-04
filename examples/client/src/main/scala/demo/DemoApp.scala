@@ -8,6 +8,7 @@ import org.scalajs.dom
 import sttp.model.Uri
 
 import zio.stream.ZStream
+import sttp.ws.WebSocketFrame
 
 given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
 given echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
@@ -18,9 +19,9 @@ var result = EventBus[String]()
 val myApp =
   val eventBus = new EventBus[GetResponse]()
   val newMesageBus = new EventBus[String]()
-  val queue = Queue.unbounded[String].runSyncUnsafe()
+  val queue = Queue.unbounded[WebSocketFrame].runSyncUnsafe()
   val debugWS = Var(false)
-  val closeWS = Promise.make[Nothing, Boolean].runSyncUnsafe()
+  val closeWS = Promise.make[Nothing, Unit].runSyncUnsafe()
 
   div(
     div(
@@ -78,6 +79,7 @@ val myApp =
             _ <- ws(
               ZStream
                 .fromQueue(queue)
+                .interruptWhen(closeWS)
                 .tap(msg => result.zEmit(s"Sending: $msg"))
             )
               .runForeach(msg => result.zEmit(s"Received: $msg"))
@@ -101,13 +103,14 @@ val myApp =
     button(
       "Send message",
       onClick --> { _ =>
-        queue.offer("Hello from client!").run
+        queue.offer(WebSocketFrame.text("Hello from client!")).run
       }
     ),
     button(
       "Close WebSocket",
       onClick --> { _ =>
-        closeWS.succeed(true).run
+        queue.offer(WebSocketFrame.close).run
+        closeWS.succeed(()).run
       }
     ),
     div(

@@ -73,7 +73,9 @@ trait BackendClient {
       endpoint: Endpoint[String, I, Throwable, Stream[Throwable, O], ZioStreams]
   )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]]
 
-  private[ziotapir] def wsClientZIO[I, E, WI, WO, R <: Streams[?] & WebSockets](
+  private[ziotapir] def wsResponseZIO[I, E, WI, WO, R <: Streams[
+    ?
+  ] & WebSockets](
       wse: Endpoint[
         Unit,
         I,
@@ -315,7 +317,9 @@ private class BackendClientLive(
   ] =
     websocketInterpreter.toRequestThrowErrors(wse, Some(config.baseUrl))
 
-  private[ziotapir] def wsClientZIO[I, E, WI, WO, R <: Streams[?] & WebSockets](
+  private[ziotapir] def wsResponseZIO[I, E, WI, WO, R <: Streams[
+    ?
+  ] & WebSockets](
       wse: Endpoint[
         Unit,
         I,

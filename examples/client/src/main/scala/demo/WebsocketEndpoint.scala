@@ -10,21 +10,22 @@ import sttp.capabilities.WebSockets
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.zio.*
 import zio.json.JsonCodec
+import sttp.ws.WebSocketFrame
 
 case class Error(description: String) derives JsonCodec, Schema
 object WebsocketEndpoint extends BaseEndpoint {
   val echo: PublicEndpoint[
     Unit,
     Error,
-    ZioStreams.Pipe[String, String],
+    ZioStreams.Pipe[WebSocketFrame, WebSocketFrame],
     ZioStreams & WebSockets
   ] =
     endpoint.get
       .out(
         webSocketBody[
-          String,
+          WebSocketFrame,
           CodecFormat.TextPlain,
-          String,
+          WebSocketFrame,
           CodecFormat.TextPlain
         ](
           ZioStreams

@@ -117,7 +117,7 @@ extension [I, E, WI, WO](
   ]] = for {
     backendClient <- ZIO.service[BackendClient]
     client <- backendClient
-      .wsClientZIO(wse)(payload)
+      .wsResponseZIO(wse)(payload)
       .tapError(th =>
         Console.printLineError(
           s"WebSocket connection failed: ${th.getMessage()}"
