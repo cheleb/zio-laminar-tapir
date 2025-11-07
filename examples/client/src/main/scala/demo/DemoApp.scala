@@ -21,7 +21,7 @@ val myApp =
   val newMesageBus = new EventBus[String]()
   val queue = Queue.unbounded[WebSocketFrame].runSyncUnsafe()
   val debugWS = Var(false)
-  val closeWS = Promise.make[Nothing, Unit].runSyncUnsafe()
+  val closeWSVar = Var(Option.empty[Promise[Nothing, Unit]])
 
   div(
     div(
@@ -68,7 +68,11 @@ val myApp =
       hr(),
       button(
         "WebSocket",
+        disabled <-- closeWSVar.signal.map(_.isDefined),
         onClick --> { _ =>
+          val closeWS = Promise.make[Nothing, Unit].runSyncUnsafe()
+          closeWSVar.set(Some(closeWS))
+
           val program = for {
             _ <- result.zEmit("Connecting to WebSocket...")
 
@@ -102,15 +106,18 @@ val myApp =
     ),
     button(
       "Send message",
+      disabled <-- closeWSVar.signal.map(_.isEmpty),
       onClick --> { _ =>
         queue.offer(WebSocketFrame.text("Hello from client!")).run
       }
     ),
     button(
       "Close WebSocket",
+      disabled <-- closeWSVar.signal.map(_.isEmpty),
       onClick --> { _ =>
         queue.offer(WebSocketFrame.close).run
-        closeWS.succeed(()).run
+        closeWSVar.now().foreach(_.succeed(()).run)
+        closeWSVar.set(None)
       }
     ),
     div(
