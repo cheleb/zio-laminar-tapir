@@ -88,7 +88,7 @@ val myApp =
             )
               .runForeach(msg => result.zEmit(s"Received: $msg"))
 
-            _ <- result.zEmit("WebSocket closed.")
+            _ = result.emit("WebSocket closed.")
 
           } yield ()
 
