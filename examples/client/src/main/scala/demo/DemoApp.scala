@@ -42,7 +42,6 @@ val myApp =
     ),
     div(
       styleAttr := "margin-left: 1rem; width: 40%;",
-      h3("Responses:"),
       Textarea(
         _.cols := 100,
         _.rows := 20,

@@ -60,7 +60,8 @@ def websocket =
       Input(
         _.value <-- message.signal,
         _.placeholder := "Type a message to send",
-        _.onInput.mapToValue --> message
+        _.onInput.mapToValue --> message,
+        _.disabled <-- closeWSVar.signal.map(_.isEmpty)
       )(
       ),
       Button(_.variant.brand)(
