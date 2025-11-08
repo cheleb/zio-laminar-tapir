@@ -1,17 +1,11 @@
 import java.nio.charset.StandardCharsets
 import org.scalajs.linker.interface.ModuleSplitStyle
 
+import Dependencies._
+
 val dev = sys.env.get("DEV").getOrElse("demo")
 
 val scala33 = "3.7.4"
-
-val Versions = new {
-  val laminar = "17.2.1"
-  val tapir = "1.12.1"
-  val sttp = "4.0.13"
-  val sttpModelCore = "1.7.17"
-  val zio = "2.1.22"
-}
 
 inThisBuild(
   List(
@@ -147,12 +141,7 @@ lazy val core = scalajsProject("core", false)
   .dependsOn(sharedJs)
   .settings(scalacOptions ++= usedScalacOptions)
   .settings(
-    libraryDependencies ++= Seq(
-      "com.raquo" %%% "laminar" % Versions.laminar,
-      "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % Versions.tapir,
-      "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
-      "com.softwaremill.sttp.client4" %%% "zio" % Versions.sttp
-    )
+    coreDependencies
   )
 
 lazy val example = scalajsProject("client", true)
