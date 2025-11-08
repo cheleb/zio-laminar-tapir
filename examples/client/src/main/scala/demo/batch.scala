@@ -8,17 +8,16 @@ import io.github.nguyenyou.webawesome.laminar.*
 
 object batch:
   def sameOrigin =
-    div(
-      Button()(
-        "Streaming jsonl sameorigin",
-        onClick --> (_ =>
-          LocalEndpoints
-            .allStream(())
-            .jsonlEither[Organisation]: organisation =>
-              result.emit(organisation.toJsonPretty)
-        )
+    Button(_.variant.brand)(
+      "Streaming jsonl sameorigin",
+      onClick --> (_ =>
+        LocalEndpoints
+          .allStream(())
+          .jsonlEither[Organisation]: organisation =>
+            result.emit(organisation.toJsonPretty)
       )
     )
+
   def differentOrigin(eventBus: EventBus[GetResponse]) =
     div(
       p(
