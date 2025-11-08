@@ -56,6 +56,7 @@ def websocket =
       }
     ),
     span(
+      styleAttr := "display: flex; align-items: center; gap: 0.5rem;",
       Input(
         _.value <-- message.signal,
         _.placeholder := "Type a message to send",
@@ -78,6 +79,7 @@ def websocket =
         _.fixedWidth := "true",
         _.name := "close"
       )(),
+      "Close socket",
       disabled <-- closeWSVar.signal.map(_.isEmpty),
       onClick --> { _ =>
         queue.offer(WebSocketFrame.close).run
