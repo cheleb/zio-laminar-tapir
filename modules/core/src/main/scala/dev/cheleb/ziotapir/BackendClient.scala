@@ -307,7 +307,12 @@ private class BackendClientLive(
   )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]] =
     securedStreamRequestZIO(config.baseUrl, endpoint)(payload)
 
-  def websocketRequest[I, E, WI, WO, R <: Streams[?] & WebSockets](
+  /** Turn a websocket endpoint into a function that builds a WebSocketRequest
+    * from an arbitrary input.
+    * @param wse
+    * @return
+    */
+  private def websocketRequest[I, E, WI, WO, R <: Streams[?] & WebSockets](
       wse: Endpoint[Unit, I, E, ZioStreams.Pipe[WI, WO], R]
   )(using
       WebSocketToPipe[R]
@@ -317,6 +322,15 @@ private class BackendClientLive(
   ] =
     websocketInterpreter.toRequestThrowErrors(wse, Some(config.baseUrl))
 
+  /** Call a websocket endpoint with a payload, and get a ZIO back.
+    *
+    * The returned ZIO, when executed, will open the websocket connection and
+    * return a Response containing a function to process the websocket stream.
+    *
+    * @param wse
+    * @param payload
+    * @return
+    */
   private[ziotapir] def wsResponseZIO[I, E, WI, WO, R <: Streams[
     ?
   ] & WebSockets](
