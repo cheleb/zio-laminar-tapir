@@ -10,8 +10,9 @@ import sttp.model.Uri
 import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
 
-given httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
-given echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
+val httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
+val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
+//val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
 var result = EventBus[String]()
