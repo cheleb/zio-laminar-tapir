@@ -112,18 +112,33 @@ extension [I, E, WI, WO](
   /** Call the WebSocket endpoint with a payload, and get a ZIO back.
     */
   @targetName("wsApply")
-  def apply(payload: I): ZIO[BackendClient, Throwable, Response[
-    ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
+  def apply(payload: I): RIO[BackendClient, Response[
+    ZioStreams.Pipe[WI, WO]
   ]] = for {
     backendClient <- ZIO.service[BackendClient]
-    client <- backendClient
+    response <- backendClient
       .wsResponseZIO(wse)(payload)
       .tapError(th =>
         Console.printLineError(
           s"WebSocket connection failed: ${th.getMessage()}"
         )
       )
-  } yield client
+  } yield response
+
+  def applyA(payload: I): RIO[
+    BackendClient,
+    ZioStreams.Pipe[WI, WO]
+  ] =
+    for {
+      backendClient <- ZIO.service[BackendClient]
+      client <- backendClient
+        .wsClientZIO(wse)(payload)
+        .tapError(th =>
+          Console.printLineError(
+            s"WebSocket connection failed: ${th.getMessage()}"
+          )
+        )
+    } yield client
 
 /** Extension to ZIO[Any, E, A] that allows us to run in JS.
   *
@@ -599,7 +614,7 @@ extension (
   * that extract the WebSocket stream function.
   */
 extension [WI, WO](
-    zio: ZIO[BackendClient, Throwable, Response[
+    zio: RIO[BackendClient, Response[
       ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
     ]]
 )
@@ -614,9 +629,8 @@ extension [WI, WO](
     *   whether to enable debug logging
     * @return
     */
-  def asWebSocketStream(debug: Boolean = false): ZIO[
+  def asWebSocketStream(debug: Boolean = false): RIO[
     BackendClient,
-    Throwable,
     ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
   ] =
     zio

@@ -30,6 +30,7 @@ val myApp =
         Tab(_.panel := "streamingDifferentOrigin")(
           "Streaming Different Origin"
         ),
+        Tab(_.panel := "websocketClient")("WebSocket client"),
         Tab(_.panel := "websocket")("WebSocket"),
         TabPanel(_.name := "batchSameOrigin")(batch.sameOrigin),
         TabPanel(_.name := "batchDifferentOrigin")(
@@ -39,6 +40,7 @@ val myApp =
         TabPanel(_.name := "streamingDifferentOrigin")(
           streamingDifferentOrigin
         ),
+        TabPanel(_.name := "websocketClient")(websocketClient),
         TabPanel(_.name := "websocket")(websocket)
       ),
       div(

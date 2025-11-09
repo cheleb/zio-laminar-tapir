@@ -85,9 +85,23 @@ trait BackendClient {
       ]
   )(payload: I)(using
       WebSocketToPipe[R]
-  ): ZIO[Any, Throwable, Response[
+  ): Task[Response[
     ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
   ]]
+
+  private[ziotapir] def wsClientZIO[I, E, WI, WO, R <: Streams[
+    ?
+  ] & WebSockets](
+      wse: Endpoint[
+        Unit,
+        I,
+        E,
+        ZioStreams.Pipe[WI, WO],
+        R
+      ]
+  )(payload: I)(using
+      WebSocketToPipe[R]
+  ): Task[ZioStreams.Pipe[WI, WO]]
 }
 
 /** A client to the backend, extending the endpoints as methods.
@@ -307,6 +321,15 @@ private class BackendClientLive(
   )(payload: I)(using session: Session[UserToken]): Task[Stream[Throwable, O]] =
     securedStreamRequestZIO(config.baseUrl, endpoint)(payload)
 
+  def websocketClient[I, E, WI, WO, R <: Streams[?] & WebSockets](
+      wse: Endpoint[Unit, I, E, ZioStreams.Pipe[WI, WO], R]
+  )(using
+      WebSocketToPipe[R]
+  ): I => Task[
+    ZioStreams.Pipe[WI, WO]
+  ] =
+    websocketInterpreter.toClientThrowErrors(wse, Some(config.baseUrl), backend)
+
   /** Turn a websocket endpoint into a function that builds a WebSocketRequest
     * from an arbitrary input.
     * @param wse
@@ -344,11 +367,25 @@ private class BackendClientLive(
   )(payload: I)(using
       WebSocketToPipe[R]
   ): ZIO[Any, Throwable, Response[
-    ZStream[Any, Throwable, WI] => ZStream[Any, Throwable, WO]
+    ZioStreams.Pipe[WI, WO]
   ]] =
 
     websocketRequest(wse)(payload)
       .send(backend)
+
+  private[ziotapir] def wsClientZIO[I, E, WI, WO, R <: Streams[?] & WebSockets](
+      wse: Endpoint[
+        Unit,
+        I,
+        E,
+        ZioStreams.Pipe[WI, WO],
+        R
+      ]
+  )(payload: I)(using
+      WebSocketToPipe[R]
+  ): Task[ZioStreams.Pipe[WI, WO]] =
+
+    websocketClient(wse)(payload)
 
 }
 
