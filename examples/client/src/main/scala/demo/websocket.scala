@@ -10,6 +10,7 @@ import sttp.model.Uri
 
 import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
+import sttp.ws.WebSocketFrame.Text
 
 //val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
 val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
@@ -43,7 +44,6 @@ def websocket =
           _ <- ws(
             ZStream
               .fromHubWithShutdown(hub)
-              .interruptWhen(hub.awaitShutdown)
               .tap(msg => result.zEmit(s"Sending: $msg"))
           )
             .runForeach(msg => result.zEmit(s"Received: $msg"))
@@ -133,13 +133,14 @@ def websocketClient =
 
           _ <- ws(
             ZStream
-              .unwrapScoped(
-                ZStream
-                  .fromHubScoped(hub)
-              )
+              .fromHubWithShutdown(hub)
               .tap(msg => result.zEmit(s"Sending: $msg"))
           )
-            .runForeach(msg => result.zEmit(s"Received: $msg"))
+            .runForeach {
+              case Text(payload, _, _) =>
+                result.zEmit(s"Received: $payload")
+              case _ => ZIO.unit
+            }
 
           _ = result.emit("WebSocket closed.")
 
