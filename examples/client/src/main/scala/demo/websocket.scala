@@ -6,17 +6,20 @@ import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.laminar.*
 import io.github.nguyenyou.webawesome.laminar.*
 
+import compiletime.uninitialized
+
 import sttp.model.Uri
 
 import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
 
-val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
-//val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
+//val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
+val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
 val newMesageBus = new EventBus[String]()
-val queue = Queue.unbounded[WebSocketFrame].runSyncUnsafe()
 val debugWS = Var(false)
 val closeWSVar = Var(Option.empty[Promise[Nothing, Unit]])
+
+var hub: Hub[WebSocketFrame] = uninitialized
 
 def websocket =
   val message = Var("")
@@ -32,6 +35,8 @@ def websocket =
         val closeWS = Promise.make[Nothing, Unit].runSyncUnsafe()
         closeWSVar.set(Some(closeWS))
 
+        hub = Hub.unbounded[WebSocketFrame].runSyncUnsafe()
+
         val program = for {
           _ <- result.zEmit("Connecting to WebSocket...")
 
@@ -41,8 +46,8 @@ def websocket =
 
           _ <- ws(
             ZStream
-              .fromQueue(queue)
-              .interruptWhen(closeWS)
+              .fromHubWithShutdown(hub)
+              .interruptWhen(closeWS.await)
               .tap(msg => result.zEmit(s"Sending: $msg"))
           )
             .runForeach(msg => result.zEmit(s"Received: $msg"))
@@ -71,7 +76,7 @@ def websocket =
         )(),
         disabled <-- closeWSVar.signal.map(_.isEmpty),
         onClick --> { _ =>
-          queue.offer(WebSocketFrame.text(message.now())).run
+          hub.offer(WebSocketFrame.text(message.now())).run
         }
       )
     ),
@@ -83,7 +88,8 @@ def websocket =
       "Close socket",
       disabled <-- closeWSVar.signal.map(_.isEmpty),
       onClick --> { _ =>
-        queue.offer(WebSocketFrame.close).run
+        hub.offer(WebSocketFrame.close).run
+        // hub.shutdown.run
         closeWSVar.now().foreach(_.succeed(()).run)
         closeWSVar.set(None)
       }
