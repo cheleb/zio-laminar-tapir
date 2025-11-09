@@ -111,8 +111,7 @@ extension [I, E, WI, WO](
 ) // (using WebSocketToPipe[ZioStreams & WebSockets])
   /** Call the WebSocket endpoint with a payload, and get a ZIO back.
     */
-  @targetName("wsApply")
-  def apply(payload: I): RIO[BackendClient, Response[
+  def responseZIO(payload: I): RIO[BackendClient, Response[
     ZioStreams.Pipe[WI, WO]
   ]] = for {
     backendClient <- ZIO.service[BackendClient]
@@ -125,7 +124,8 @@ extension [I, E, WI, WO](
       )
   } yield response
 
-  def applyA(payload: I): RIO[
+  @targetName("wsApply")
+  def apply(payload: I): RIO[
     BackendClient,
     ZioStreams.Pipe[WI, WO]
   ] =

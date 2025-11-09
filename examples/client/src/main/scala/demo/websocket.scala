@@ -13,7 +13,7 @@ import sttp.ws.WebSocketFrame
 
 //val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
 val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
-val newMesageBus = new EventBus[String]()
+
 val debugWS = Var(false)
 
 val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
@@ -32,8 +32,8 @@ def websocket =
         val program = for {
           _ <- result.zEmit("Connecting to WebSocket...")
 
-          ws <- WebsocketEndpoint
-            .echo(())
+          ws <- WebsocketEndpoint.echo
+            .responseZIO(())
             .asWebSocketStream(debug = debugWS.now())
 
           hub <- Hub.unbounded[WebSocketFrame]
@@ -125,8 +125,7 @@ def websocketClient =
         val program = for {
           _ <- result.zEmit("Connecting to WebSocket...")
 
-          ws <- WebsocketEndpoint.echo
-            .applyA(())
+          ws <- WebsocketEndpoint.echo(())
 
           hub <- Hub.unbounded[WebSocketFrame]
 
@@ -136,7 +135,7 @@ def websocketClient =
             ZStream
               .unwrapScoped(
                 ZStream
-                  .fromHubScopedWithShutdown(hub)
+                  .fromHubScoped(hub)
               )
               .tap(msg => result.zEmit(s"Sending: $msg"))
           )
