@@ -6,8 +6,6 @@ import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.laminar.*
 import io.github.nguyenyou.webawesome.laminar.*
 
-import compiletime.uninitialized
-
 import sttp.model.Uri
 
 import zio.stream.ZStream
@@ -17,9 +15,8 @@ import sttp.ws.WebSocketFrame
 val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
 val newMesageBus = new EventBus[String]()
 val debugWS = Var(false)
-val closeWSVar = Var(Option.empty[Promise[Nothing, Unit]])
 
-var hub: Hub[WebSocketFrame] = uninitialized
+val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
 
 def websocket =
   val message = Var("")
@@ -30,13 +27,8 @@ def websocket =
         _.name := "plug"
       )(),
       "Connect",
-      disabled <-- closeWSVar.signal.map(_.isDefined),
+      disabled <-- hubVar.signal.map(_.isDefined),
       onClick --> { _ =>
-        val closeWS = Promise.make[Nothing, Unit].runSyncUnsafe()
-        closeWSVar.set(Some(closeWS))
-
-        hub = Hub.unbounded[WebSocketFrame].runSyncUnsafe()
-
         val program = for {
           _ <- result.zEmit("Connecting to WebSocket...")
 
@@ -44,10 +36,14 @@ def websocket =
             .echo(())
             .asWebSocketStream(debug = debugWS.now())
 
+          hub <- Hub.unbounded[WebSocketFrame]
+
+          _ = hubVar.set(Some(hub))
+
           _ <- ws(
             ZStream
               .fromHubWithShutdown(hub)
-              .interruptWhen(closeWS.await)
+              .interruptWhen(hub.awaitShutdown)
               .tap(msg => result.zEmit(s"Sending: $msg"))
           )
             .runForeach(msg => result.zEmit(s"Received: $msg"))
@@ -66,7 +62,7 @@ def websocket =
         _.value <-- message.signal,
         _.placeholder := "Type a message to send",
         _.onInput.mapToValue --> message,
-        _.disabled <-- closeWSVar.signal.map(_.isEmpty)
+        _.disabled <-- hubVar.signal.map(_.isEmpty)
       )(
       ),
       Button(_.variant.brand)(
@@ -74,9 +70,12 @@ def websocket =
           _.fixedWidth := "true",
           _.name := "envelope"
         )(),
-        disabled <-- closeWSVar.signal.map(_.isEmpty),
+        disabled <-- hubVar.signal.map(_.isEmpty),
         onClick --> { _ =>
-          hub.offer(WebSocketFrame.text(message.now())).run
+          hubVar
+            .now()
+            .foreach:
+              _.offer(WebSocketFrame.text(message.now())).run
         }
       )
     ),
@@ -86,12 +85,21 @@ def websocket =
         _.name := "close"
       )(),
       "Close socket",
-      disabled <-- closeWSVar.signal.map(_.isEmpty),
+      disabled <-- hubVar.signal.map(_.isEmpty),
       onClick --> { _ =>
-        hub.offer(WebSocketFrame.close).run
-        // hub.shutdown.run
-        closeWSVar.now().foreach(_.succeed(()).run)
-        closeWSVar.set(None)
+        hubVar.now() match {
+          case Some(hub) =>
+            val close = for
+              _ <- hub.offer(WebSocketFrame.close)
+              _ <- hub.shutdown
+              _ = hubVar.set(None)
+            yield ()
+
+            close.run
+          case None =>
+            ZIO.unit
+        }
+
       }
     ),
     input(
