@@ -10,7 +10,7 @@ import sttp.model.Uri
 import io.github.nguyenyou.webawesome.laminar.*
 
 val httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
-//val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
+
 val localhost = Uri.unsafeParse(dom.window.location.origin)
 
 var result = EventBus[String]()
@@ -30,7 +30,6 @@ val myApp =
         Tab(_.panel := "streamingDifferentOrigin")(
           "Streaming Different Origin"
         ),
-        Tab(_.panel := "websocketClient")("WebSocket client"),
         Tab(_.panel := "websocket")("WebSocket"),
         TabPanel(_.name := "batchSameOrigin")(batch.sameOrigin),
         TabPanel(_.name := "batchDifferentOrigin")(
@@ -40,7 +39,6 @@ val myApp =
         TabPanel(_.name := "streamingDifferentOrigin")(
           streamingDifferentOrigin
         ),
-        TabPanel(_.name := "websocketClient")(websocketClient),
         TabPanel(_.name := "websocket")(websocket)
       ),
       div(

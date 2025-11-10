@@ -3,6 +3,7 @@ package demo
 import zio.*
 
 import com.raquo.laminar.api.L.*
+import dev.cheleb.ziotapir.*
 import dev.cheleb.ziotapir.laminar.*
 import io.github.nguyenyou.webawesome.laminar.*
 
@@ -12,10 +13,10 @@ import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
 import sttp.ws.WebSocketFrame.Text
 
-//val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
-val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
+val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
+//val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
 
-def websocket =
+def websocketResponse =
   val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
 
   val debugWS = Var(false)
@@ -110,14 +111,15 @@ def websocket =
     )
   )
 
-def websocketClient =
+def websocket =
   val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
   val isNotConnected = hubVar.signal.map(_.isEmpty)
 
-  val message = Var("")
   div(
     children <-- hubVar.signal.map {
       case Some(hub) =>
+        val message = Var("")
+
         List(
           span(
             styleAttr := "display: flex; align-items: center; gap: 0.5rem;",
@@ -135,7 +137,7 @@ def websocketClient =
               )(),
               disabled <-- isNotConnected,
               onClick --> { _ =>
-                hub.offer(WebSocketFrame.text(message.now())).run
+                hub.sendText(message.now()).run
               }
             )
           ),
@@ -148,8 +150,7 @@ def websocketClient =
             disabled <-- isNotConnected,
             onClick --> { _ =>
               val close = for
-                _ <- hub.offer(WebSocketFrame.close)
-                _ <- hub.shutdown
+                _ <- hub.closeGracefully
                 _ = hubVar.set(None)
               yield ()
 
