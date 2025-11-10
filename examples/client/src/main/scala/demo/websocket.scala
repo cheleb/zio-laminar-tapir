@@ -15,11 +15,10 @@ import sttp.ws.WebSocketFrame.Text
 //val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
 val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
 
-val debugWS = Var(false)
-
-val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
-
 def websocket =
+  val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
+
+  val debugWS = Var(false)
   val message = Var("")
   div(
     Button(_.variant.brand)(
@@ -112,96 +111,90 @@ def websocket =
   )
 
 def websocketClient =
+  val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
+
   val message = Var("")
   div(
-    Button(_.variant.brand)(
-      Icon(
-        _.fixedWidth := "true",
-        _.name := "plug"
-      )(),
-      "Connect",
-      disabled <-- hubVar.signal.map(_.isDefined),
-      onClick --> { _ =>
-        val program = for {
-          _ <- result.zEmit("Connecting to WebSocket...")
+    children <-- hubVar.signal.map {
+      case Some(hub) =>
+        List(
+          span(
+            styleAttr := "display: flex; align-items: center; gap: 0.5rem;",
+            Input(
+              _.value <-- message.signal,
+              _.placeholder := "Type a message to send",
+              _.onInput.mapToValue --> message,
+              _.disabled <-- hubVar.signal.map(_.isEmpty)
+            )(
+            ),
+            Button(_.variant.brand)(
+              Icon(
+                _.fixedWidth := "true",
+                _.name := "envelope"
+              )(),
+              disabled <-- hubVar.signal.map(_.isEmpty),
+              onClick --> { _ =>
+                hub.offer(WebSocketFrame.text(message.now())).run
+              }
+            )
+          ),
+          Button(_.variant.brand)(
+            Icon(
+              _.fixedWidth := "true",
+              _.name := "close"
+            )(),
+            "Close socket",
+            disabled <-- hubVar.signal.map(_.isEmpty),
+            onClick --> { _ =>
+              val close = for
+                _ <- hub.offer(WebSocketFrame.close)
+                _ <- hub.shutdown
+                _ = hubVar.set(None)
+              yield ()
 
-          ws <- WebsocketEndpoint.echo(())
-
-          hub <- Hub.unbounded[WebSocketFrame]
-
-          _ = hubVar.set(Some(hub))
-
-          _ <- ws(
-            ZStream
-              .fromHubWithShutdown(hub)
-              .tap(msg => result.zEmit(s"Sending: $msg"))
-          )
-            .runForeach {
-              case Text(payload, _, _) =>
-                result.zEmit(s"Received: $payload")
-              case _ => ZIO.unit
+              close.run
             }
+          )
+        )
+      case None =>
+        List(
+          Button(_.variant.brand)(
+            Icon(
+              _.fixedWidth := "true",
+              _.name := "plug"
+            )(),
+            "Connect",
+            disabled <-- hubVar.signal.map(_.isDefined),
+            onClick --> { _ =>
+              val program = for {
+                _ <- result.zEmit("Connecting to WebSocket...")
 
-          _ = result.emit("WebSocket closed.")
+                ws <- WebsocketEndpoint.echo(())
 
-        } yield ()
+                hub <- Hub.unbounded[WebSocketFrame]
 
-        program
-          .run(echoWebsocket)
+                _ = hubVar.set(Some(hub))
 
-      }
-    ),
-    span(
-      styleAttr := "display: flex; align-items: center; gap: 0.5rem;",
-      Input(
-        _.value <-- message.signal,
-        _.placeholder := "Type a message to send",
-        _.onInput.mapToValue --> message,
-        _.disabled <-- hubVar.signal.map(_.isEmpty)
-      )(
-      ),
-      Button(_.variant.brand)(
-        Icon(
-          _.fixedWidth := "true",
-          _.name := "envelope"
-        )(),
-        disabled <-- hubVar.signal.map(_.isEmpty),
-        onClick --> { _ =>
-          hubVar
-            .now()
-            .foreach:
-              _.offer(WebSocketFrame.text(message.now())).run
-        }
-      )
-    ),
-    Button(_.variant.brand)(
-      Icon(
-        _.fixedWidth := "true",
-        _.name := "close"
-      )(),
-      "Close socket",
-      disabled <-- hubVar.signal.map(_.isEmpty),
-      onClick --> { _ =>
-        hubVar.now() match {
-          case Some(hub) =>
-            val close = for
-              _ <- hub.offer(WebSocketFrame.close)
-              _ <- hub.shutdown
-              _ = hubVar.set(None)
-            yield ()
+                _ <- ws(
+                  ZStream
+                    .fromHubWithShutdown(hub)
+                    .tap(msg => result.zEmit(s"Sending: $msg"))
+                )
+                  .runForeach {
+                    case Text(payload, _, _) =>
+                      result.zEmit(s"Received: $payload")
+                    case _ => ZIO.unit
+                  }
 
-            close.run
-          case None =>
-            ZIO.unit
-        }
+                _ = result.emit("WebSocket closed.")
 
-      }
-    ),
-    input(
-      typ := "checkbox",
-      onChange.mapToChecked --> { debug =>
-        result.emit(s"WebSocket debug mode: $debug")
-        debugWS.set(debug)
-      }
-    )
+              } yield ()
+
+              program
+                .run(echoWebsocket)
+
+            }
+          )
+        )
+    }
   )
