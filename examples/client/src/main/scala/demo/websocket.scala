@@ -112,6 +112,7 @@ def websocket =
 
 def websocketClient =
   val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
+  val isNotConnected = hubVar.signal.map(_.isEmpty)
 
   val message = Var("")
   div(
@@ -124,7 +125,7 @@ def websocketClient =
               _.value <-- message.signal,
               _.placeholder := "Type a message to send",
               _.onInput.mapToValue --> message,
-              _.disabled <-- hubVar.signal.map(_.isEmpty)
+              _.disabled <-- isNotConnected
             )(
             ),
             Button(_.variant.brand)(
@@ -132,7 +133,7 @@ def websocketClient =
                 _.fixedWidth := "true",
                 _.name := "envelope"
               )(),
-              disabled <-- hubVar.signal.map(_.isEmpty),
+              disabled <-- isNotConnected,
               onClick --> { _ =>
                 hub.offer(WebSocketFrame.text(message.now())).run
               }
@@ -144,7 +145,7 @@ def websocketClient =
               _.name := "close"
             )(),
             "Close socket",
-            disabled <-- hubVar.signal.map(_.isEmpty),
+            disabled <-- isNotConnected,
             onClick --> { _ =>
               val close = for
                 _ <- hub.offer(WebSocketFrame.close)
@@ -164,7 +165,7 @@ def websocketClient =
               _.name := "plug"
             )(),
             "Connect",
-            disabled <-- hubVar.signal.map(_.isDefined),
+            disabled <-- isNotConnected.map(!_),
             onClick --> { _ =>
               val program = for {
                 _ <- result.zEmit("Connecting to WebSocket...")
