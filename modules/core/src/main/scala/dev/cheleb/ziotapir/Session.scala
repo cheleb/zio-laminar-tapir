@@ -1,4 +1,4 @@
-package dev.cheleb.ziotapir.laminar
+package dev.cheleb.ziotapir
 
 import zio.json.*
 
@@ -17,7 +17,7 @@ import sttp.model.Uri
   *   The type of the user token, which should extend
   *   [[dev.cheleb.ziojwt.WithToken]].
   */
-trait Session[UserToken <: WithToken] {
+trait Session[+UserToken <: WithToken] {
 
   /** This method will return a Signal that will be updated when the user state
     * changes.
@@ -47,14 +47,14 @@ trait Session[UserToken <: WithToken] {
     * @param issuer
     * @param token
     */
-  def saveToken(issuer: Uri, token: UserToken): Unit
+  def saveToken(issuer: Uri, token: String): Unit
 
   /** Save the token in the storage. Tokens are stored by issuer (the host and
     * port of the issuer).
     *
     * @param token
     */
-  def saveToken(token: UserToken): Unit
+  def saveToken(token: String): Unit
 
   /** Get the token from the storage. Tokens are stored by issuer (the host and
     * port of the issuer).
@@ -62,7 +62,7 @@ trait Session[UserToken <: WithToken] {
     * @param issuer
     * @return
     */
-  def getToken(issuer: Uri): Option[UserToken]
+  def getToken(issuer: Uri): Option[WithToken]
 
   /** Load the user state from the storage with Same Origin issuer. This method
     * is used to log in the user.
@@ -81,8 +81,10 @@ trait Session[UserToken <: WithToken] {
   def clearUserState(): Unit
 }
 
-class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
-    extends Session[UserToken] {
+class SessionLive[UserToken <: WithToken](using
+//    JsonEncoder[UserToken],
+    JsonDecoder[UserToken]
+) extends Session[UserToken] {
   val userState: Var[Option[UserToken]] = Var(Option.empty[UserToken])
 
   /** This method is used to produce a key to store the token in the storage.
@@ -119,17 +121,17 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     case None => false
   }
 
-  def saveToken(issuer: Uri, token: UserToken): Unit = {
-    userState.set(Option(token))
+  def saveToken(issuer: Uri, token: String): Unit = {
+    userState.set(token.fromJson[UserToken].toOption)
     Storage.set(userTokenKey(issuer), token)
   }
 
-  def saveToken(token: UserToken): Unit = {
-    userState.set(Option(token))
+  def saveToken(token: String): Unit = {
+    userState.set(token.fromJson[UserToken].toOption)
     Storage.set(userTokenKey(BackendClientLive.backendBaseURL), token)
   }
 
-  def getToken(issuer: Uri): Option[UserToken] =
+  def getToken(issuer: Uri): Option[WithToken] =
     loadUserState(issuer)
     userState.now()
 
@@ -137,7 +139,10 @@ class SessionLive[UserToken <: WithToken](using JsonCodec[UserToken])
     loadUserState(BackendClientLive.backendBaseURL)
   def loadUserState(issuer: Uri): Unit =
     Storage
-      .get[UserToken](userTokenKey(issuer))
+      .get(userTokenKey(issuer))
+      .flatMap(tokenStr =>
+        summon[JsonDecoder[UserToken]].decodeJson(tokenStr).toOption
+      )
       .foreach {
         case exp: WithToken if exp.expiration * 1000 < new Date().getTime() =>
           Storage.remove(userTokenKey(issuer))

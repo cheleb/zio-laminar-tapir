@@ -127,6 +127,8 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio" % Versions.zio,
+      "dev.zio" %%% "zio-json" % Versions.zioJson,
+      "dev.zio" %%% "zio-prelude" % Versions.zioPrelude,
       "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore
     )
   )

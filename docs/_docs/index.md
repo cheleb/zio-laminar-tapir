@@ -13,7 +13,10 @@ Under the hood, it uses [Fetch client](https://sttp.softwaremill.com/en/latest/b
 It provides a simple and powerful way, from a [Tapir endpoints](https://tapir.softwaremill.com/en/latest/endpoint/basics.html#basics) definition, to handle requests and responses, and manage client-side rendering.
 
 ```scala sc:nocompile
-// A single import
+// Two imports
+// 1. Tapir endpoints definitions
+import dev.cheleb.ziotapir.*
+// 2. ZIO Laminar integration
 import dev.cheleb.ziotapir.laminar.*
 
 AnEndpoints
@@ -38,7 +41,7 @@ It will handle:
 
 ## Credits
 
-Incredible thanks to incredible peoples who made this possible, authors and contributors of:
+Thanks to incredible peoples who made this possible, authors and contributors of:
 
 * librairies this project depends on !
   * [ZIO](https://zio.dev/)

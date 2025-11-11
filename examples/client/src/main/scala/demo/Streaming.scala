@@ -3,6 +3,7 @@ package demo
 import zio.*
 import zio.json.*
 import com.raquo.laminar.api.L.*
+import dev.cheleb.ziotapir.*
 import dev.cheleb.ziotapir.laminar.*
 import io.github.nguyenyou.webawesome.laminar.*
 

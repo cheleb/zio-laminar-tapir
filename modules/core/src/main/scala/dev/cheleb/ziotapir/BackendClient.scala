@@ -9,20 +9,17 @@ import scala.scalajs.js
 import dev.cheleb.ziojwt.WithToken
 import izumi.reflect.Tag
 import org.scalajs.dom.window
+import sttp.capabilities.Streams
+import sttp.capabilities.WebSockets
 import sttp.capabilities.zio.ZioStreams
 import sttp.client4.*
 import sttp.client4.impl.zio.FetchZioBackend
 import sttp.model.Uri
 import sttp.tapir.Endpoint
-
-import laminar.Session
 import sttp.tapir.client.sttp4.SttpClientInterpreter
-import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
-import sttp.capabilities.WebSockets
-import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
-
-import sttp.capabilities.Streams
 import sttp.tapir.client.sttp4.WebSocketToPipe
+import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
+import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
 
 /** A client to the backend, extending the endpoints as methods.
   */

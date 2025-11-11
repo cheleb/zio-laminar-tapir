@@ -7,14 +7,15 @@ This document provides an overview of how to use the ZIO Laminar Tapir library i
 To use the ZIO Laminar Tapir library, you need to import the necessary extensions and classes. The main import is:
 
 ```scala
-import dev.cheleb.ziotapir.laminar.*
+import dev.cheleb.ziotapir.*             // (1)
+import dev.cheleb.ziotapir.laminar.*     // (2)
 ```
 
 This import provides access to the core functionality of the library, including the ability to build ZIO effects from Tapir endpoints and emit responses to Laminar event buses.
 
 ### Building ZIO Effects
 
-A first extension turn Tapir endpoints into functions from input to ZIO effects. `I => ZIO[R, E, Out]`
+A first extension (1) turn Tapir endpoints into functions from input to ZIO effects. `I => ZIO[R, E, Out]`
 
 Then, from a Tapir endpoint definition:
 
@@ -40,7 +41,7 @@ This ZIO effect can be run in the context of a `BackendClient`.
 
 ### Running the ZIO Effect
 
-An another extension will provide the necessary environment, `BackendClient` and will run the effect:
+An another extension (2) will provide the necessary environment, `BackendClient` and will run the effect:
 
 
 ## Handling Responses in UI
