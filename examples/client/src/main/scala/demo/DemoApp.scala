@@ -65,6 +65,11 @@ val myApp =
           onClick.mapTo("") --> clear
         )
       )
+    ),
+    hr(),
+    a(
+      href := "https://github.com/cheleb/zio-laminar-tapir",
+      "GitHub Repository"
     )
   )
 

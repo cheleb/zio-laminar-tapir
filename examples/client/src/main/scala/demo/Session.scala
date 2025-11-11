@@ -14,9 +14,9 @@ def sessionManagement =
     override def notlogged = div(
       h1("Please log"),
       div(
-        p("This demo shows session management using cookies."),
-        Button(_.variant.danger)(
-          "Make request to /session endpoint",
+        p("This demo shows session management using local storage."),
+        Button(_.variant.neutral)(
+          "Simulate Login",
           onClick --> (_ =>
             session.saveToken(UserToken("my-secret-token", 1000, "zozo").toJson)
           )

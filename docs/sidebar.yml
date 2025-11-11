@@ -16,3 +16,5 @@ subsection:
         page: advanced/error-handling.md
       - title: Streaming
         page: advanced/streaming.md
+      - title: WebSockets
+        page: advanced/websockets.md

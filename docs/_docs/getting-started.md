@@ -25,6 +25,7 @@ import zio.*
 import zio.json.*
 import sttp.tapir.*
 
+import dev.cheleb.ziotapir.*                        // (1)
 import dev.cheleb.ziotapir.laminar.*                // (1)
 
 // From a classical tapir:
