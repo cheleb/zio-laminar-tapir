@@ -18,7 +18,7 @@ def sessionManagement(using JsonEncoder[WithToken]) =
         Button(_.variant.danger)(
           "Make request to /session endpoint",
           onClick --> (_ =>
-            session.saveToken(UserToken("my-secret-token", 1000))
+            session.saveToken(UserToken("my-secret-token", 1000, "zozo"))
           )
         )
       )
