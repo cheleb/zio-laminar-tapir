@@ -2,14 +2,14 @@ package demo
 
 import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.laminar.SecuredContent
-
+import zio.json.*
 import io.github.nguyenyou.webawesome.laminar.*
 import org.scalajs.dom.HTMLDivElement
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import dev.cheleb.ziojwt.WithToken
 import zio.json.JsonEncoder
 
-def sessionManagement(using JsonEncoder[WithToken]) =
+def sessionManagement =
   new SecuredContent:
     override def notlogged = div(
       h1("Please log"),
@@ -18,7 +18,7 @@ def sessionManagement(using JsonEncoder[WithToken]) =
         Button(_.variant.danger)(
           "Make request to /session endpoint",
           onClick --> (_ =>
-            session.saveToken(UserToken("my-secret-token", 1000, "zozo"))
+            session.saveToken(UserToken("my-secret-token", 1000, "zozo").toJson)
           )
         )
       )
