@@ -19,8 +19,8 @@ import zio.stream.*
 
 import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.*
-import sttp.model.Uri
 import sttp.client4.Response
+import sttp.model.Uri
 
 extension [A](eventBus: EventBus[A])
   def zEmit(value: A): Task[Unit] =

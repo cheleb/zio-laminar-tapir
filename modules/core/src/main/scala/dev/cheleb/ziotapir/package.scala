@@ -1,17 +1,17 @@
 package dev.cheleb.ziotapir
 
 import zio.*
-import sttp.ws.WebSocketFrame
 import zio.stream.*
 
 import scala.annotation.targetName
 
 import dev.cheleb.ziojwt.WithToken
 import dev.cheleb.ziotapir.*
-import sttp.capabilities.zio.ZioStreams
-import sttp.tapir.Endpoint
 import sttp.capabilities.WebSockets
+import sttp.capabilities.zio.ZioStreams
 import sttp.client4.Response
+import sttp.tapir.Endpoint
+import sttp.ws.WebSocketFrame
 
 /** Typed exception for restricted endpoints.
   * @param message

@@ -1,12 +1,10 @@
 package dev.cheleb.ziotapir.laminar
 
-import dev.cheleb.ziotapir.Session
-import dev.cheleb.ziojwt.WithToken
-
 import com.raquo.laminar.api.L.*
-
-import org.scalajs.dom.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import dev.cheleb.ziojwt.WithToken
+import dev.cheleb.ziotapir.Session
+import org.scalajs.dom.*
 
 trait SecuredContent(using
     session: Session[WithToken]
