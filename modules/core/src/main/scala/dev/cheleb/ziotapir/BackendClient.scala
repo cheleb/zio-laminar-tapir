@@ -15,7 +15,6 @@ import sttp.client4.impl.zio.FetchZioBackend
 import sttp.model.Uri
 import sttp.tapir.Endpoint
 
-import laminar.Session
 import sttp.tapir.client.sttp4.SttpClientInterpreter
 import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
 import sttp.capabilities.WebSockets

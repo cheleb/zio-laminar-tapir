@@ -6,10 +6,10 @@ import org.scalajs.dom
 
 object Storage {
 
-  def set[A: JsonCodec](key: String, value: A): Unit =
+  def set[A: JsonEncoder](key: String, value: A): Unit =
     dom.window.localStorage.setItem(key, value.toJson)
 
-  def get[A: JsonCodec](key: String): Option[A] =
+  def get[A: JsonDecoder](key: String): Option[A] =
     Option(dom.window.localStorage.getItem(key))
       .filter(_.nonEmpty)
       .flatMap(_.fromJson[A].toOption)

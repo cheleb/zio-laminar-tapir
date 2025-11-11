@@ -10,6 +10,8 @@ object Dependencies {
     val sttp = "4.0.13"
     val sttpModelCore = "1.7.17"
     val zio = "2.1.22"
+    val zioJson = "0.7.4"
+    val zioPrelude = "1.0.0-RC42"
   }
 
   val coreDependencies =
