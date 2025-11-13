@@ -131,7 +131,11 @@ def websocket =
                 result.emit("Invalid WebSocket URI selected.")
             },
             _.slots.trigger(
-              Button(_.withCaret := true)("Select WebSocket URI")
+              Button(
+                _.withCaret := true
+              )(
+                child <-- echoWebsocket.signal.map(_.toString)
+              )
             )
           )(
             DropdownItem(_.value := "https://echo.websocket.org")(
