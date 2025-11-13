@@ -13,7 +13,7 @@ import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
 import sttp.ws.WebSocketFrame.Text
 
-val echoWebsocket: Uri = Uri.unsafeParse("ws://localhost:8080")
+val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
 //val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
 
 def websocketResponse =

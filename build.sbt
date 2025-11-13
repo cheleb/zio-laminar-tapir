@@ -179,7 +179,8 @@ lazy val exampleServer = project
     )
   )
   .settings(
-    publish / skip := true
+    publish / skip := true,
+    Runtime / fork := true
   )
 
 lazy val exampleClient = scalajsProject("client", true)

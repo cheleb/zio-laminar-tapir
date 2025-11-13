@@ -18,11 +18,17 @@ class WebSocketController extends BaseController {
       // Create a pipe that echoes back any WebSocket frame it receives
       ZIO.debug("New WebSocket connection established.") *>
         ZIO.succeed((input: ZStream[Any, Throwable, WebSocketFrame]) =>
-          input.map { frame =>
-            // For echo, just return the same frame
-            frame
-          }
-        )
+          input
+            .map { frame =>
+              // For echo, just return the same frame
+              frame
+            }
+            .tap(_ => ZIO.debug("Echoed a WebSocket frame."))
+            ++ ZStream
+              .succeed(WebSocketFrame.text("Goodbye!"))
+              .tap(_ => ZIO.debug("Sent closing message."))
+          // Ensure the stream ends with a Close frame
+        ) // <* ZIO.debug("WebSocket connection closed.")
     }
 
   // WebSocket routes with WebSockets capability
