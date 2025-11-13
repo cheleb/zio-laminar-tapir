@@ -9,6 +9,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.ws.WebSocketFrame
 
 import dev.cheleb.ziotapir.BaseController
+import sttp.ws.WebSocketFrame.Text
 
 class WebSocketController extends BaseController {
 
@@ -19,16 +20,17 @@ class WebSocketController extends BaseController {
       ZIO.debug("New WebSocket connection established.") *>
         ZIO.succeed((input: ZStream[Any, Throwable, WebSocketFrame]) =>
           input
-            .map { frame =>
-              // For echo, just return the same frame
-              frame
+            .map {
+              case Text(payload = payload) =>
+                WebSocketFrame.text(s"ECHO: $payload")
+              case other => other
             }
             .tap(_ => ZIO.debug("Echoed a WebSocket frame."))
             ++ ZStream
-              .succeed(WebSocketFrame.text("Goodbye!"))
+              .succeed(WebSocketFrame.close)
               .tap(_ => ZIO.debug("Sent closing message."))
           // Ensure the stream ends with a Close frame
-        ) // <* ZIO.debug("WebSocket connection closed.")
+        )
     }
 
   // WebSocket routes with WebSockets capability
