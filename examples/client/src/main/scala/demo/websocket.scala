@@ -13,8 +13,8 @@ import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
 import sttp.ws.WebSocketFrame.Text
 
-val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
-//val echoWebsocket: Uri = Uri.unsafeParse("https://echo.websocket.org")
+//val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
+val echoWebsocket: Var[Uri] = Var(Uri.unsafeParse("https://echo.websocket.org"))
 
 def websocketResponse =
   val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
@@ -52,7 +52,7 @@ def websocketResponse =
 
         } yield ()
 
-        program.run(echoWebsocket)
+        program.run(echoWebsocket.now())
 
       }
     ),
@@ -116,7 +116,69 @@ def websocket =
   val isNotConnected = hubVar.signal.map(_.isEmpty)
 
   div(
-    children <-- hubVar.signal.map {
+    children <-- hubVar.signal.map:
+      case None =>
+        List(
+          Dropdown(
+            _.onSelect
+              .map(
+                _.detail.item.value.toRight("Nope").flatMap(Uri.parse)
+              ) --> Observer[Either[String, Uri]] {
+              case Right(uri) =>
+                echoWebsocket.set(uri)
+                result.emit(s"Selected WebSocket URI: $uri")
+              case Left(_) =>
+                result.emit("Invalid WebSocket URI selected.")
+            },
+            _.slots.trigger(
+              Button(_.withCaret := true)("Select WebSocket URI")
+            )
+          )(
+            DropdownItem(_.value := "https://echo.websocket.org")(
+              "https://echo.websocket.org"
+            ),
+            DropdownItem(_.value := "http://localhost:8080")(
+              "http://localhost:8080"
+            )
+          ),
+          Button(_.variant.brand)(
+            Icon(
+              _.autoWidth := true,
+              _.name := "plug"
+            )(),
+            "Connect",
+            disabled <-- isNotConnected.map(!_),
+            onClick --> { _ =>
+              val program = for {
+                _ <- result.zEmit("Connecting to WebSocket...")
+
+                ws <- WebsocketEndpoint.echo(())
+
+                hub <- Hub.unbounded[WebSocketFrame]
+
+                _ = hubVar.set(Some(hub))
+
+                _ <- ws(
+                  ZStream
+                    .fromHubWithShutdown(hub)
+                    .tap(msg => result.zEmit(s"Sending: $msg"))
+                )
+                  .runForeach {
+                    case Text(payload, _, _) =>
+                      result.zEmit(s"Received: $payload")
+                    case _ => ZIO.unit
+                  }
+
+                _ = result.emit("WebSocket closed.")
+
+              } yield ()
+
+              program
+                .run(echoWebsocket.now())
+
+            }
+          )
+        )
       case Some(hub) =>
         val message = Var("")
 
@@ -158,45 +220,4 @@ def websocket =
             }
           )
         )
-      case None =>
-        List(
-          Button(_.variant.brand)(
-            Icon(
-              _.autoWidth := true,
-              _.name := "plug"
-            )(),
-            "Connect",
-            disabled <-- isNotConnected.map(!_),
-            onClick --> { _ =>
-              val program = for {
-                _ <- result.zEmit("Connecting to WebSocket...")
-
-                ws <- WebsocketEndpoint.echo(())
-
-                hub <- Hub.unbounded[WebSocketFrame]
-
-                _ = hubVar.set(Some(hub))
-
-                _ <- ws(
-                  ZStream
-                    .fromHubWithShutdown(hub)
-                    .tap(msg => result.zEmit(s"Sending: $msg"))
-                )
-                  .runForeach {
-                    case Text(payload, _, _) =>
-                      result.zEmit(s"Received: $payload")
-                    case _ => ZIO.unit
-                  }
-
-                _ = result.emit("WebSocket closed.")
-
-              } yield ()
-
-              program
-                .run(echoWebsocket)
-
-            }
-          )
-        )
-    }
   )
