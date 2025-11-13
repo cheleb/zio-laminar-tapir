@@ -24,7 +24,7 @@ def websocketResponse =
   div(
     Button(_.variant.brand)(
       Icon(
-        _.fixedWidth := "true",
+        _.autoWidth := true,
         _.name := "plug"
       )(),
       "Connect",
@@ -67,7 +67,7 @@ def websocketResponse =
       ),
       Button(_.variant.brand)(
         Icon(
-          _.fixedWidth := "true",
+          _.autoWidth := true,
           _.name := "envelope"
         )(),
         disabled <-- hubVar.signal.map(_.isEmpty),
@@ -81,7 +81,7 @@ def websocketResponse =
     ),
     Button(_.variant.brand)(
       Icon(
-        _.fixedWidth := "true",
+        _.autoWidth := true,
         _.name := "close"
       )(),
       "Close socket",
@@ -132,7 +132,7 @@ def websocket =
             ),
             Button(_.variant.brand)(
               Icon(
-                _.fixedWidth := "true",
+                _.autoWidth := true,
                 _.name := "envelope"
               )(),
               disabled <-- isNotConnected,
@@ -143,7 +143,7 @@ def websocket =
           ),
           Button(_.variant.brand)(
             Icon(
-              _.fixedWidth := "true",
+              _.autoWidth := true,
               _.name := "close"
             )(),
             "Close socket",
@@ -162,7 +162,7 @@ def websocket =
         List(
           Button(_.variant.brand)(
             Icon(
-              _.fixedWidth := "true",
+              _.autoWidth := true,
               _.name := "plug"
             )(),
             "Connect",
