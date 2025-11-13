@@ -146,7 +146,43 @@ lazy val core = scalajsProject("core", false)
     coreDependencies
   )
 
-lazy val example = scalajsProject("client", true)
+lazy val exampleShared = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("examples/shared"))
+  .dependsOn(shared)
+  .settings(
+    name := "zio-tapir-laminar-example-shared"
+  )
+  .settings(
+    libraryDependencies ++= Seq(
+      "dev.zio" %%% "zio" % Versions.zio,
+      "dev.zio" %%% "zio-json" % Versions.zioJson,
+      "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore,
+      "com.softwaremill.sttp.tapir" %%% "tapir-zio" % Versions.tapir,
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir
+    )
+  )
+
+lazy val exampleSharedJvm = exampleShared.jvm
+lazy val exampleSharedJs = exampleShared.js
+
+lazy val exampleServer = project
+  .in(file("examples/server"))
+  .settings(
+    name := "zio-tapir-laminar-example-server"
+  )
+  .dependsOn(exampleSharedJvm, server)
+  .settings(
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio" % Versions.zio,
+      "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % Versions.tapir
+    )
+  )
+  .settings(
+    publish / skip := true
+  )
+
+lazy val exampleClient = scalajsProject("client", true)
   .settings(
     scalaJSUseMainModuleInitializer := true,
     scalaJSLinkerConfig ~= { config =>
@@ -157,7 +193,7 @@ lazy val example = scalajsProject("client", true)
     }
   )
   .settings(scalacOptions ++= usedScalacOptions)
-  .dependsOn(core)
+  .dependsOn(core, exampleSharedJs)
   .settings(
     publish / skip := true
   )
@@ -175,7 +211,7 @@ def scalajsProject(projectId: String, sample: Boolean): Project =
     )
 
 Global / onLoad := {
-  val scalaVersionValue = (example / scalaVersion).value
+  val scalaVersionValue = (exampleClient / scalaVersion).value
   val outputFile =
     target.value / "build-env.sh"
   IO.writeLines(
