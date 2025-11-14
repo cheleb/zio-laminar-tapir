@@ -17,6 +17,7 @@ var result = EventBus[String]()
 
 val myApp =
   val eventBus = new EventBus[GetResponse]()
+  val organisationBus = new EventBus[Organisation]()
   val clear = EventBus[String]()
   div(
     h1("ZIO Laminar Tapir Demo Client"),
@@ -35,7 +36,9 @@ val myApp =
         TabPanel(_.name := "session")(
           sessionManagement()
         ),
-        TabPanel(_.name := "batchSameOrigin")(batch.sameOrigin),
+        TabPanel(_.name := "batchSameOrigin")(
+          batch.sameOrigin(organisationBus)
+        ),
         TabPanel(_.name := "batchDifferentOrigin")(
           batch.differentOrigin(eventBus)
         ),
@@ -52,6 +55,7 @@ val myApp =
           _.rows := 20,
           _.value <-- result.events
             .mergeWith(eventBus.events.map(_.toJsonPretty))
+            .mergeWith(organisationBus.events.map(_.toJsonPretty))
             .mergeWith(clear.events)
             .scanLeft("") { (acc, next) =>
               if next == "" then ""
