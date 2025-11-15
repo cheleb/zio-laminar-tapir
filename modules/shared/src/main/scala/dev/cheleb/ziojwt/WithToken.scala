@@ -10,5 +10,11 @@ trait WithToken {
 
   /** The expiration date of the token.
     */
-  val expiration: Long
+  def expiration: Option[Long]
+
+  def expired: Boolean =
+    expiration match {
+      case Some(exp) => exp * 1000 < new java.util.Date().getTime()
+      case None      => false
+    }
 }

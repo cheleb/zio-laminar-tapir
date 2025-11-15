@@ -70,7 +70,9 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
   /** Run the ZIO in JS and print the error to the console.
     *
     * This method is useful for debugging, as it will print the error message to
-    * the console if the ZIO fails. *
+    * the console if the ZIO fails.
+    * @param uri
+    *   The URI to run the request on
     * @return
     */
   def run(uri: Uri): Unit =

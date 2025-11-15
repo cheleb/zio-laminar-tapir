@@ -14,8 +14,8 @@ import sttp.model.Uri
 /** A session management interface for Laminar applications.
   *
   * @tparam UserToken
-  *   The type of the user token, which should extend
-  *   [[dev.cheleb.ziojwt.WithToken]].
+  *   is covariant to allow Session[SubType]. The type of the user token, which
+  *   should extend [[dev.cheleb.ziojwt.WithToken]].
   */
 trait Session[+UserToken <: WithToken] {
 
@@ -64,12 +64,15 @@ trait Session[+UserToken <: WithToken] {
     */
   def getToken(issuer: Uri): Option[WithToken]
 
-  /** Load the user state from the storage with Same Origin issuer. This method
-    * is used to log in the user.
+  /** Load the user state from the storage with Same Origin issuer.
+    *
+    * This method is used restore the session (ie: page reload).
     */
   def loadUserState(): Unit
 
-  /** Load the user state from the storage. This method is used to log in the
+  /** Load the user state from the storage.
+    *
+    * his method is used restore the session (ie: page reload).
     *
     * @param issuer
     */
@@ -81,8 +84,14 @@ trait Session[+UserToken <: WithToken] {
   def clearUserState(): Unit
 }
 
+/** A live implementation of the Session trait using localStorage to persist the
+  * user token.
+  *
+  * @tparam UserToken
+  *   the type of the user token, which should extend
+  *   [[dev.cheleb.ziojwt.WithToken]].
+  */
 class SessionLive[UserToken <: WithToken](using
-//    JsonEncoder[UserToken],
     JsonDecoder[UserToken]
 ) extends Session[UserToken] {
   val userState: Var[Option[UserToken]] = Var(Option.empty[UserToken])
@@ -112,7 +121,11 @@ class SessionLive[UserToken <: WithToken](using
 
   def isActive = userState
     .now()
-    .map(_.expiration * 1000 > new Date().getTime()) match {
+    .map(_.expiration)
+    .map {
+      case Some(exp) => exp * 1000 > new Date().getTime()
+      case None      => true // No expiration means always valid
+    } match {
     case Some(true)  => true
     case Some(false) =>
       userState.set(Option.empty[UserToken])
@@ -144,7 +157,7 @@ class SessionLive[UserToken <: WithToken](using
         summon[JsonDecoder[UserToken]].decodeJson(tokenStr).toOption
       )
       .foreach {
-        case exp: WithToken if exp.expiration * 1000 < new Date().getTime() =>
+        case token if token.expired =>
           Storage.remove(userTokenKey(issuer))
         case token =>
           userState.now() match

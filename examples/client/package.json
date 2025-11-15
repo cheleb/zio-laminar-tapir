@@ -11,6 +11,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "highlight.js": "^11.11.0",
     "@awesome.me/webawesome": "^3.0.0",
     "jsdom": "^26.1.0"
   },

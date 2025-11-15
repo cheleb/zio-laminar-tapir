@@ -17,9 +17,12 @@ object Dependencies {
   val coreDependencies =
     libraryDependencies ++= Seq(
       "com.raquo" %%% "laminar" % Versions.laminar,
-      "io.github.nguyenyou" %%% "webawesome-laminar" % Versions.webawesome,
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
       "com.softwaremill.sttp.client4" %%% "zio" % Versions.sttp
+    )
+  val exampleClientDependencies =
+    libraryDependencies ++= Seq(
+      "io.github.nguyenyou" %%% "webawesome-laminar" % Versions.webawesome
     )
 }

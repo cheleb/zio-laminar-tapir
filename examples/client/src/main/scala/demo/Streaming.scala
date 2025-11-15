@@ -12,23 +12,35 @@ def streamingSameOrigin =
     Button()(
       s"Streaming jsonl sameorigin",
       onClick --> (_ =>
-        LocalEndpoints
-          .allStream(())
+        DemoEndpoints
+          .organisations(())
           .jsonlEither[Organisation]: organisation =>
             result.emit(organisation.toJsonPretty)
       )
     )
-  )
+  ).withSnippet:
+    """|// Simple as that:
+       |DemoEndpoints
+       |   .organisations(())
+       |   .jsonlEither[Organisation]: organisation =>
+       |     result.emit(organisation.toJsonPretty)
+         """
 
 def streamingDifferentOrigin =
   div(
     Button()(
-      s"Streaming jsonl differentorigin ($localhost)",
+      s"Streaming jsonl differentorigin ($githubusercontent)",
       onClick --> (_ =>
-        LocalEndpoints
-          .allStream(())
-          .jsonlEither[Organisation](localhost): organisation =>
+        DemoEndpoints
+          .organisationsRawGithub(())
+          .jsonlEither[Organisation](githubusercontent): organisation =>
             result.emit(organisation.toJsonPretty)
       )
     )
-  )
+  ).withSnippet:
+    """|// Simple as that:
+       |DemoEndpoints
+       |   .organisationsRawGithub(())
+       |   .jsonlEither[Organisation](githubusercontent): organisation =>
+       |     result.emit(organisation.toJsonPretty)
+         """
