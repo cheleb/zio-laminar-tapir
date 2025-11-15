@@ -3,6 +3,7 @@ package demo
 import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.*
 import dev.cheleb.ziotapir.laminar.*
+import facades.highlightjs.hljs
 import io.github.nguyenyou.webawesome.laminar.*
 
 object batch:
@@ -15,6 +16,20 @@ object batch:
           LocalEndpoints
             .aPlace(())
             .emit(eventBus)
+        )
+      ),
+      div(
+        "As easy as:",
+        pre(
+          code(
+            className := "language-scala",
+            """
+                | LocalEndpoints
+                |            .aPlace(())
+                |            .emit(eventBus)
+                """.stripMargin,
+            onMountCallback(ctx => hljs.highlightElement(ctx.thisNode.ref))
+          )
         )
       )
     )

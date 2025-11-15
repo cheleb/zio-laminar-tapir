@@ -12,10 +12,10 @@ import sttp.model.Uri
 import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
 
-//val echoWebsocket: Uri = Uri.unsafeParse("http://localhost:8080")
-val echoWebsocket: Var[Uri] = Var(Uri.unsafeParse("https://echo.websocket.org"))
-
 def websocketResponse =
+  val echoWebsocket: Var[Uri] = Var(
+    Uri.unsafeParse("https://echo.websocket.org")
+  )
   val hubVar: Var[Option[Hub[WebSocketFrame]]] = Var(None)
 
   val debugWS = Var(false)

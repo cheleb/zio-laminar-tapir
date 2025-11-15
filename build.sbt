@@ -145,6 +145,14 @@ lazy val core = scalajsProject("core", false)
   .settings(
     coreDependencies
   )
+lazy val webawesome = scalajsProject("webawesome", false)
+  .settings(
+    name := "zio-tapir-laminar-webawesome"
+  )
+  .dependsOn(core)
+  .settings(
+    exampleClientDependencies
+  )
 
 lazy val exampleShared = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -194,7 +202,7 @@ lazy val exampleClient = scalajsProject("client", true)
     }
   )
   .settings(scalacOptions ++= usedScalacOptions)
-  .dependsOn(core, exampleSharedJs)
+  .dependsOn(core, webawesome, exampleSharedJs)
   .settings(
     publish / skip := true
   )

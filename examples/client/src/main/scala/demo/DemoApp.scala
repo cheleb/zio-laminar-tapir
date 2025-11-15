@@ -6,6 +6,7 @@ import com.raquo.laminar.api.L.*
 
 import org.scalajs.dom
 import sttp.model.Uri
+import facades.highlightjs.{hljs, hljsScala}
 
 import io.github.nguyenyou.webawesome.laminar.*
 
@@ -16,6 +17,7 @@ val localhost = Uri.unsafeParse(dom.window.location.origin)
 var result = EventBus[String]()
 
 val myApp =
+  hljs.registerLanguage("scala", hljsScala)
   val eventBus = new EventBus[GetResponse]()
   val organisationBus = new EventBus[Organisation]()
   val clear = EventBus[String]()
