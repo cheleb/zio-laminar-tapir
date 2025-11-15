@@ -56,6 +56,7 @@ lazy val root = project
     docs,
     server,
     core,
+    webawesome,
     sharedJs,
     sharedJvm
   )
