@@ -12,7 +12,6 @@ import sttp.model.Uri
 import zio.stream.ZStream
 import sttp.ws.WebSocketFrame
 import sttp.ws.WebSocketFrame.Text
-import facades.highlightjs.{hljs}
 
 val echoWebsocket: Var[Uri] = Var(
   Uri.unsafeParse("https://echo.websocket.org")
@@ -74,36 +73,25 @@ def websocket =
               _ = hubVar.set(None)
             yield ()
         )
-    ,
-    div(
-      pre(
-        code(
-          className := "language-scala",
-          """
-                  |//ws is a function Output => Input 
-                  |val ws <- WebsocketEndpoint.echo(())
-                  |
-                  |// Create a Stream from a  Hub to send
-                  |// messages to the WebSocket
-                  |// Provides this Stream to the ws function
-                  |// to open the connection and receive
-                  |// an Input Stream for incoming messages.
-                  |ws(
-                  |  ZStream
-                  |    .fromHubWithShutdown(hub)
-                  |    .tap(msg => result.zEmit(s"Sending: $msg"))
-                  |).runForeach {
-                  |  case Text(payload = payload) =>
-                  |    result.zEmit(s"Received: $payload")
-                  |  case _ => ZIO.unit
-                  |}
-                  |
-                """.stripMargin,
-          onMountCallback(ctx => hljs.highlightElement(ctx.thisNode.ref))
-        )
-      )
-    )
-  )
+  ).withSnippet:
+    """|//ws is a function Output => Input 
+       |val ws <- WebsocketEndpoint.echo(())
+       |
+       |// Create a Stream from a  Hub to send
+       |// messages to the WebSocket
+       |// Provides this Stream to the ws function
+       |// to open the connection and receive
+       |// an Input Stream for incoming messages.
+       |ws(
+       |  ZStream
+       |    .fromHubWithShutdown(hub)
+       |    .tap(msg => result.zEmit(s"Sending: $msg"))
+       |).runForeach {
+       |  case Text(payload = payload) =>
+       |    result.zEmit(s"Received: $payload")
+       |  case _ => ZIO.unit
+       |}
+  """
 
 def chooseServer(): Dropdown.Element =
   Dropdown(

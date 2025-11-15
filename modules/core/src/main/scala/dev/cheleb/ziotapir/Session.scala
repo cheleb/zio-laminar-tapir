@@ -14,8 +14,8 @@ import sttp.model.Uri
 /** A session management interface for Laminar applications.
   *
   * @tparam UserToken
-  *   The type of the user token, which should extend
-  *   [[dev.cheleb.ziojwt.WithToken]].
+  *   is covariant to allow Session[SubType]. The type of the user token, which
+  *   should extend [[dev.cheleb.ziojwt.WithToken]].
   */
 trait Session[+UserToken <: WithToken] {
 
@@ -112,7 +112,11 @@ class SessionLive[UserToken <: WithToken](using
 
   def isActive = userState
     .now()
-    .map(_.expiration * 1000 > new Date().getTime()) match {
+    .map(_.expiration)
+    .map {
+      case Some(exp) => exp * 1000 > new Date().getTime()
+      case None      => true // No expiration means always valid
+    } match {
     case Some(true)  => true
     case Some(false) =>
       userState.set(Option.empty[UserToken])
@@ -144,7 +148,7 @@ class SessionLive[UserToken <: WithToken](using
         summon[JsonDecoder[UserToken]].decodeJson(tokenStr).toOption
       )
       .foreach {
-        case exp: WithToken if exp.expiration * 1000 < new Date().getTime() =>
+        case token if token.expired =>
           Storage.remove(userTokenKey(issuer))
         case token =>
           userState.now() match

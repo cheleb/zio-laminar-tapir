@@ -20,7 +20,7 @@ case class Organisation(
 ) derives JsonCodec,
       Schema
 
-object LocalEndpoints extends BaseEndpoint {
+object DemoEndpoints extends BaseEndpoint {
 
   /** A simple endpoint returning a famous place as JSON
     */
@@ -35,13 +35,31 @@ object LocalEndpoints extends BaseEndpoint {
 
   /** An endpoint streaming all organisations as JSONL
     */
-  val allStream
+  val organisations
       : Endpoint[Unit, Unit, Throwable, Stream[Throwable, Byte], ZioStreams] =
     baseEndpoint
       .tag("Admin")
       .name("organisation stream")
       .get
       .in("zio-laminar-tapir" / "demo" / "famous-places.jsonl")
+      .out(
+        streamBody(ZioStreams)(
+          summon[Schema[Organisation]],
+          CodecFormat.TextEventStream()
+        )
+      )
+      .description("Get all organisations")
+
+//https://raw.githubusercontent.com/cheleb/zio-laminar-tapir/refs/heads/master/examples/client/famous-places.jsonl
+  val organisationsRawGithub
+      : Endpoint[Unit, Unit, Throwable, Stream[Throwable, Byte], ZioStreams] =
+    baseEndpoint
+      .tag("Admin")
+      .name("organisation stream")
+      .get
+      .in(
+        "cheleb" / "zio-laminar-tapir" / "refs" / "heads" / "master" / "examples" / "client" / "famous-places.jsonl"
+      )
       .out(
         streamBody(ZioStreams)(
           summon[Schema[Organisation]],

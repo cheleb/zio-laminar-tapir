@@ -4,15 +4,20 @@ import zio.*
 import zio.json.*
 import com.raquo.laminar.api.L.*
 
+import com.raquo.laminar.nodes.ReactiveHtmlElement
+
 import org.scalajs.dom
 import sttp.model.Uri
 import facades.highlightjs.{hljs, hljsScala}
 
 import io.github.nguyenyou.webawesome.laminar.*
+import org.scalajs.dom.HTMLDivElement
 
 val httpbin: Uri = Uri.unsafeParse("https://httpbin.org")
 
 val localhost = Uri.unsafeParse(dom.window.location.origin)
+
+val githubusercontent = Uri.unsafeParse("https://raw.githubusercontent.com")
 
 var result = EventBus[String]()
 
@@ -36,7 +41,7 @@ val myApp =
         ),
         Tab(_.panel := "websocket")("WebSocket"),
         TabPanel(_.name := "session")(
-          sessionManagement()
+          sessionManagement
         ),
         TabPanel(_.name := "batchSameOrigin")(
           batch.sameOrigin(organisationBus)
@@ -79,6 +84,33 @@ val myApp =
     )
   )
 
+// def sample(element: ReactiveHtmlElement[HTMLElement])(
+//     snippet: String = ""
+// ): ReactiveHtmlElement[HTMLDivElement] =
+//   div(
+//     element,
+//     pre(
+//       code(
+//         className := "language-scala",
+//         s"""
+//            |$snippet
+//            """.stripMargin,
+//         onMountCallback(ctx => hljs.highlightElement(ctx.thisNode.ref))
+//       )
+//     )
+//   )
+
+extension (element: ReactiveHtmlElement[HTMLDivElement])
+  def withSnippet(snippet: String): ReactiveHtmlElement[HTMLDivElement] =
+    element.amend(
+      pre(
+        code(
+          className := "language-scala",
+          snippet.stripMargin,
+          onMountCallback(ctx => hljs.highlightElement(ctx.thisNode.ref))
+        )
+      )
+    )
 @main
 def main =
   val containerNode = dom.document.getElementById("app")

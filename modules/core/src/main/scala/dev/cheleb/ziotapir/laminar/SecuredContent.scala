@@ -6,13 +6,15 @@ import dev.cheleb.ziojwt.WithToken
 import dev.cheleb.ziotapir.Session
 import org.scalajs.dom.*
 
-trait SecuredContent(using
-    session: Session[WithToken]
+trait SecuredContent[UserToken <: WithToken](using
+    session: Session[UserToken]
 ):
 
   def notlogged: ReactiveHtmlElement[HTMLElement] = h1("Please log")
 
-  def securedContent(userToken: WithToken): ReactiveHtmlElement[HTMLDivElement]
+  def securedContent(
+      userToken: UserToken
+  ): ReactiveHtmlElement[HTMLDivElement]
 
   def content() =
     div(
