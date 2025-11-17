@@ -118,5 +118,8 @@ def chooseServer(): Dropdown.Element =
     ),
     DropdownItem(_.value := "http://localhost:8080")(
       "http://localhost:8080"
+    ),
+    DropdownItem(_.value := "ws://localhost:8080")(
+      "ws://localhost:8080"
     )
   )
