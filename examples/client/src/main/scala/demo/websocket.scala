@@ -97,7 +97,9 @@ def chooseServer(): Dropdown.Element =
   Dropdown(
     _.onSelect
       .map(
-        _.detail.item.value.toRight("Nope").flatMap(Uri.parse)
+        _.detail.item.value match
+          case _: Unit     => Left("No URI selected")
+          case str: String => Uri.parse(str)
       ) --> Observer[Either[String, Uri]] {
       case Right(uri) =>
         echoWebsocket.set(uri)
