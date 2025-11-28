@@ -10,22 +10,42 @@ import io.github.nguyenyou.webawesome.laminar.*
 object batch:
   def sameOrigin(eventBus: EventBus[Organisation]) =
     div(
-      cls := "spaced",
-      Button(_.variant.brand)(
-        "Batch json (sameorigin)",
-        onClick --> (_ =>
-          DemoEndpoints
-            .aPlace(())
-            .emit(eventBus)
+      div(
+        cls := "spaced",
+        Button(_.variant.brand)(
+          "Batch json (sameorigin)",
+          onClick --> (_ =>
+            DemoEndpoints
+              .aPlaceZio(())
+              .emit(eventBus)
+          )
         )
       )
-    )
-      .withSnippet:
-        """// Simple as that:
+        .withSnippet:
+          """// Simple as that:
          | DemoEndpoints
          |            .aPlace(())
          |            .emit(eventBus)
     """
+      ,
+      div(
+        cls := "spaced",
+        Button(_.variant.brand)(
+          "Batch json (circe, sameorigin)",
+          onClick --> (_ =>
+            DemoEndpoints
+              .aPlaceCirce(())
+              .emit(eventBus)
+          )
+        )
+      )
+        .withSnippet:
+          """// Simple as that:
+         | DemoEndpoints
+         |            .aPlaceCirce(())
+         |            .emit(eventBus)
+    """
+    )
 
   def differentOrigin(eventBus: EventBus[GetResponse]) =
     val showMessage = Var("")

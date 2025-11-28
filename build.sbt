@@ -166,9 +166,11 @@ lazy val exampleShared = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio" % Versions.zio,
       "dev.zio" %%% "zio-json" % Versions.zioJson,
+      "io.circe" %%% "circe-core" % Versions.circe,
       "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore,
       "com.softwaremill.sttp.tapir" %%% "tapir-zio" % Versions.tapir,
-      "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % Versions.tapir
     )
   )
 

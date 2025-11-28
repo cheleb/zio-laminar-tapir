@@ -1,5 +1,7 @@
 package demo
 
+import io.circe.Codec
+
 import zio.json.*
 import zio.stream.*
 
@@ -9,28 +11,39 @@ import sttp.capabilities.zio.ZioStreams
 
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
-import sttp.tapir.json.zio.*
+import sttp.tapir.json.zio as tapirZIO
+import sttp.tapir.json.circe as tapirCirce
 
-case class LatLon(lat: Double, lon: Double) derives JsonCodec, Schema
+case class LatLon(lat: Double, lon: Double) derives JsonCodec, Codec, Schema
 
 case class Organisation(
     id: UUID,
     name: String,
     location: Option[LatLon]
 ) derives JsonCodec,
+      Codec,
       Schema
 
 object DemoEndpoints extends BaseEndpoint {
 
   /** A simple endpoint returning a famous place as JSON
     */
-  val aPlace: Endpoint[Unit, Unit, Throwable, Organisation, Any] =
+  val aPlaceZio: Endpoint[Unit, Unit, Throwable, Organisation, Any] =
     baseEndpoint
       .tag("Admin")
       .name("a famous place")
       .get
       .in("zio-laminar-tapir" / "demo" / "famous-place.json")
-      .out(jsonBody[Organisation])
+      .out(tapirZIO.jsonBody[Organisation])
+      .description("Get a famous place")
+
+  val aPlaceCirce: Endpoint[Unit, Unit, Throwable, Organisation, Any] =
+    baseEndpoint
+      .tag("Admin")
+      .name("a famous place")
+      .get
+      .in("zio-laminar-tapir" / "demo" / "famous-place.json")
+      .out(tapirCirce.jsonBody[Organisation])
       .description("Get a famous place")
 
   /** An endpoint streaming all organisations as JSONL

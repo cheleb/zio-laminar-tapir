@@ -4,6 +4,7 @@ import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 object Dependencies {
   val Versions = new {
+    val circe = "0.14.15"
     val laminar = "17.2.1"
     val webawesome = "3.0.0"
     val tapir = "1.12.4"
