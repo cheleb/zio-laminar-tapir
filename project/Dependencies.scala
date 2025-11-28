@@ -6,7 +6,7 @@ object Dependencies {
   val Versions = new {
     val laminar = "17.2.1"
     val webawesome = "3.0.0"
-    val tapir = "1.12.4"
+    val tapir = "1.12.5"
     val sttp = "4.0.13"
     val sttpModelCore = "1.7.17"
     val zio = "2.1.23"
