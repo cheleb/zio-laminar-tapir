@@ -54,7 +54,7 @@ lazy val root = project
 //  .disablePlugins(WartRemover)
   .aggregate(
     docs,
-    server,
+    fserver,
     core,
     webawesome,
     sharedJs,
@@ -96,8 +96,20 @@ lazy val docs = project // new documentation project
     libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.21"
   )
 
-lazy val server = project
+/** The server module containing all the server-side code
+  */
+lazy val fserver = project
   .in(file("modules/server"))
+  .settings(name := "ftapir-server")
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.tapir" %% "tapir-core" % Versions.tapir
+    )
+  )
+
+lazy val zserver = project
+  .in(file("modules/zio-server"))
+  .dependsOn(fserver)
   .settings(name := "zio-tapir-server")
   .settings(
     libraryDependencies ++= Seq(
@@ -182,7 +194,7 @@ lazy val exampleServer = project
   .settings(
     name := "zio-tapir-laminar-example-server"
   )
-  .dependsOn(exampleSharedJvm, server)
+  .dependsOn(exampleSharedJvm, fserver)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % Versions.zio,

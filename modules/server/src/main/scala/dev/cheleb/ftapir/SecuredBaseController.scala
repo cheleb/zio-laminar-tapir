@@ -1,19 +1,16 @@
-package dev.cheleb.ziotapir
-
-import zio.*
+package dev.cheleb.ftapir
 
 import sttp.tapir.Endpoint
 import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.ztapir.*
 
 /** A base controller for all secured endpoints
   *
   * @param principalExtractor
   *   the function to extract the principal from the Security Input
   */
-trait SecuredBaseController[SI, Principal](
-    principalExtractor: SI => Task[Principal]
-) extends BaseController:
+trait SecuredBaseController[F[_], S, SI, Principal](
+    principalExtractor: SI => F[Either[Throwable, Principal]]
+) extends BaseController[F, S]:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])
@@ -26,9 +23,9 @@ trait SecuredBaseController[SI, Principal](
       * @return
       */
     @SuppressWarnings(Array("org.wartremover.warts.Any"))
-    def zServerAuthenticatedLogic(
-        logic: Principal => I => Task[O]
-    ): ServerEndpoint[R, Task] =
+    def serverAuthenticatedLogic(
+        logic: Principal => I => F[Either[Throwable, O]]
+    ): ServerEndpoint[R, F] =
       endpoint
-        .zServerSecurityLogic(principalExtractor)
+        .serverSecurityLogic(principalExtractor)
         .serverLogic(principal => input => logic(principal)(input))

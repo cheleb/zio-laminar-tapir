@@ -8,7 +8,7 @@ import sttp.capabilities.WebSockets
 import sttp.tapir.server.ServerEndpoint
 import sttp.ws.WebSocketFrame
 
-import dev.cheleb.ziotapir.BaseController
+import dev.cheleb.ftapir.BaseController
 import sttp.ws.WebSocketFrame.Text
 
 class WebSocketController extends BaseController {

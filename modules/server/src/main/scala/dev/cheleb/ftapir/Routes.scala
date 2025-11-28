@@ -1,7 +1,6 @@
-package dev.cheleb.ziotapir
+package dev.cheleb.ftapir
 
-import zio.*
-
+import sttp.capabilities.Streams
 import sttp.tapir.server.ServerEndpoint
 
 /** A trait that provides a method to gather all the routes from a controllers.
@@ -13,7 +12,7 @@ import sttp.tapir.server.ServerEndpoint
   * @tparam C
   *   The type of the context that the routes require.
   */
-trait Routes {
+trait Routes[F[_], S] {
 
   /** Gathers all the routes from a list of controllers.
     *
@@ -27,10 +26,10 @@ trait Routes {
     *   A list of server endpoints.
     */
   protected def gatherRoutes[C](
-      select: BaseController => List[ServerEndpoint[C, Task]]
+      select: BaseController[F, Streams[S]] => List[ServerEndpoint[C, F]]
   )(
-      controllers: List[BaseController]
-  ): List[ServerEndpoint[C, Task]] =
+      controllers: List[BaseController[F, Streams[S]]]
+  ): List[ServerEndpoint[C, F]] =
     controllers flatMap select
 
 }
