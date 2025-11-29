@@ -7,7 +7,7 @@ import sttp.tapir.server.ServerEndpoint
 import dev.cheleb.ftapir.*
 import sttp.tapir.ztapir.*
 
-import sttp.tapir.json.zio.jsonBody
+//import sttp.tapir.json.zio.jsonBody
 
 import sttp.capabilities.zio.ZioStreams
 import zio.stream.ZStream
@@ -26,7 +26,7 @@ class OrganisationBatchController private[demo] (
   //   }
 
   val listAll: ServerEndpoint[Any, Task] =
-    OrganisationEndpoint.all(jsonBody[List[Organisation]]).zServerLogic { _ =>
+    OrganisationEndpoint.all.zServerLogic { _ =>
       // organisationService.listAll()
       ZIO.succeed(
         List(

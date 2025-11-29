@@ -1,6 +1,7 @@
 package demo
 
 import sttp.tapir.*
+import sttp.tapir.json.circe.*
 import sttp.tapir.generic.auto.*
 
 import sttp.capabilities.zio.ZioStreams
@@ -31,15 +32,13 @@ object OrganisationEndpoint extends BaseEndpoint:
   //     .out(jsonBody[Organisation])
   //     .description("Create person")
 
-  def all(
-      sjsonBody: JsonExtraction[List[Organisation]]
-  ): PublicEndpoint[Unit, Throwable, List[Organisation], Any] =
+  val all: PublicEndpoint[Unit, Throwable, List[Organisation], Any] =
     baseEndpoint
       .tag("Admin")
       .name("organisation")
       .get
       .in("organisation")
-      .out(sjsonBody)
+      .out(jsonBody[List[Organisation]])
       .description("Get all organisations")
 
   val allStream
