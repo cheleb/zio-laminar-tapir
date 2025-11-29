@@ -8,9 +8,9 @@ import sttp.tapir.server.ServerEndpoint
   * @param principalExtractor
   *   the function to extract the principal from the Security Input
   */
-trait SecuredBaseController[F[_], S, SI, Principal](
+trait SecuredBaseController[C, F[_], SI, Principal](
     principalExtractor: SI => F[Either[Throwable, Principal]]
-) extends BaseController[F, S]:
+) extends BaseController[C, F]:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])

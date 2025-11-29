@@ -19,10 +19,38 @@ object Main extends ZIOAppDefault {
     ZioHttpInterpreter(ZioHttpServerOptions.default).toHttp(allWebSocketRoutes)
 
   // The main program - start the server on port 8080
-  val program =
-    Server.serve(httpApp).provide(Server.default)
+  val program = build
+  // Server.serve(httpApp).provide(Server.default)
 
   // Run the program
   override def run: ZIO[Any & ZIOAppArgs, Any, Any] = program
 
+  private def build: ZIO[Any, Throwable, Unit] =
+    for {
+//      serverConfig <- ZIO.service[ServerConfig]
+      _ <- ZIO.logInfo(
+        "Starting server... http://localhost:${serverConfig.port}"
+      )
+      apiEndpoints <- HttpApi.endpoints
+
+      // docEndpoints = SwaggerInterpreter()
+      //   .fromServerEndpoints(apiEndpoints, "World of scala", "1.0.0")
+      serverLayer = zio.http.Server.default
+      // With(config =>
+      //   config.binding("0.0.0.0", serverConfig.port)
+      // )
+      _ <- zio.http.Server
+        .serve(
+          Routes(
+            Method.GET / Root -> handler(
+              Response.redirect(url"public/index.html")
+            )
+          ) ++
+            ZioHttpInterpreter()
+              .toHttp(
+                apiEndpoints // ::: docEndpoints
+              ) // ++ httpApp
+        )
+        .provideSomeLayer(serverLayer) <* Console.printLine("Server started !")
+    } yield ()
 }

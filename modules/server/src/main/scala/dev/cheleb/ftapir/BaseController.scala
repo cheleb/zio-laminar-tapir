@@ -2,7 +2,7 @@ package dev.cheleb.ftapir
 
 import sttp.tapir.server.ServerEndpoint
 
-trait BaseController[F[_], S] {
+trait BaseController[C, F[_]] {
 
   /** List of routes that will be added to the server
     */
@@ -10,6 +10,6 @@ trait BaseController[F[_], S] {
 
   /** List of stream routes that will be added to the server
     */
-  def streamRoutes: List[ServerEndpoint[S, F]] = Nil
+  def streamRoutes: List[ServerEndpoint[C, F]] = Nil
 
 }

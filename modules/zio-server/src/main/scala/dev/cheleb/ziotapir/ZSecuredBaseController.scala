@@ -15,7 +15,7 @@ import dev.cheleb.ftapir.BaseController
   */
 trait ZSecuredBaseController[SI, Principal](
     principalExtractor: SI => Task[Principal]
-) extends BaseController[Task, ZioStreams]:
+) extends BaseController[ZioStreams, Task]:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])

@@ -1,6 +1,6 @@
 package dev.cheleb.ftapir
 
-import sttp.capabilities.Streams
+//import sttp.capabilities.Streams
 import sttp.tapir.server.ServerEndpoint
 
 /** A trait that provides a method to gather all the routes from a controllers.
@@ -12,7 +12,7 @@ import sttp.tapir.server.ServerEndpoint
   * @tparam C
   *   The type of the context that the routes require.
   */
-trait Routes[F[_], S] {
+trait Routes[C, F[_]] {
 
   /** Gathers all the routes from a list of controllers.
     *
@@ -25,10 +25,17 @@ trait Routes[F[_], S] {
     * @return
     *   A list of server endpoints.
     */
-  protected def gatherRoutes[C](
-      select: BaseController[F, Streams[S]] => List[ServerEndpoint[C, F]]
+  protected def gatherBatchRoutes(
+      select: BaseController[Any, F] => List[ServerEndpoint[Any, F]]
   )(
-      controllers: List[BaseController[F, Streams[S]]]
+      controllers: List[BaseController[Any, F]]
+  ): List[ServerEndpoint[Any, F]] =
+    controllers flatMap select
+
+  protected def gatherStreamRoutes(
+      select: BaseController[C, F] => List[ServerEndpoint[C, F]]
+  )(
+      controllers: List[BaseController[C, F]]
   ): List[ServerEndpoint[C, F]] =
     controllers flatMap select
 

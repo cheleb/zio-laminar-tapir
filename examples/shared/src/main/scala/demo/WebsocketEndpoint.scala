@@ -21,6 +21,7 @@ object WebsocketEndpoint extends BaseEndpoint {
     ZioStreams & WebSockets
   ] =
     endpoint.get
+      .in("ws" / "echo")
       .out(
         webSocketBody[
           WebSocketFrame,

@@ -55,6 +55,7 @@ lazy val root = project
   .aggregate(
     docs,
     fserver,
+    zserver,
     core,
     webawesome,
     sharedJs,
@@ -194,7 +195,7 @@ lazy val exampleServer = project
   .settings(
     name := "zio-tapir-laminar-example-server"
   )
-  .dependsOn(exampleSharedJvm, fserver)
+  .dependsOn(exampleSharedJvm, fserver, zserver)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % Versions.zio,
