@@ -2,11 +2,15 @@ package dev.cheleb.ftapir
 
 import sttp.tapir.server.ServerEndpoint
 
-trait BaseController[C, F[_]] {
+trait BatchController[F[_]] {
 
   /** List of routes that will be added to the server
     */
   def routes: List[ServerEndpoint[Any, F]] = Nil
+
+}
+
+trait StreamController[C, F[_]] {
 
   /** List of stream routes that will be added to the server
     */

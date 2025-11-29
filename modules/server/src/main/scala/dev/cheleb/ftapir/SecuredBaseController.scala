@@ -10,7 +10,7 @@ import sttp.tapir.server.ServerEndpoint
   */
 trait SecuredBaseController[C, F[_], SI, Principal](
     principalExtractor: SI => F[Either[Throwable, Principal]]
-) extends BaseController[C, F]:
+) extends StreamController[C, F]:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])

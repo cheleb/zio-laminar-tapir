@@ -6,7 +6,7 @@ import sttp.tapir.Endpoint
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.ztapir.*
 
-import dev.cheleb.ftapir.BaseController
+import dev.cheleb.ftapir.StreamController
 
 /** A base controller for all secured endpoints
   *
@@ -15,7 +15,7 @@ import dev.cheleb.ftapir.BaseController
   */
 trait ZSecuredBaseController[SI, Principal](
     principalExtractor: SI => Task[Principal]
-) extends BaseController[ZioStreams, Task]:
+) extends StreamController[ZioStreams, Task]:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])

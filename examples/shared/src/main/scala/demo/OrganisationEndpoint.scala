@@ -1,13 +1,13 @@
 package demo
 
-import zio.*
 import sttp.tapir.*
-import sttp.tapir.json.zio.*
 import sttp.tapir.generic.auto.*
 
 import sttp.capabilities.zio.ZioStreams
 
 import zio.stream.*
+
+type JsonExtraction = [T] =>> EndpointIO.Body[String, T]
 
 object OrganisationEndpoint extends BaseEndpoint:
 
@@ -31,13 +31,15 @@ object OrganisationEndpoint extends BaseEndpoint:
   //     .out(jsonBody[Organisation])
   //     .description("Create person")
 
-  val all: PublicEndpoint[Unit, Throwable, List[Organisation], Any] =
+  def all(
+      sjsonBody: JsonExtraction[List[Organisation]]
+  ): PublicEndpoint[Unit, Throwable, List[Organisation], Any] =
     baseEndpoint
       .tag("Admin")
       .name("organisation")
       .get
       .in("organisation")
-      .out(jsonBody[List[Organisation]])
+      .out(sjsonBody)
       .description("Get all organisations")
 
   val allStream

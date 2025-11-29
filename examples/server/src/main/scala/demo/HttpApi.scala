@@ -13,33 +13,33 @@ import sttp.capabilities.zio.ZioStreams
 type Deps = Any
 object HttpApi extends Routes[ZioStreams, Task] {
 
-  val makeBatchControllers: ZIO[Any, Nothing, List[BaseController[Any, Task]]] =
+  val makeBatchControllers: ZIO[Any, Nothing, List[BatchController[Task]]] =
     for {
       _ <- ZIO.debug(
         "*******************\nGathering endpoints\n*****************"
       )
-//      organisationController <- OrganisationController.makeZIO
+      organisationController <- OrganisationController.makeBatchZIO
     } yield List(
-      //    organisationController
+      organisationController
     )
 
   val makeStreamControllers
-      : ZIO[Any, Nothing, List[BaseController[ZioStreams, Task]]] =
+      : ZIO[Any, Nothing, List[StreamController[ZioStreams, Task]]] =
     for {
       _ <- ZIO.debug(
         "*******************\nGathering endpoints\n*****************"
       )
-      organisationController <- OrganisationController.makeZIO
+      organisationController <- OrganisationController.makeStreamZIO
     } yield List(
       organisationController
     )
 
   private def endpointsZIO(
-      ctrs: URIO[Deps, List[BaseController[Any, Task]]]
+      ctrs: URIO[Deps, List[BatchController[Task]]]
   ) = ctrs.map(gatherBatchRoutes(_.routes))
 
   private def streamEndpointsZIO(
-      ctrs: URIO[Deps, List[BaseController[ZioStreams, Task]]]
+      ctrs: URIO[Deps, List[StreamController[ZioStreams, Task]]]
   ) =
     ctrs.map(gatherStreamRoutes(_.streamRoutes))
 

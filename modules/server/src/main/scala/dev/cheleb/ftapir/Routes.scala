@@ -26,16 +26,16 @@ trait Routes[C, F[_]] {
     *   A list of server endpoints.
     */
   protected def gatherBatchRoutes(
-      select: BaseController[Any, F] => List[ServerEndpoint[Any, F]]
+      select: BatchController[F] => List[ServerEndpoint[Any, F]]
   )(
-      controllers: List[BaseController[Any, F]]
+      controllers: List[BatchController[F]]
   ): List[ServerEndpoint[Any, F]] =
     controllers flatMap select
 
   protected def gatherStreamRoutes(
-      select: BaseController[C, F] => List[ServerEndpoint[C, F]]
+      select: StreamController[C, F] => List[ServerEndpoint[C, F]]
   )(
-      controllers: List[BaseController[C, F]]
+      controllers: List[StreamController[C, F]]
   ): List[ServerEndpoint[C, F]] =
     controllers flatMap select
 
