@@ -48,8 +48,11 @@ object DemoEndpoints extends BaseEndpoint {
 
   /** An endpoint streaming all organisations as JSONL
     */
-  val organisations
-      : Endpoint[Unit, Unit, Throwable, Stream[Throwable, Byte], ZioStreams] =
+  val organisations: Endpoint[Unit, Unit, Throwable, ZStream[
+    Any,
+    Throwable,
+    Byte
+  ], ZioStreams] =
     baseEndpoint
       .tag("Admin")
       .name("organisation stream")

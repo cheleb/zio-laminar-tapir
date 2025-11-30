@@ -6,7 +6,7 @@ trait BatchController[F[_]] {
 
   /** List of routes that will be added to the server
     */
-  def routes: List[ServerEndpoint[Any, F]] = Nil
+  def batchRoutes: List[ServerEndpoint[Any, F]] = Nil
 
 }
 

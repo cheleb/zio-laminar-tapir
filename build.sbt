@@ -10,6 +10,7 @@ val scala33 = "3.7.4"
 inThisBuild(
   List(
     scalaVersion := scala33,
+    dependencyOverrides += "org.scala-lang" %% "scala3-library" % scala33, // ScalaJS workaround
     organization := "dev.cheleb",
     homepage := Some(url("https://github.com/cheleb/")),
     scalacOptions ++= usedScalacOptions,

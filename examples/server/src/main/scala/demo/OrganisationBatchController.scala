@@ -39,7 +39,7 @@ class OrganisationBatchController private[demo] (
       )
     }
 
-  override val routes: List[ServerEndpoint[Any, Task]] =
+  override val batchRoutes: List[ServerEndpoint[Any, Task]] =
     List(
       // create,
       listAll

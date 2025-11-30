@@ -3,7 +3,7 @@ package demo
 import zio.*
 
 import dev.cheleb.ftapir.*
-//import dev.cheleb.ziotapir.*
+import dev.cheleb.ziotapir.*
 
 import sttp.tapir.server.ServerEndpoint
 import sttp.capabilities.zio.ZioStreams
@@ -11,7 +11,7 @@ import sttp.capabilities.zio.ZioStreams
 //https://tapir.softwaremill.com/en/latest/server/logic.html
 //type Deps = UserService & JWTService & OrganisationService & MeshService
 type Deps = Any
-object HttpApi extends Routes[ZioStreams, Task] {
+object HttpApi {
 
   val makeBatchControllers: ZIO[Any, Nothing, List[BatchController[Task]]] =
     for {
@@ -34,20 +34,12 @@ object HttpApi extends Routes[ZioStreams, Task] {
       organisationController
     )
 
-  private def endpointsZIO(
-      ctrs: URIO[Deps, List[BatchController[Task]]]
-  ) = ctrs.map(gatherBatchRoutes(_.routes))
-
-  private def streamEndpointsZIO(
-      ctrs: URIO[Deps, List[StreamController[ZioStreams, Task]]]
-  ) =
-    ctrs.map(gatherStreamRoutes(_.streamRoutes))
-
   private def gatherAllRoutes
       : URIO[Deps, List[ServerEndpoint[ZioStreams, Task]]] =
     for {
-      batchEndpoints <- endpointsZIO(makeBatchControllers)
-      streamEndpoints <- streamEndpointsZIO(makeStreamControllers)
+      batchEndpoints <- makeBatchControllers.batchRoutes
+
+      streamEndpoints <- makeStreamControllers.streamRoutes
     } yield batchEndpoints ++ streamEndpoints
 
   /** This is critical, to not provide the Postgres layer too early, it would be
