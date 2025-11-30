@@ -1,4 +1,4 @@
-package dev.cheleb.tapir.zio
+package dev.cheleb.tapir.ztapir
 
 import zio.*
 

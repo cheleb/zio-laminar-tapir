@@ -2,8 +2,8 @@ package demo
 
 import zio.*
 
-import dev.cheleb.ftapir.*
-import dev.cheleb.ziotapir.*
+import dev.cheleb.tapir.*
+import dev.cheleb.tapir.ztapir.*
 
 import sttp.tapir.server.ServerEndpoint
 import sttp.capabilities.zio.ZioStreams
