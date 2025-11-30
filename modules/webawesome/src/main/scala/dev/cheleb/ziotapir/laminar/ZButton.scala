@@ -1,14 +1,15 @@
 package dev.cheleb.ziotapir.laminar
 
 import zio.*
+
 import com.raquo.laminar.api.L.*
+import com.raquo.laminar.nodes.ReactiveHtmlElement
 import dev.cheleb.ziotapir.*
 import dev.cheleb.ziotapir.laminar.*
 import io.github.nguyenyou.webawesome.laminar.*
-import sttp.model.Uri
-import org.scalajs.dom.HTMLElement
-import com.raquo.laminar.nodes.ReactiveHtmlElement
 import io.github.nguyenyou.webawesome.laminar.Button.WaButtonComponent
+import org.scalajs.dom.HTMLElement
+import sttp.model.Uri
 
 /** A Laminar button that runs a ZIO effect on click.
   */

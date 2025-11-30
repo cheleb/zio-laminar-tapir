@@ -129,8 +129,7 @@ val usedScalacOptions = Seq(
   "-deprecation",
   "-feature",
   "-Xfatal-warnings",
-  "-Wunused:all",
-  "-Wunused:imports"
+  "-Wunused:all"
 )
 
 lazy val shared = crossProject(JSPlatform, JVMPlatform)
@@ -161,6 +160,7 @@ lazy val core = scalajsProject("core", false)
     coreDependencies
   )
 lazy val webawesome = scalajsProject("webawesome", false)
+  .settings(scalacOptions ++= usedScalacOptions)
   .settings(
     name := "zio-tapir-laminar-webawesome"
   )
