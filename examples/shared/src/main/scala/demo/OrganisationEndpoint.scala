@@ -7,6 +7,8 @@ import sttp.tapir.generic.auto.*
 import sttp.capabilities.zio.ZioStreams
 
 import zio.stream.*
+import sttp.capabilities.fs2.Fs2Streams
+import cats.effect.IO
 
 type JsonExtraction = [T] =>> EndpointIO.Body[String, T]
 
@@ -50,6 +52,21 @@ object OrganisationEndpoint extends BaseEndpoint:
       .in("organisation" / "stream")
       .out(
         streamBody(ZioStreams)(
+          Schema.derived[Organisation],
+          CodecFormat.TextEventStream()
+        )
+      )
+      .description("Get all organisations")
+
+  val allStreamFs2
+      : Endpoint[Unit, Unit, Throwable, fs2.Stream[IO, Byte], Fs2Streams[IO]] =
+    baseEndpoint
+      .tag("Admin")
+      .name("organisation stream")
+      .get
+      .in("organisation" / "stream")
+      .out(
+        streamBody(Fs2Streams[IO])(
           Schema.derived[Organisation],
           CodecFormat.TextEventStream()
         )

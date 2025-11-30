@@ -183,7 +183,10 @@ lazy val exampleShared = crossProject(JSPlatform, JVMPlatform)
       "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore,
       "com.softwaremill.sttp.tapir" %%% "tapir-zio" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
-      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % Versions.tapir
+      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % Versions.tapir,
+      "com.softwaremill.sttp.client4" %% "fs2" % "4.0.13",
+      "co.fs2" %%% "fs2-core" % "3.12.0",
+      "co.fs2" %% "fs2-io" % "3.12.0"
     )
   )
 
