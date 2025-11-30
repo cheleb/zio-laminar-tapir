@@ -2,6 +2,7 @@ package demo.cats
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits.*
+
 import fs2.{Chunk, Stream}
 import org.http4s.HttpRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
@@ -9,10 +10,15 @@ import org.http4s.server.Router
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.model.HeaderNames
 import sttp.tapir.*
+
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 
 import java.nio.charset.StandardCharsets
 import scala.concurrent.duration.*
+import demo.Organisation
+import java.util.UUID
+import demo.LatLon
+import demo.OrganisationEndpoint
 
 // https://github.com/softwaremill/tapir/issues/367
 object StreamingHttp4sFs2Server extends IOApp:
@@ -48,12 +54,30 @@ object StreamingHttp4sFs2Server extends IOApp:
           .map(s => (size, s))
       }
     )
+  // val batchEndpoint = endpoint.get
+  //   .in("organisations")
+  //   .out(jsonBody[List[Organisation]])
 
+  val batchRoutes: HttpRoutes[IO] =
+    Http4sServerInterpreter[IO]().toRoutes(
+      OrganisationEndpoint.all.serverLogicSuccess { _ =>
+        IO.pure(
+          List(
+            Organisation(
+              UUID.randomUUID(),
+              "Montpellier",
+              Some(LatLon(43.6119, 3.8772))
+            )
+          )
+        )
+      }
+    )
+  import cats.syntax.semigroupk.*
   override def run(args: List[String]): IO[ExitCode] =
     // starting the server
     BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
-      .withHttpApp(Router("/" -> streamingRoutes).orNotFound)
+      .withHttpApp(Router("/" -> (streamingRoutes <+> batchRoutes)).orNotFound)
       .serve
       .compile
       .drain
