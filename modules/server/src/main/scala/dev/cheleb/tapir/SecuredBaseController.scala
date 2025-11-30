@@ -1,4 +1,4 @@
-package dev.cheleb.ftapir
+package dev.cheleb.tapir
 
 import sttp.tapir.Endpoint
 import sttp.tapir.server.ServerEndpoint

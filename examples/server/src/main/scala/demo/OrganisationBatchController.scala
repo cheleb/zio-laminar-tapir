@@ -4,7 +4,7 @@ import zio.*
 import zio.json.*
 
 import sttp.tapir.server.ServerEndpoint
-import dev.cheleb.ftapir.*
+import dev.cheleb.tapir.*
 import sttp.tapir.ztapir.*
 
 //import sttp.tapir.json.zio.jsonBody

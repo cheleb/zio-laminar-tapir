@@ -1,8 +1,8 @@
-package dev.cheleb.ziotapir
+package dev.cheleb.tapir.zio
 
 import zio.*
 
-import dev.cheleb.ftapir.*
+import dev.cheleb.tapir.*
 import sttp.capabilities.zio.ZioStreams
 
 extension (routes: ZIO[Any, Nothing, List[BatchController[Task]]]) {
