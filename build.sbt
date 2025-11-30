@@ -203,7 +203,9 @@ lazy val exampleServer = project
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % Versions.zio,
-      "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % Versions.tapir
+      "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % Versions.tapir,
+      "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % Versions.tapir,
+      "org.http4s" %% "http4s-blaze-server" % Versions.http4s
     )
   )
   .settings(
