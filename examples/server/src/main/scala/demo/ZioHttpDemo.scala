@@ -27,18 +27,13 @@ object Main extends ZIOAppDefault {
 
   private def build: ZIO[Any, Throwable, Unit] =
     for {
-//      serverConfig <- ZIO.service[ServerConfig]
+
       _ <- ZIO.logInfo(
         "Starting server... http://localhost:${serverConfig.port}"
       )
       apiEndpoints <- HttpApi.endpoints
 
-      // docEndpoints = SwaggerInterpreter()
-      //   .fromServerEndpoints(apiEndpoints, "World of scala", "1.0.0")
       serverLayer = zio.http.Server.default
-      // With(config =>
-      //   config.binding("0.0.0.0", serverConfig.port)
-      // )
       _ <- zio.http.Server
         .serve(
           Routes(
@@ -48,8 +43,8 @@ object Main extends ZIOAppDefault {
           ) ++
             ZioHttpInterpreter()
               .toHttp(
-                apiEndpoints // ::: docEndpoints
-              ) // ++ httpApp
+                apiEndpoints
+              ) ++ httpApp
         )
         .provideSomeLayer(serverLayer) <* Console.printLine("Server started !")
     } yield ()
