@@ -19,7 +19,7 @@ jobs:
   # Single deploy job since we're just deploying
   deploy:
    
-    uses: WorldOfScala/actions/.github/workflows/gh-pages.yml@gh-pages
+    uses: WorldOfScala/actions/.github/workflows/gh-pages.yml@master
     with:
       script: ./scripts/gh-pages.sh
     secrets: inherit
