@@ -1,4 +1,7 @@
+
 # ZIO, Laminar and Tapir
+
+![Sonatype Central](https://maven-badges.sml.io/sonatype-central/dev.cheleb/zio-tapir-laminar_sjs1_3/badge.svg)
 
 zio-laminar-tapir is a Scala library that integrates ZIO, Laminar, and Tapir to build reactive web applications with type-safe HTTP communication.
 
@@ -19,7 +22,6 @@ For Sttp 3.x use version < 1.x
 
 For Sttp 4.x use version >= 1.x
 
-
 ## Project Structure
 
 The project follows a multi-module architecture:
@@ -33,6 +35,7 @@ The project follows a multi-module architecture:
 ## Key Features
 
 ### Type-Safe HTTP Client
+
 The `BackendClient` trait provides methods to convert Tapir endpoints into ZIO effects:
 
 ```scala
@@ -42,11 +45,13 @@ def requestZIO[I, E <: Throwable, O](
 ```
 
 ### JWT Authentication
+
 - Automatic token management with local storage
 - Session handling with expiration validation
 - Secure endpoint support with token injection
 
 ### Reactive UI Integration
+
 Laminar's `Session` trait provides reactive authentication state:
 
 ```scala
@@ -56,6 +61,7 @@ def apply[A](withoutSession: => A)(
 ```
 
 ### Streaming Support
+
 Built-in support for streaming responses with ZIO streams and WebSocket capabilities.
 
 ## Usage Pattern
