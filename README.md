@@ -1,4 +1,3 @@
-
 # ZIO, Laminar and Tapir
 
 ![Sonatype Central](https://maven-badges.sml.io/sonatype-central/dev.cheleb/zio-tapir-laminar_sjs1_3/badge.svg)
