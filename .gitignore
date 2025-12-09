@@ -1,9 +1,9 @@
 # macOS
 .DS_Store
 
-# Scala CLI
+# Scaka CLI
 
-.scala-build
+.scala-build/
 
 # sbt specific
 dist/*
@@ -17,7 +17,6 @@ project/local-plugins.sbt
 .ensime
 .ensime_cache/
 .sbt-scripted/
-local.sbt
 
 # Bloop
 .bsp
@@ -34,3 +33,7 @@ metals.sbt
 
 node_modules/
 package-lock.json
+
+
+# For local deployment
+local.sbt
