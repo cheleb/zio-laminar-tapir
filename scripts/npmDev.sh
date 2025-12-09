@@ -1,15 +1,11 @@
-. ./scripts/env.sh
+#!/usr/bin/env bash
 
-until [ -e $BUILD_ENV_FILE ]; do
-    echo "Waiting for $BUILD_ENV_FILE to be generated..."
-    sleep 2
-done
-
-. $BUILD_ENV_FILE
+. ./scripts/target/build-env.sh
 
 echo "Starting npm dev server for client"
 echo " * SCALA_VERSION=$SCALA_VERSION"
-rm -f examples/client/target/scala-$SCALA_VERSION/client-fastopt/main.js
-touch $NPM_DEV_STARTED
+rm -f $MAIN_JS_PATH
+touch $NPM_DEV_PATH
+
 cd examples/client
 npm run dev

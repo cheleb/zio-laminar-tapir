@@ -221,17 +221,32 @@ def scalajsProject(projectId: String, sample: Boolean): Project =
     )
 
 Global / onLoad := {
-  val scalaVersionValue = (exampleClient / scalaVersion).value
-  val outputFile =
-    target.value / "build-env.sh"
-  IO.writeLines(
-    outputFile,
-    s"""  
-  |# Generated file see build.sbt
-  |SCALA_VERSION="$scalaVersionValue"
-  |""".stripMargin.split("\n").toList,
-    StandardCharsets.UTF_8
-  )
 
+  val buildEnvShPath = sys.env.get("BUILD_ENV_SH_PATH")
+  buildEnvShPath.foreach { path =>
+    val outputFile = Path(path).asFile
+    println(s"🍺 Generating build-env.sh at $outputFile")
+
+    val SCALA_VERSION = (exampleClient / scalaVersion).value
+
+    val MAIN_JS_PATH =
+      exampleClient.base.getAbsoluteFile / "target" / s"scala-$SCALA_VERSION" / "client-fastopt/main.js"
+
+    val NPM_DEV_PATH =
+      root.base.getAbsoluteFile / "target" / "npm-dev-server-running.marker"
+
+    IO.writeLines(
+      outputFile,
+      s"""  
+  |# Generated file see build.sbt
+  |SCALA_VERSION="$SCALA_VERSION"
+  |# Marker file to indicate that npm dev server has been started
+  |MAIN_JS_PATH="${MAIN_JS_PATH}"
+  |# Marker file to indicate that npm dev server has been started
+  |NPM_DEV_PATH="${NPM_DEV_PATH}"
+  |""".stripMargin.split("\n").toList,
+      StandardCharsets.UTF_8
+    )
+  }
   (Global / onLoad).value
 }
