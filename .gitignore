@@ -1,6 +1,10 @@
 # macOS
 .DS_Store
 
+# Scala CLI
+
+.scala-build
+
 # sbt specific
 dist/*
 target/
