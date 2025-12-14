@@ -70,16 +70,17 @@ lazy val docs = project // new documentation project
   .settings(
     publish / skip := true,
     moduleName := "zio-laminar-tapir-docs",
-    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
-      core,
-      sharedJs,
-      sharedJvm
-    ),
+    // ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
+    //   core,
+    //   sharedJs,
+    //   sharedJvm
+    // ),
     ScalaUnidoc / unidoc / target := (LocalRootProject / baseDirectory).value / "website" / "static" / "api",
     cleanFiles += (ScalaUnidoc / unidoc / target).value,
     mdocVariables := Map(
       "VERSION" -> sys.env.getOrElse("VERSION", version.value),
-      "ORG" -> organization.value
+      "ORG" -> organization.value,
+      "GITHUB_MASTER" -> "https://github.com/cheleb/zio-laminar-tapir/tree/master"
     )
   )
 //  .disablePlugins(WartRemover)
@@ -90,7 +91,8 @@ lazy val docs = project // new documentation project
   )
   .settings(
     plantUMLSource := file("docs/_docs"),
-    Compile / plantUMLTarget := "mdoc/_assets/images"
+    Compile / plantUMLTarget := "mdoc/_assets/images",
+    Compile / plantUMLFormats := Seq(PlantUMLPlugin.Formats.SVG)
   )
   .settings(
     libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.21"

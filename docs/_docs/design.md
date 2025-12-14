@@ -27,7 +27,7 @@ It will be able to handle:
 ## Architecture
 
 
-![Architecture Diagram](/images/architecture.png)
+![Architecture Diagram](/images/architecture.svg)
 
 This diagram illustrates the architecture of the ZIO Laminar Tapir library, showing how the key components interact with each other.
 
