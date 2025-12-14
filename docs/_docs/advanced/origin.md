@@ -37,7 +37,9 @@ In development mode the frontend application is server by vite, for reloading pu
 
 By default, Vite will proxy requests to the backend service, on `http://localhost:8080`, so you don't need to configure anything.
 
-If for any reason you need to change the backend service URL, you can do it in the developnent [host page ](../../../examples/client/index.html#L10)
+
+
+If for any reason you need to change the backend service URL, you can do it in the developnent [host page ](@GITHUB_MASTER@/examples/client/index.html#L25)
 
 Where the javaScript code is:
 ```javascript

@@ -66,4 +66,4 @@ To handle WebSocket communication, you can create a `Pipe` that processes incomi
 
 This setup allows you to create real-time applications using WebSockets with ZIO Laminar Tapir, leveraging the power of ZIO streams for handling bidirectional communication.
 
-See the [Full Example](../../../examples/client/src/main/scala/demo/websocket.scala#L40)
+See the [Full Example](@GITHUB_MASTER@/examples/client/src/main/scala/demo/websocket.scala#L40)
