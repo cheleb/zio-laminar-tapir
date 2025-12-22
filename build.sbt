@@ -95,7 +95,7 @@ lazy val docs = project // new documentation project
     Compile / plantUMLFormats := Seq(PlantUMLPlugin.Formats.SVG)
   )
   .settings(
-    libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.23"
+    libraryDependencies += "ch.qos.logback" % "logback-classic" % Versions.logbackClassic
   )
 
 lazy val server = project
