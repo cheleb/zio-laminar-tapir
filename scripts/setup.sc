@@ -1,7 +1,5 @@
-#!/usr/bin/env -S scala-cli -S 3
+#!/usr/bin/env -S scala-cli --scala-version 3.8.0-RC5
 
-//> using scala "3.8.0-RC3"
-// using javaOptions "--sun-misc-unsafe-memory-access=allow" // Example option to set maximum heap size
 //> using dep "com.lihaoyi::os-lib:0.11.6"
 
 import os.*
