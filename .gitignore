@@ -32,7 +32,6 @@ metals.sbt
 /.worksheet/
 
 node_modules/
-package-lock.json
 
 
 # For local deployment
