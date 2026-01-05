@@ -16,7 +16,7 @@ addSbtPlugin("org.portable-scala"      % "sbt-scalajs-crossproject" % "1.3.2")
 addSbtPlugin("io.spray"                % "sbt-revolver"             % "0.10.0")
 addSbtPlugin("org.scalameta"           % "sbt-mdoc"                 % "2.8.2")
 
-addSbtPlugin("com.github.sbt" % "sbt-unidoc"  % "0.6.0")
+addSbtPlugin("com.github.sbt" % "sbt-unidoc"  % "0.6.1")
 addSbtPlugin("com.github.sbt" % "sbt-ghpages" % "0.9.0")
 addSbtPlugin("com.github.sbt" % "sbt-dynver"  % "5.1.1")
 //addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.2.3")
