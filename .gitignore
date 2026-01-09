@@ -1,3 +1,5 @@
+# Managed by sbt-fullsatck-js
+scripts-managed/
 # macOS
 .DS_Store
 

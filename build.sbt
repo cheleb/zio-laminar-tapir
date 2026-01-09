@@ -13,6 +13,8 @@ inThisBuild(
     organization := "dev.cheleb",
     homepage := Some(url("https://github.com/cheleb/")),
     scalacOptions ++= usedScalacOptions,
+    fullstackJsModules := "examples",
+    fullstackJsProject := exampleClient,
     pgpPublicRing := file("/tmp/public.asc"),
     pgpSecretRing := file("/tmp/secret.asc"),
     pgpPassphrase := sys.env.get("PGP_PASSWORD").map(_.toArray),
@@ -195,6 +197,7 @@ lazy val exampleServer = project
   )
 
 lazy val exampleClient = scalajsProject("client", true)
+  .enablePlugins(FullstackPlugin)
   .settings(
     scalaJSUseMainModuleInitializer := true,
     scalaJSLinkerConfig ~= { config =>
