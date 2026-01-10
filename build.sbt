@@ -108,6 +108,9 @@ lazy val server = project
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
     )
   )
+  .settings(
+    run / fork := true
+  )
 
 val usedScalacOptions = Seq(
   "-encoding",
@@ -115,7 +118,6 @@ val usedScalacOptions = Seq(
   "-unchecked",
   "-language:higherKinds",
   "-language:implicitConversions",
-  "-Xmax-inlines:64",
   "-deprecation",
   "-feature",
   "-Xfatal-warnings",

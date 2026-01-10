@@ -1,4 +1,4 @@
-package dev.cheleb.ziotapir.laminar
+package dev.cheleb.ziotapir.awesomelaminar
 
 import zio.*
 import com.raquo.laminar.api.L.*

@@ -31,6 +31,6 @@ Compile / doc / scalacOptions ++= Seq(
   "-social-links:github::https://github.com/cheleb/zio-laminar-tapir,twitter::https://twitter.com/oNouguier,linkedIn::https://www.linkedin.com/in/olivier-nouguier::linkedin-day.png::linkedin-night.png,bluesky::https://bsky.app/profile/onouguier.bsky.social::bluesky-day.svg::bluesky-night.jpg",
   "-Ygenerate-inkuire",
   "-skip-by-regex:demo\\..*",
-  "-skip-by-regex:html\\..*",
+  "-skip-by-regex:facades\\..*",
   "-snippet-compiler:compile"
 )
