@@ -5,6 +5,7 @@ import zio.*
 import com.raquo.laminar.api.L.*
 import dev.cheleb.ziotapir.*
 import dev.cheleb.ziotapir.laminar.*
+import dev.cheleb.ziotapir.awesomelaminar.*
 import io.github.nguyenyou.webawesome.laminar.*
 
 import sttp.model.Uri
