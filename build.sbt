@@ -120,7 +120,7 @@ val usedScalacOptions = Seq(
   "-language:implicitConversions",
   "-deprecation",
   "-feature",
-  "-Xfatal-warnings",
+  "-Werror",
   "-Wunused:all",
   "-Wunused:imports"
 )
