@@ -408,12 +408,22 @@ object BackendClientLive {
     if LinkingInfo.developmentMode then developmentApiServer
     else Uri.unsafeParse(window.document.location.origin)
 
+  /** The base URL of the frontend.
+    */
+  lazy val frontendBaseURL =
+    Uri.unsafeParse(window.document.location.origin)
+
   /** Convenience method to create a URL for the backend.
     *
     * The base URL of the backend.
     */
   def url(paths: String*): Uri =
     backendBaseURL.addPath(paths)
+
+  /** Convenience method to create a URL for the frontend.
+    */
+  def resourceUrl(paths: String*): Uri =
+    frontendBaseURL.addPath(paths)
 
     /** The layer that can be used to create a client.
       */
