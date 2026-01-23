@@ -48,7 +48,7 @@ def websocket =
                   case _ => ZIO.unit
                 }
 
-              _ = result.emit("WebSocket closed.")
+              _ <- result.zEmit("WebSocket closed.")
 
             } yield ()
         )
@@ -70,8 +70,8 @@ def websocket =
           ),
           ZButton("Close socket", "close"):
             for
-              _ <- hub.closeGracefully
               _ = hubVar.set(None)
+              _ <- hub.closeGracefully
             yield ()
         )
   ).withSnippet:
