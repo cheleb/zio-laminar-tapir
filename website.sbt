@@ -23,7 +23,7 @@ Compile / doc / scalacOptions ++= Seq(
   "zio-laminar-tapir-docs/target/mdoc",
   "-groups",
   "-project-version",
-  version.value,
+  sys.env.getOrElse("VERSION", version.value),
   "-revision",
   version.value,
   "-project-footer",
