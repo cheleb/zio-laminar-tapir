@@ -75,23 +75,30 @@ def websocket =
             yield ()
         )
   ).withSnippet:
-    """|//ws is a function Output => Input 
-       |val ws <- WebsocketEndpoint.echo(())
+    """|for
+       |  // ws is a function OutputStream => InputStream 
+       |   ws <- WebsocketEndpoint.echo(())
        |
-       |// Create a Stream from a  Hub to send
-       |// messages to the WebSocket
-       |// Provides this Stream to the ws function
-       |// to open the connection and receive
-       |// an Input Stream for incoming messages.
-       |ws(
-       |  ZStream
-       |    .fromHubWithShutdown(hub)
-       |    .tap(msg => result.zEmit(s"Sending: $msg"))
-       |).runForeach {
-       |  case Text(payload = payload) =>
-       |    result.zEmit(s"Received: $payload")
-       |  case _ => ZIO.unit
-       |}
+       |  // Create a Hub to let UI send messages.
+       |   hub <- Hub.unbounded[WebSocketFrame]   
+       |  // The Hub is a publish-subscribe structure.
+       |  // We can create a Stream from it that and
+       |  // provide this Stream to the ws function.
+       |  // This will allow us to open the connection
+       |  // and receive an Input Stream for
+       |  // incoming messages.
+       |   _ <- ws(
+       |      ZStream
+       |       .fromHubWithShutdown(hub)
+       |       .tap(msg => result.zEmit(s"Sending: $msg"))
+       |      ).runForeach { // Loop to process incoming messages
+       |         case Text(payload = payload) =>
+       |             result.zEmit(s"Received: $payload")
+       |         case _ => ZIO.unit
+       |     }
+       |  // WebSocket closes...Loop ends.
+       |   _ <- result.zEmit("WebSocket closed.")
+       |yield ()
   """
 
 def chooseServer(): Dropdown.Element =
