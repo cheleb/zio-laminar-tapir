@@ -24,7 +24,7 @@ object ZButton {
   def apply[A](label: String, iconName: String)(
       onClickEffect: => ZIO[BackendClient, Throwable, A]
   ): ReactiveHtmlElement[WaButtonComponent & HTMLElement] =
-    Button(_.variant.brand)(
+    Button(_.variant := "brand")(
       Icon(_.name := iconName)(),
       label,
       onClick --> { _ =>
@@ -44,7 +44,7 @@ object ZButton {
   def apply[A](label: String, iconName: String, uri: => Uri)(
       onClickEffect: => ZIO[BackendClient, Throwable, A]
   ): ReactiveHtmlElement[WaButtonComponent & HTMLElement] =
-    Button(_.variant.brand)(
+    Button(_.variant := "brand")(
       Icon(_.name := iconName)(),
       label,
       onClick --> { _ =>
