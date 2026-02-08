@@ -106,6 +106,7 @@ lazy val server = project
   .settings(name := "zio-tapir-server")
   .settings(
     libraryDependencies ++= Seq(
+      "dev.zio" %% "zio-json" % Versions.zioJson,
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
     )
   )
