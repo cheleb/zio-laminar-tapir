@@ -15,7 +15,7 @@ def sessionManagement =
     override def notlogged = div(
       h1("Please log"),
       div(
-        Button(_.variant.neutral)(
+        Button(_.variant := "neutral")(
           "Login",
           onClick --> (_ =>
             session.saveToken(
@@ -41,7 +41,7 @@ def sessionManagement =
         p(
           "When endpoint calls are made, to a secured endpoint, the token associated with the issuer, will be automatically attached."
         ),
-        Button(_.variant.danger)(
+        Button(_.variant := "neutral")(
           "Log out",
           onClick --> (_ => session.clearUserState())
         )

@@ -12,7 +12,7 @@ object batch:
   def sameOrigin(eventBus: EventBus[Organisation]) =
     div(
       cls := "spaced",
-      Button(_.variant.brand)(
+      Button(_.variant := "brand")(
         "Batch json (sameorigin)",
         onClick --> (_ =>
           DemoEndpoints
