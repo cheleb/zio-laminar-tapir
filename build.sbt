@@ -13,7 +13,6 @@ inThisBuild(
     organization := "dev.cheleb",
     homepage := Some(url("https://github.com/cheleb/")),
     scalacOptions ++= usedScalacOptions,
-    fullstackJsPackageManager := "bun",
     fullstackJsModules := "examples",
     fullstackJsProject := exampleClient,
     pgpPublicRing := file("/tmp/public.asc"),
