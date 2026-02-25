@@ -1,6 +1,6 @@
 // scalafmt: { maxColumn = 120, style = defaultWithAlign }
 
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix"       % "0.14.5")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix"       % "0.14.6")
 addSbtPlugin("org.scala-js"  % "sbt-scalajs"        % "1.20.2")
 addSbtPlugin("org.scala-js"  % "sbt-jsdependencies" % "1.0.2")
 
