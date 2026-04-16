@@ -4,7 +4,6 @@ layout: main
 
 ## ZIO * Laminar * Tapir
 
-
 zio-Laminar-tapir is a library that leverages the power of [ZIO](https://zio.dev/), [Laminar](https://laminar.dev/) and [Tapir](https://tapir.softwaremill.com/en/latest/) to build web applications in Scala.
 
 3 modules are available:
