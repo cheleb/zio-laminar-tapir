@@ -47,3 +47,8 @@ class WebSocketController extends BaseController[ZioStreams & WebSockets] {
       : List[ServerEndpoint[ZioStreams & WebSockets, Task]] =
     List(echoServerEndpoint)
 }
+
+object WebSocketController {
+  def makeZIO =
+    ZIO.succeed(WebSocketController())
+}

@@ -5,6 +5,7 @@ import zio.http.*
 
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 import sttp.tapir.server.ziohttp.ZioHttpServerOptions
+import demo.hello.HelloService
 
 object Main extends ZIOAppDefault {
 
@@ -18,5 +19,6 @@ object Main extends ZIOAppDefault {
 
   // Run the program
   override def run: ZIO[Any & ZIOAppArgs, Any, Any] = program
+    .provide(HelloService.live)
 
 }

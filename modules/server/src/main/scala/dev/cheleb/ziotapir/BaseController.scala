@@ -11,7 +11,7 @@ import sttp.tapir.server.ServerEndpoint
   * allows simple aggregation in the server see
   * [[dev.cheleb.ziotapir.Routes#gatherRoutes]] for more information.
   */
-trait BaseController[STREAMS <: ZioStreams] {
+trait BaseController[-STREAMS <: ZioStreams] {
 
   /** List of routes that will be added to the server
     */
