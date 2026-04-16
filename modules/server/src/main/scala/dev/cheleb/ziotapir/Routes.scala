@@ -13,11 +13,9 @@ import zio.*
   * @tparam C
   *   The type of the context that the routes require.
   */
-trait Routes {
+trait Routes[Deps] {
 
   type STREAMS <: ZioStreams
-
-  type Deps <: Any
 
   protected def makeControllers
       : ZIO[Deps, Nothing, List[BaseController[STREAMS]]]
@@ -46,17 +44,17 @@ trait Routes {
   private def streamEndpointsZIO(ctrs: List[BaseController[STREAMS]]) =
     gatherRoutes(_.streamRoutes)(ctrs)
 
-  protected def gatherAllRoutes
-      : URIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
-    for {
-      mem <- makeControllers
-      endpoints = endpointsZIO(mem)
-      streamEndpoints = streamEndpointsZIO(mem)
-    } yield endpoints ++ streamEndpoints
-
   /** This is critical, to not provide the Postgres layer too early, it would be
     * closed too early in the app lifecycle.
     */
-  def endpoints: ZIO[Deps, Throwable, List[ServerEndpoint[STREAMS, Task]]] =
-    gatherAllRoutes
+  def endpointsWithDeps: RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
+    for
+      mem <- makeControllers
+      endpoints = endpointsZIO(mem)
+      streamEndpoints = streamEndpointsZIO(mem)
+    yield endpoints ++ streamEndpoints
+
+  def endpoints: RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
+    endpointsWithDeps
+
 }
