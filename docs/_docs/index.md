@@ -7,6 +7,12 @@ layout: main
 
 zio-Laminar-tapir is a library that leverages the power of [ZIO](https://zio.dev/), [Laminar](https://laminar.dev/) and [Tapir](https://tapir.softwaremill.com/en/latest/) to build web applications in Scala.
 
+3 modules are available:
+
+* `zio-tapir-laminar` for the Laminar integration
+* `zio-tapir-server` for the server integration
+* `zio-tapir-shared` for shared code between client and server, such as data models and endpoint definitions
+
 Under the hood, it uses [Fetch client](https://sttp.softwaremill.com/en/latest/backends/javascript/fetch.html) to handle HTTP requests and responses, allowing you to build reactive web applications with ease.
 
 
