@@ -5,7 +5,7 @@ import Dependencies._
 
 val dev = sys.env.get("DEV").getOrElse("demo")
 
-val scala3 = "3.8.3"
+val scala3 = "3.8.4-RC1"
 
 inThisBuild(
   List(
