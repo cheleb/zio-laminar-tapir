@@ -5,15 +5,16 @@ import zio.*
 import sttp.tapir.Endpoint
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.ztapir.*
+import sttp.capabilities.zio.ZioStreams
 
 /** A base controller for all secured endpoints
   *
   * @param principalExtractor
   *   the function to extract the principal from the Security Input
   */
-trait SecuredBaseController[SI, Principal](
+trait SecuredBaseController[SI, Principal, STREAMS <: ZioStreams](
     principalExtractor: SI => Task[Principal]
-) extends BaseController:
+) extends BaseController[STREAMS]:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])
