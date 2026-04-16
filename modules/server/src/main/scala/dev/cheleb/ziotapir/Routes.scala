@@ -1,8 +1,8 @@
 package dev.cheleb.ziotapir
 
-import zio.*
-
+import sttp.capabilities.zio.ZioStreams
 import sttp.tapir.server.ServerEndpoint
+import zio.*
 
 /** A trait that provides a method to gather all the routes from a controllers.
   *
@@ -15,6 +15,11 @@ import sttp.tapir.server.ServerEndpoint
   */
 trait Routes {
 
+  type STREAMS <: ZioStreams
+
+  protected def makeControllers
+      : ZIO[Any, Nothing, List[BaseController[STREAMS]]]
+
   /** Gathers all the routes from a list of controllers.
     *
     * @param select
@@ -26,11 +31,29 @@ trait Routes {
     * @return
     *   A list of server endpoints.
     */
-  protected def gatherRoutes[C](
-      select: BaseController => List[ServerEndpoint[C, Task]]
+  private def gatherRoutes[C](
+      select: BaseController[STREAMS] => List[ServerEndpoint[C, Task]]
   )(
-      controllers: List[BaseController]
+      controllers: List[BaseController[STREAMS]]
   ): List[ServerEndpoint[C, Task]] =
     controllers flatMap select
 
+  private def endpointsZIO(ctrs: List[BaseController[STREAMS]]) =
+    gatherRoutes(_.routes)(ctrs)
+
+  private def streamEndpointsZIO(ctrs: List[BaseController[STREAMS]]) =
+    gatherRoutes(_.streamRoutes)(ctrs)
+
+  protected def gatherAllRoutes: UIO[List[ServerEndpoint[STREAMS, Task]]] =
+    for {
+      mem <- makeControllers
+      endpoints = endpointsZIO(mem)
+      streamEndpoints = streamEndpointsZIO(mem)
+    } yield endpoints ++ streamEndpoints
+
+  /** This is critical, to not provide the Postgres layer too early, it would be
+    * closed too early in the app lifecycle.
+    */
+  def endpoints: IO[Throwable, List[ServerEndpoint[STREAMS, Task]]] =
+    gatherAllRoutes
 }

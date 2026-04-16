@@ -11,7 +11,12 @@ import sttp.ws.WebSocketFrame
 import dev.cheleb.ziotapir.BaseController
 import sttp.ws.WebSocketFrame.Text
 
-class WebSocketController extends BaseController {
+class WebSocketController extends BaseController[ZioStreams & WebSockets] {
+
+  val hello: ServerEndpoint[Any, Task] =
+    WebsocketEndpoint.helloEndpoint.serverLogicSuccess(_ =>
+      ZIO.succeed("Hello, World!")
+    )
 
   // Implement the echo WebSocket endpoint
   val echoServerEndpoint: ServerEndpoint[ZioStreams & WebSockets, Task] =
@@ -33,7 +38,12 @@ class WebSocketController extends BaseController {
         )
     }
 
+  // Regular HTTP routes
+  override def routes: List[ServerEndpoint[Any, Task]] =
+    List(hello)
+
   // WebSocket routes with WebSockets capability
-  def webSocketRoutes: List[ServerEndpoint[ZioStreams & WebSockets, Task]] =
+  override def streamRoutes
+      : List[ServerEndpoint[ZioStreams & WebSockets, Task]] =
     List(echoServerEndpoint)
 }

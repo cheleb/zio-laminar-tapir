@@ -5,6 +5,8 @@ import zio.*
 import sttp.tapir.Endpoint
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.ztapir.*
+import sttp.capabilities.zio.ZioStreams
+import sttp.capabilities.WebSockets
 
 /** A base controller for all secured endpoints
   *
@@ -13,7 +15,7 @@ import sttp.tapir.ztapir.*
   */
 trait SecuredBaseController[SI, Principal](
     principalExtractor: SI => Task[Principal]
-) extends BaseController:
+) extends BaseController[ZioStreams & WebSockets]:
   /** Enriches an endpoint with security logic
     */
   extension [I, O, R](endpoint: Endpoint[SI, I, Throwable, O, R])
