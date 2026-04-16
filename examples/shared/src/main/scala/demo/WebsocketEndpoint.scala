@@ -14,6 +14,12 @@ import sttp.ws.WebSocketFrame
 
 case class Error(description: String) derives JsonCodec, Schema
 object WebsocketEndpoint extends BaseEndpoint {
+
+  val helloEndpoint = endpoint.get
+    .in("hello-ws")
+    .out(stringBody)
+    .description("A simple hello endpoint")
+
   val echo: PublicEndpoint[
     Unit,
     Error,
@@ -21,6 +27,7 @@ object WebsocketEndpoint extends BaseEndpoint {
     ZioStreams & WebSockets
   ] =
     endpoint.get
+      // .in("echo")
       .out(
         webSocketBody[
           WebSocketFrame,
