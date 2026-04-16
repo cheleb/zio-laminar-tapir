@@ -7,7 +7,7 @@ trait HelloService {
 }
 
 private class HelloServiceImpl extends HelloService {
-  override def sayHello(): Task[String] = ZIO.succeed("Hello, World!")
+  override def sayHello(): Task[String] = ZIO.succeed("Hello, World service!")
 }
 
 object HelloService {

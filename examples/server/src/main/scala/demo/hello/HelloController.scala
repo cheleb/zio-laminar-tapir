@@ -2,19 +2,18 @@ package demo.hello
 
 import zio.*
 
-import sttp.tapir.*
-
 import dev.cheleb.ziotapir.BaseController
 import sttp.capabilities.zio.ZioStreams
+import sttp.tapir.server.ServerEndpoint
 
 case class HelloController(dep: HelloService)
     extends BaseController[ZioStreams]
     with HelloEndpoints {
 
-  val hello = endpoint.get
-    .in("hello")
-    .out(stringBody)
-    .description("A simple hello endpoint")
+  val hello = helloEndpoint.serverLogicSuccess(_ => dep.sayHello())
+
+  override def routes: List[ServerEndpoint[Any, Task]] =
+    List(hello)
 }
 
 object HelloController:

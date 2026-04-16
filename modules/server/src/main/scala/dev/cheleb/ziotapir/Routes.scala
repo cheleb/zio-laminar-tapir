@@ -47,13 +47,25 @@ trait Routes[Deps] {
   /** This is critical, to not provide the Postgres layer too early, it would be
     * closed too early in the app lifecycle.
     */
-  def endpointsWithDeps: RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
+  protected def endpointsWithDeps
+      : RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
     for
       mem <- makeControllers
       endpoints = endpointsZIO(mem)
       streamEndpoints = streamEndpointsZIO(mem)
     yield endpoints ++ streamEndpoints
 
+  /** This is the main method that should be called to get all the endpoints.
+    *
+    * It must be overridden to provide the necessary dependencies if needed, for
+    * example:
+    * {{{
+    *  override def endpoints: RIO[Deps, List[ServerEndpoint[STREAMS], Task]] =
+    *     endpointsWithDeps.provide(MyDeps.live)
+    * }}}
+    *
+    * @return
+    */
   def endpoints: RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
     endpointsWithDeps
 

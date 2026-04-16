@@ -19,8 +19,18 @@ object HttpApi extends Routes[HelloService] {
       webSocketController <- WebSocketController.makeZIO
       helloController <- HelloController.makeZIO
     yield List(webSocketController, helloController)
-//    yield List(webSocketController)
 
   override def endpoints: Task[List[ServerEndpoint[STREAMS, Task]]] =
     endpointsWithDeps.provide(HelloService.live)
+}
+
+object HttpApiAny extends Routes[Any] {
+
+  type STREAMS = ZioStreams & WebSockets
+
+  override protected def makeControllers
+      : ZIO[Any, Nothing, List[BaseController[STREAMS]]] =
+    for webSocketController <- WebSocketController.makeZIO
+    yield List(webSocketController)
+
 }
