@@ -1,21 +1,22 @@
 package dev.cheleb.ziotapir
 
-import sttp.capabilities.zio.ZioStreams
 import sttp.tapir.server.ServerEndpoint
 import zio.*
+import sttp.capabilities.Streams
 
 /** A trait that provides a method to gather all the routes from a controllers.
   *
-  * The method `gatherRoutes` takes a function that selects the routes from a
-  * controller, the type parameter `C` is the type of the context that the
-  * routes require (Streams, WebSockets, etc.).
+  * The controllers are created in the `makeControllers` method, which is a ZIO
+  * effect that requires a context of type `Deps`. This allows the routes to
+  * have access to any dependencies they need, such as a database connection or
+  * a configuration object.
   *
-  * @tparam C
+  * @tparam Deps
   *   The type of the context that the routes require.
   */
 trait Routes[Deps] {
 
-  type STREAMS <: ZioStreams
+  type STREAMS <: Streams[?]
 
   protected def makeControllers
       : ZIO[Deps, Nothing, List[BaseController[STREAMS]]]
@@ -32,41 +33,25 @@ trait Routes[Deps] {
     *   A list of server endpoints.
     */
   private def gatherRoutes[C](
+      controllers: List[BaseController[STREAMS]],
       select: BaseController[STREAMS] => List[ServerEndpoint[C, Task]]
-  )(
-      controllers: List[BaseController[STREAMS]]
   ): List[ServerEndpoint[C, Task]] =
     controllers flatMap select
 
   private def endpointsZIO(ctrs: List[BaseController[STREAMS]]) =
-    gatherRoutes(_.routes)(ctrs)
+    gatherRoutes(ctrs, _.routes)
 
   private def streamEndpointsZIO(ctrs: List[BaseController[STREAMS]]) =
-    gatherRoutes(_.streamRoutes)(ctrs)
+    gatherRoutes(ctrs, _.streamRoutes)
 
   /** This is critical, to not provide the Postgres layer too early, it would be
     * closed too early in the app lifecycle.
     */
-  protected def endpointsWithDeps
-      : RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
+  def endpoints: RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
     for
       mem <- makeControllers
       endpoints = endpointsZIO(mem)
       streamEndpoints = streamEndpointsZIO(mem)
     yield endpoints ++ streamEndpoints
-
-  /** This is the main method that should be called to get all the endpoints.
-    *
-    * It must be overridden to provide the necessary dependencies if needed, for
-    * example:
-    * {{{
-    *  override def endpoints: RIO[Deps, List[ServerEndpoint[STREAMS], Task]] =
-    *     endpointsWithDeps.provide(MyDeps.live)
-    * }}}
-    *
-    * @return
-    */
-  def endpoints: RIO[Deps, List[ServerEndpoint[STREAMS, Task]]] =
-    endpointsWithDeps
 
 }

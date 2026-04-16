@@ -12,7 +12,9 @@ object Main extends ZIOAppDefault {
   val program = for
     _ <- Console.printLine("Starting server on http://localhost:8080")
     endpointsNoDeps <- HttpApiAny.endpoints
-    endpoints <- HttpApi.endpoints
+
+    endpoints <- HttpApi.endpointsWithDeps
+
     httpApp = ZioHttpInterpreter(ZioHttpServerOptions.default).toHttp(
       endpoints ++ endpointsNoDeps
     )
@@ -21,6 +23,5 @@ object Main extends ZIOAppDefault {
 
   // Run the program
   override def run: ZIO[Any & ZIOAppArgs, Any, Any] = program
-  // .provide(HelloService.live)
 
 }
