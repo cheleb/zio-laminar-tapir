@@ -45,7 +45,8 @@ inThisBuild(
       url(
         "http://www.apache.org/licenses/LICENSE-2.0"
       )
-    )
+    ),
+    run / fork := true
 
 //    wartremoverErrors ++= Warts.all
   )

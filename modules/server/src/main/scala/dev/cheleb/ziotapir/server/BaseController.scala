@@ -1,4 +1,4 @@
-package dev.cheleb.ziotapir
+package dev.cheleb.ziotapir.server
 
 import zio.Task
 
@@ -9,7 +9,7 @@ import sttp.capabilities.Streams
   *
   * This trait provides a list of routes that will be added to the server. It
   * allows simple aggregation in the server see
-  * [[dev.cheleb.ziotapir.Routes#gatherRoutes]] for more information.
+  * [[dev.cheleb.ziotapir.server.Routes#gatherRoutes]] for more information.
   */
 trait BaseController[-STREAMS <: Streams[?]] {
 

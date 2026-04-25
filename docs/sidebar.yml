@@ -6,15 +6,26 @@ subsection:
     page: design.md
   - title: Usage
     page: usage.md
-  - index: advanced/index.md
+  - index: client/index.md
     subsection:
       - title: Origin
-        page: advanced/origin.md
+        page: client/origin.md
       - title: Secured Endpoints
-        page: advanced/secured.md
+        page: client/secured.md
       - title: Error Handling
-        page: advanced/error-handling.md
+        page: client/error-handling.md
       - title: Streaming
-        page: advanced/streaming.md
+        page: client/streaming.md
       - title: WebSockets
-        page: advanced/websockets.md
+        page: client/websockets.md
+  - index: server/index.md
+    subsection:
+      - title: Secured Endpoints
+        page: server/secured.md
+      - title: Streaming
+        page: server/streaming.md
+      - title: WebSockets
+        page: server/websockets.md
+
+
+

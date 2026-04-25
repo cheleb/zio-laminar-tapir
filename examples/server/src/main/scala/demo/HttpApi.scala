@@ -1,13 +1,13 @@
 package demo
 
-import dev.cheleb.ziotapir.Routes
+import dev.cheleb.ziotapir.server.Routes
 
 import zio.*
 import sttp.capabilities.zio.ZioStreams
 import sttp.capabilities.WebSockets
 import demo.hello.HelloController
 import demo.hello.HelloService
-import dev.cheleb.ziotapir.BaseController
+import dev.cheleb.ziotapir.server.BaseController
 import sttp.tapir.server.ServerEndpoint
 
 /** This API will need the `HelloService` to create the controllers, hence the

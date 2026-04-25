@@ -1,6 +1,6 @@
 ---
-title: Advanced
-description: Advanced usage of ZIO Laminar Tapir
+title: Client
+description: Client usage of ZIO Laminar Tapir
 ---
 
 # Advanced usage

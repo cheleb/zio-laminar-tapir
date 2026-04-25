@@ -1,4 +1,4 @@
-package dev.cheleb.ziotapir
+package dev.cheleb.ziotapir.server
 
 import zio.*
 
@@ -6,6 +6,7 @@ import sttp.tapir.Endpoint
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.ztapir.*
 import sttp.capabilities.zio.ZioStreams
+import dev.cheleb.ziotapir.server.BaseController
 
 /** A base controller for all secured endpoints
   *
