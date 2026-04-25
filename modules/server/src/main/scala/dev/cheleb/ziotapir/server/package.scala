@@ -1,4 +1,4 @@
-package dev.cheleb.ziotapir
+package dev.cheleb.ziotapir.server
 
 import zio.*
 import zio.json.*
