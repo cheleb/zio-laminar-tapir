@@ -59,6 +59,7 @@ lazy val root = project
     docs,
     server,
     core,
+    laminar,
     webawesome,
     sharedJs,
     sharedJvm
@@ -147,18 +148,26 @@ lazy val sharedJs = shared.js
 
 lazy val core = scalajsProject("core", false)
   .settings(
-    name := "zio-tapir-laminar"
+    name := "zio-tapir-core"
   )
   .dependsOn(sharedJs)
   .settings(scalacOptions ++= usedScalacOptions)
   .settings(
     coreDependencies
   )
+
+lazy val laminar = scalajsProject("laminar", false)
+  .dependsOn(core)
+  .settings(
+    name := "zio-tapir-laminar"
+  )
+  .settings(scalacOptions ++= usedScalacOptions)
+
 lazy val webawesome = scalajsProject("webawesome", false)
   .settings(
     name := "zio-tapir-laminar-webawesome"
   )
-  .dependsOn(core)
+  .dependsOn(laminar)
   .settings(
     exampleClientDependencies
   )

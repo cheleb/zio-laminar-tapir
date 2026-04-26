@@ -39,7 +39,7 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
   private def exec: Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
-        zio.provide(BackendClientLive.configuredLayer)
+        zio.provide(FetchBackendClientLive.configuredLayer)
       )
     }
 
@@ -51,7 +51,7 @@ extension [E <: Throwable, A](zio: ZIO[BackendClient, E, A])
   private def exec(uri: Uri): Unit =
     Unsafe.unsafe { implicit unsafe =>
       Runtime.default.unsafe.fork(
-        zio.provide(BackendClientLive.configuredLayerOn(uri))
+        zio.provide(FetchBackendClientLive.configuredLayerOn(uri))
       )
     }
 

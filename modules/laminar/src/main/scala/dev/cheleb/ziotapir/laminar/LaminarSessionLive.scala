@@ -83,7 +83,7 @@ class LaminarSessionLive[UserToken <: WithToken](using
 
   def saveToken(token: String): Unit = {
     userState.set(token.fromJson[UserToken].toOption)
-    Storage.set(userTokenKey(BackendClientLive.backendBaseURL), token)
+    Storage.set(userTokenKey(FetchBackendClientLive.backendBaseURL), token)
   }
 
   def getToken(issuer: Uri): Option[WithToken] =
@@ -91,7 +91,7 @@ class LaminarSessionLive[UserToken <: WithToken](using
     userState.now()
 
   def loadUserState(): Unit =
-    loadUserState(BackendClientLive.backendBaseURL)
+    loadUserState(FetchBackendClientLive.backendBaseURL)
   def loadUserState(issuer: Uri): Unit =
     Storage
       .get(userTokenKey(issuer))
