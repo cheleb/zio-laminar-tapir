@@ -58,7 +58,8 @@ lazy val root = project
   .aggregate(
     docs,
     server,
-    core,
+    coreJs,
+    coreJvm,
     laminar,
     webawesome,
     sharedJs,
@@ -70,7 +71,7 @@ lazy val root = project
 
 lazy val docs = project // new documentation project
   .in(file("zio-laminar-tapir-docs")) // important: it must not be docs/
-  .dependsOn(core, sharedJs, sharedJvm)
+  .dependsOn(coreJs, coreJvm, laminar, sharedJs, sharedJvm)
   .settings(
     publish / skip := true,
     moduleName := "zio-laminar-tapir-docs",
@@ -146,20 +147,28 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
-lazy val core = scalajsProject("core", false)
+lazy val core = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/core"))
   .settings(
     name := "zio-tapir-core"
   )
-  .dependsOn(sharedJs)
+  .dependsOn(shared)
   .settings(scalacOptions ++= usedScalacOptions)
   .settings(
     coreDependencies
   )
 
+lazy val coreJvm = core.jvm
+lazy val coreJs = core.js
+
 lazy val laminar = scalajsProject("laminar", false)
-  .dependsOn(core)
+  .dependsOn(coreJs)
   .settings(
     name := "zio-tapir-laminar"
+  )
+  .settings(
+    laminarDependencies
   )
   .settings(scalacOptions ++= usedScalacOptions)
 
@@ -221,7 +230,7 @@ lazy val exampleClient = scalajsProject("client", true)
     }
   )
   .settings(scalacOptions ++= usedScalacOptions)
-  .dependsOn(core, webawesome, exampleSharedJs)
+  .dependsOn(coreJs, webawesome, exampleSharedJs)
   .settings(
     publish / skip := true
   )

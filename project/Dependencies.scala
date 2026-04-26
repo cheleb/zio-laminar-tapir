@@ -17,10 +17,14 @@ object Dependencies {
 
   val coreDependencies =
     libraryDependencies ++= Seq(
-      "com.raquo" %%% "laminar" % Versions.laminar,
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir,
       "com.softwaremill.sttp.client4" %%% "zio" % Versions.sttp
+    )
+
+  val laminarDependencies =
+    libraryDependencies ++= Seq(
+      "com.raquo" %%% "laminar" % Versions.laminar
     )
   val exampleClientDependencies =
     libraryDependencies ++= Seq(
