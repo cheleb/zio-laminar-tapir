@@ -11,13 +11,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v2
       - name: Setup JVM
         uses: actions/setup-java@v5
         with:
           java-version: "24"
           distribution: "zulu"
       - uses: sbt/setup-sbt@v1          
-      - name: compile
-        run: sbt compile
-        env:
-          NODE_OPTIONS: "--openssl-legacy-provider"
+      - name: compile & build demo
+        run: ./scripts/gh-pages.sh
