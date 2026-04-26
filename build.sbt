@@ -206,7 +206,7 @@ lazy val exampleServer = project
   .settings(
     name := "zio-tapir-laminar-example-server"
   )
-  .dependsOn(exampleSharedJvm, server)
+  .dependsOn(exampleSharedJvm, server, coreJvm)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % Versions.zio,
