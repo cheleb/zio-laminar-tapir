@@ -3,7 +3,7 @@ package dev.cheleb.ziotapir.laminar
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import dev.cheleb.ziojwt.WithToken
-import dev.cheleb.ziotapir.Session
+
 import org.scalajs.dom.*
 
 /** A trait to define secured content for Laminar applications.
@@ -13,7 +13,7 @@ import org.scalajs.dom.*
   *   [[dev.cheleb.ziojwt.WithToken]].
   */
 trait SecuredContent[UserToken <: WithToken](using
-    session: Session[UserToken]
+    session: LaminarSession[UserToken]
 ):
 
   /** The content to show when the user is not logged in.
