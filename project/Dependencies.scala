@@ -16,7 +16,7 @@ object Dependencies {
     val zio = "2.1.25"
     val zioJson = "0.7.45"
     val zioLogging = "2.5.2"
-    val zioOpenTelemetry = "4.0.0-RC11"
+    val zioOpenTelemetry = "3.1.15"
     val zioPrelude = "1.0.0-RC44"
   }
 
@@ -28,6 +28,7 @@ object Dependencies {
       "dev.zio" %% "zio-opentelemetry" % Versions.zioOpenTelemetry,
       "dev.zio" %% "zio-opentelemetry-zio-logging" % Versions.zioOpenTelemetry,
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir,
+      "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %% "tapir-opentelemetry-tracing" % Versions.tapir,
       "io.opentelemetry" % "opentelemetry-context" % Versions.opentelemetry,
       "io.opentelemetry" % "opentelemetry-sdk" % Versions.opentelemetry,

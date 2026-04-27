@@ -4,7 +4,8 @@ import zio.*
 import zio.telemetry.opentelemetry.OpenTelemetry
 import io.opentelemetry.sdk.OpenTelemetrySdk
 import io.opentelemetry.api
-import io.opentelemetry.instrumentation.runtimemetrics.java17.RuntimeMetrics
+
+import io.opentelemetry.instrumentation.runtimetelemetry.RuntimeTelemetry
 
 object OtelSdk {
 
@@ -26,7 +27,7 @@ object OtelSdk {
           )
         )
         _ <- ZIO.fromAutoCloseable(
-          ZIO.succeed(RuntimeMetrics.create(openTelemetry))
+          ZIO.succeed(RuntimeTelemetry.create(openTelemetry))
         )
       } yield openTelemetry
     )

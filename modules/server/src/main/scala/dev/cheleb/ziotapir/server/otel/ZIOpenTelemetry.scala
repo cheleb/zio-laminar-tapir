@@ -8,11 +8,6 @@ import sttp.tapir.server.ziohttp.ZioHttpServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import zio.logging.backend.SLF4J
 
-import sttp.model.StatusCode
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.semconv.ErrorAttributes
-import sttp.tapir.server.interceptor.exception.ExceptionHandler
-import sttp.tapir.server.interceptor.exception.DefaultExceptionHandler
 import sttp.tapir.server.tracing.opentelemetry.OpenTelemetryTracing
 
 /** ZIOpenTelemetry is a trait that provides a ZIO layer for OpenTelemetry.
@@ -50,16 +45,13 @@ trait ZIOpenTelemetry(resourceName: String) {
     .get(
       "OTEL_EXPORTER_OTLP_ENDPOINT"
     ) match
-    case Some(endpoint) =>
+    case Some(_) =>
       OtelSdk
         .custom(resourceName) >+> OpenTelemetry
         .logging(s"zio-simulator-${resourceName}")
     case None =>
       ZLayer
         .succeed(api.OpenTelemetry.noop())
-
-  def exceptionHandler(exception: Throwable): ExceptionHandler[Task] =
-    DefaultExceptionHandler[Task]
 
   /** The server options for the ZIOpenTelemetry trait.
     *
@@ -86,22 +78,4 @@ trait ZIOpenTelemetry(resourceName: String) {
       )
       .options
 
-  def customErrorAttributes(e: Either[StatusCode, Throwable]): Attributes =
-    e match {
-      case Left(statusCode) =>
-        // see footnote for error.type
-        Attributes
-          .builder()
-          .put(ErrorAttributes.ERROR_TYPE, statusCode.code.toString)
-          .build()
-      case Right(exception) => {
-        val errorType = exception.getClass.getSimpleName
-        Attributes
-          .builder()
-          .put(ErrorAttributes.ERROR_TYPE, errorType)
-          .put("exception.message", exception.getMessage)
-          .put("exception.stacktrace", exception.getStackTrace.mkString("\n"))
-          .build()
-      }
-    }
 }

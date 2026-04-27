@@ -10,13 +10,17 @@ import sttp.tapir.server.ServerEndpoint
 import zio.stream.ZStream
 import demo.Organisation
 import java.util.UUID
+import zio.telemetry.opentelemetry.tracing.Tracing
 
-case class HelloController(dep: HelloService)
+case class HelloController(dep: HelloService)(using tracing: Tracing)
     extends BaseController[ZioStreams]
     with HelloEndpoints {
 
+  import tracing.aspects.*
+
   val hello: ServerEndpoint[Any, Task] =
-    helloEndpoint.serverLogicSuccess(_ => dep.sayHello())
+    helloEndpoint.serverLogicSuccess: _ =>
+      dep.sayHello() @@ span("hello-endpoint")
 
   val proxy: ServerEndpoint[Any, Task] =
     proxyEndpoint.serverLogicSuccess(_ => dep.askHttpBin())
@@ -39,5 +43,5 @@ case class HelloController(dep: HelloService)
 }
 
 object HelloController:
-  def makeZIO =
+  def makeZIO(using tracing: Tracing) =
     ZIO.service[HelloService].map(HelloController(_))

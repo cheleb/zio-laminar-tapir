@@ -11,13 +11,14 @@ import dev.cheleb.ziotapir.server.BaseController
 import sttp.tapir.server.ServerEndpoint
 import dev.cheleb.ziotapir.client.ZIOSttpBackendLive
 import sttp.model.Uri
+import zio.telemetry.opentelemetry.tracing.Tracing
 
 /** This API will need the `HelloService` to create the controllers, hence the
   * context of the routes is `HelloService`. This means that when we call the
   * `endpoints` method, we will need to provide a `HelloService` in the
   * environment. See [[HttpApi.endpointsWithDeps]]
   */
-object HttpApi extends Routes[HelloService] {
+class HttpApi(using tracing: Tracing) extends Routes[HelloService] {
 
   type STREAMS = ZioStreams & WebSockets
 
