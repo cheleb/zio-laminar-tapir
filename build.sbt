@@ -58,6 +58,7 @@ lazy val root = project
   .aggregate(
     docs,
     server,
+    client,
     coreJs,
     coreJvm,
     laminar,
@@ -117,6 +118,20 @@ lazy val server = project
     run / fork := true
   )
 
+lazy val client = project
+  .dependsOn(coreJvm, sharedJvm)
+  .in(file("modules/client"))
+  .settings(name := "zio-tapir-client")
+  .settings(
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio-json" % Versions.zioJson,
+      "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
+    )
+  )
+  .settings(
+    run / fork := true
+  )
+
 val usedScalacOptions = Seq(
   "-encoding",
   "utf8",
@@ -163,7 +178,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
 lazy val coreJvm = core.jvm
 lazy val coreJs = core.js
 
-lazy val laminar = scalajsProject("laminar", false)
+lazy val laminar = scalajsProject("laminar")
   .dependsOn(coreJs)
   .settings(
     name := "zio-tapir-laminar"
@@ -173,7 +188,7 @@ lazy val laminar = scalajsProject("laminar", false)
   )
   .settings(scalacOptions ++= usedScalacOptions)
 
-lazy val webawesome = scalajsProject("webawesome", false)
+lazy val webawesome = scalajsProject("webawesome")
   .settings(
     name := "zio-tapir-laminar-webawesome"
   )
@@ -207,7 +222,7 @@ lazy val exampleServer = project
   .settings(
     name := "zio-tapir-laminar-example-server"
   )
-  .dependsOn(exampleSharedJvm, server, coreJvm)
+  .dependsOn(exampleSharedJvm, server, client, coreJvm)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % Versions.zio,
@@ -219,7 +234,7 @@ lazy val exampleServer = project
     Runtime / fork := true
   )
 
-lazy val exampleClient = scalajsProject("client", true)
+lazy val exampleClient = scalajsExampleProject("client")
   .enablePlugins(FullstackPlugin)
   .settings(
     scalaJSUseMainModuleInitializer := true,
@@ -236,10 +251,31 @@ lazy val exampleClient = scalajsProject("client", true)
     publish / skip := true
   )
 
-def scalajsProject(projectId: String, sample: Boolean): Project =
+def scalajsProject(projectId: String): Project =
   Project(
     id = projectId,
-    base = file(s"${if (sample) "examples" else "modules"}/$projectId")
+    base = file(s"modules/$projectId")
+  )
+    .enablePlugins(ScalaJSPlugin)
+    .settings(
+      scalacOptions := Seq(
+        "-scalajs"
+      )
+    )
+
+/** Helper to create example projects with the same settings, but different base
+  * directories.
+  *
+  * prepended project.id with "sample-" to avoid conflicts with the main
+  * modules, and to make it clear that these are example projects.
+  *
+  * @param projectId
+  * @return
+  */
+def scalajsExampleProject(projectId: String): Project =
+  Project(
+    id = s"sample-$projectId",
+    base = file(s"examples}/$projectId")
   )
     .enablePlugins(ScalaJSPlugin)
     .settings(
