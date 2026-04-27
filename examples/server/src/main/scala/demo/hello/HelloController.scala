@@ -18,6 +18,9 @@ case class HelloController(dep: HelloService)
   val hello: ServerEndpoint[Any, Task] =
     helloEndpoint.serverLogicSuccess(_ => dep.sayHello())
 
+  val proxy: ServerEndpoint[Any, Task] =
+    proxyEndpoint.serverLogicSuccess(_ => dep.askHttpBin())
+
   val streaming: ServerEndpoint[ZioStreams, Task] =
     streamingEndpoint.serverLogicSuccess(_ =>
       ZIO.succeed:
@@ -29,7 +32,7 @@ case class HelloController(dep: HelloService)
     )
 
   override def routes: List[ServerEndpoint[Any, Task]] =
-    List(hello)
+    List(hello, proxy)
 
   override def streamRoutes: List[ServerEndpoint[ZioStreams, Task]] =
     List(streaming)

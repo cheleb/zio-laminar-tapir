@@ -58,7 +58,10 @@ lazy val root = project
   .aggregate(
     docs,
     server,
-    core,
+    client,
+    coreJs,
+    coreJvm,
+    laminar,
     webawesome,
     sharedJs,
     sharedJvm
@@ -69,7 +72,7 @@ lazy val root = project
 
 lazy val docs = project // new documentation project
   .in(file("zio-laminar-tapir-docs")) // important: it must not be docs/
-  .dependsOn(core, sharedJs, sharedJvm)
+  .dependsOn(coreJs, coreJvm, laminar, sharedJs, sharedJvm)
   .settings(
     publish / skip := true,
     moduleName := "zio-laminar-tapir-docs",
@@ -102,8 +105,23 @@ lazy val docs = project // new documentation project
   )
 
 lazy val server = project
+  .dependsOn(coreJvm, sharedJvm)
   .in(file("modules/server"))
   .settings(name := "zio-tapir-server")
+  .settings(
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio-json" % Versions.zioJson,
+      "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
+    )
+  )
+  .settings(
+    run / fork := true
+  )
+
+lazy val client = project
+  .dependsOn(coreJvm, sharedJvm)
+  .in(file("modules/client"))
+  .settings(name := "zio-tapir-client")
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio-json" % Versions.zioJson,
@@ -145,20 +163,36 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
-lazy val core = scalajsProject("core", false)
+lazy val core = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/core"))
   .settings(
-    name := "zio-tapir-laminar"
+    name := "zio-tapir-core"
   )
-  .dependsOn(sharedJs)
+  .dependsOn(shared)
   .settings(scalacOptions ++= usedScalacOptions)
   .settings(
     coreDependencies
   )
-lazy val webawesome = scalajsProject("webawesome", false)
+
+lazy val coreJvm = core.jvm
+lazy val coreJs = core.js
+
+lazy val laminar = scalajsProject("laminar")
+  .dependsOn(coreJs)
+  .settings(
+    name := "zio-tapir-laminar"
+  )
+  .settings(
+    laminarDependencies
+  )
+  .settings(scalacOptions ++= usedScalacOptions)
+
+lazy val webawesome = scalajsProject("webawesome")
   .settings(
     name := "zio-tapir-laminar-webawesome"
   )
-  .dependsOn(core)
+  .dependsOn(laminar)
   .settings(
     exampleClientDependencies
   )
@@ -188,7 +222,7 @@ lazy val exampleServer = project
   .settings(
     name := "zio-tapir-laminar-example-server"
   )
-  .dependsOn(exampleSharedJvm, server)
+  .dependsOn(exampleSharedJvm, server, client, coreJvm)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % Versions.zio,
@@ -200,7 +234,7 @@ lazy val exampleServer = project
     Runtime / fork := true
   )
 
-lazy val exampleClient = scalajsProject("client", true)
+lazy val exampleClient = scalajsExampleProject("client")
   .enablePlugins(FullstackPlugin)
   .settings(
     scalaJSUseMainModuleInitializer := true,
@@ -212,15 +246,36 @@ lazy val exampleClient = scalajsProject("client", true)
     }
   )
   .settings(scalacOptions ++= usedScalacOptions)
-  .dependsOn(core, webawesome, exampleSharedJs)
+  .dependsOn(coreJs, webawesome, exampleSharedJs)
   .settings(
     publish / skip := true
   )
 
-def scalajsProject(projectId: String, sample: Boolean): Project =
+def scalajsProject(projectId: String): Project =
   Project(
     id = projectId,
-    base = file(s"${if (sample) "examples" else "modules"}/$projectId")
+    base = file(s"modules/$projectId")
+  )
+    .enablePlugins(ScalaJSPlugin)
+    .settings(
+      scalacOptions := Seq(
+        "-scalajs"
+      )
+    )
+
+/** Helper to create example projects with the same settings, but different base
+  * directories.
+  *
+  * prepended project.id with "sample-" to avoid conflicts with the main
+  * modules, and to make it clear that these are example projects.
+  *
+  * @param projectId
+  * @return
+  */
+def scalajsExampleProject(projectId: String): Project =
+  Project(
+    id = s"sample-$projectId",
+    base = file(s"examples/$projectId")
   )
     .enablePlugins(ScalaJSPlugin)
     .settings(
