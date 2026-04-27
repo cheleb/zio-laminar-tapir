@@ -1,0 +1,34 @@
+package dev.cheleb.ziotapir.server.otel
+
+import zio.*
+import zio.telemetry.opentelemetry.OpenTelemetry
+import io.opentelemetry.sdk.OpenTelemetrySdk
+import io.opentelemetry.api
+import io.opentelemetry.instrumentation.runtimemetrics.java17.RuntimeMetrics
+
+object OtelSdk {
+
+  def custom(resourceName: String): TaskLayer[api.OpenTelemetry] =
+    OpenTelemetry.custom(
+      for {
+
+        tracerProvider <- TracerProvider.grpc(resourceName)
+        meterProvider <- MeterProvider.grpc(resourceName)
+        loggerProvider <- LoggerProvider.grpc(resourceName)
+        openTelemetry <- ZIO.fromAutoCloseable(
+          ZIO.succeed(
+            OpenTelemetrySdk
+              .builder()
+              .setTracerProvider(tracerProvider)
+              .setMeterProvider(meterProvider)
+              .setLoggerProvider(loggerProvider)
+              .build
+          )
+        )
+        _ <- ZIO.fromAutoCloseable(
+          ZIO.succeed(RuntimeMetrics.create(openTelemetry))
+        )
+      } yield openTelemetry
+    )
+
+}

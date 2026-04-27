@@ -109,10 +109,7 @@ lazy val server = project
   .in(file("modules/server"))
   .settings(name := "zio-tapir-server")
   .settings(
-    libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-json" % Versions.zioJson,
-      "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
-    )
+    serverDependencies
   )
   .settings(
     run / fork := true
