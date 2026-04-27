@@ -104,6 +104,7 @@ lazy val docs = project // new documentation project
   )
 
 lazy val server = project
+  .dependsOn(coreJvm, sharedJvm)
   .in(file("modules/server"))
   .settings(name := "zio-tapir-server")
   .settings(

@@ -3,6 +3,8 @@ package demo.hello
 import zio.*
 import zio.json.*
 import dev.cheleb.ziotapir.server.*
+import dev.cheleb.ziotapir.client.*
+import dev.cheleb.ziotapir.*
 
 import dev.cheleb.ziotapir.server.BaseController
 import sttp.capabilities.zio.ZioStreams
@@ -10,6 +12,8 @@ import sttp.tapir.server.ServerEndpoint
 import zio.stream.ZStream
 import demo.Organisation
 import java.util.UUID
+import demo.HttpBinEndpoints
+import sttp.model.Uri
 
 case class HelloController(dep: HelloService)
     extends BaseController[ZioStreams]
@@ -17,6 +21,17 @@ case class HelloController(dep: HelloService)
 
   val hello: ServerEndpoint[Any, Task] =
     helloEndpoint.serverLogicSuccess(_ => dep.sayHello())
+
+  val proxy: ServerEndpoint[Any, Task] =
+    proxyEndpoint.serverLogicSuccess(_ =>
+      HttpBinEndpoints
+        .get(())
+        .provide(
+          ZIOSttpBackendLive.configuredLayerOn(
+            Uri.unsafeParse("https://httpbin.org")
+          )
+        )
+    )
 
   val streaming: ServerEndpoint[ZioStreams, Task] =
     streamingEndpoint.serverLogicSuccess(_ =>
@@ -29,7 +44,7 @@ case class HelloController(dep: HelloService)
     )
 
   override def routes: List[ServerEndpoint[Any, Task]] =
-    List(hello)
+    List(hello, proxy)
 
   override def streamRoutes: List[ServerEndpoint[ZioStreams, Task]] =
     List(streaming)
