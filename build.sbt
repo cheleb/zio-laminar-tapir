@@ -275,7 +275,7 @@ def scalajsProject(projectId: String): Project =
 def scalajsExampleProject(projectId: String): Project =
   Project(
     id = s"sample-$projectId",
-    base = file(s"examples}/$projectId")
+    base = file(s"examples/$projectId")
   )
     .enablePlugins(ScalaJSPlugin)
     .settings(

@@ -9,7 +9,7 @@ export default defineConfig({
 
         // sbt project ID from within the sbt build to get fast/fullLinkJS from
         // default: the root project of the sbt build
-        projectID: 'client',
+        projectID: 'sample-client',
 
         // URI prefix of imports that this plugin catches (without the trailing ':')
         // default: 'scalajs' (so the plugin recognizes URIs starting with 'scalajs:')

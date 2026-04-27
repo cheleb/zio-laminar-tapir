@@ -5,5 +5,5 @@ if [ ! -e "./scripts-managed/setup.sc" ]; then
   sbt fullstackInit
 fi
 
-./scripts-managed/setup.sc
+./scripts-managed/setup.sc -- client
 
