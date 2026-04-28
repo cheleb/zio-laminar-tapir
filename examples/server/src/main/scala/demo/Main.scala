@@ -3,8 +3,6 @@ package demo
 import zio.*
 import zio.http.*
 
-import io.opentelemetry.api
-
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 
 import dev.cheleb.ziotapir.server.otel.ZIOpenTelemetry
@@ -18,15 +16,15 @@ object Main extends ZIOApp with ZIOpenTelemetry("zio-tapir-server") {
   val program = for
     _ <- Console.printLine("Starting server on http://localhost:8080")
 
-    otel <- ZIO.service[api.OpenTelemetry]
-    contextStorage <- ZIO.service[ContextStorage]
+    //  otel <- ZIO.service[api.OpenTelemetry]
+
     given Tracing <- ZIO.service[Tracing]
 
     endpointsNoDeps <- HttpApiAny.endpoints
 
     endpoints <- HttpApi().endpointsWithDeps
 
-    httpApp = ZioHttpInterpreter(serverOptions(otel, contextStorage)).toHttp(
+    httpApp = ZioHttpInterpreter(serverOptions).toHttp(
       endpoints ++ endpointsNoDeps
     )
     _ <- Server.serve(httpApp)

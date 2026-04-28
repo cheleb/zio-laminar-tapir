@@ -1,7 +1,10 @@
 package dev.cheleb.ziotapir.server.otel
 
+import zio.*
+//import io.opentelemetry.api.trace.{Span, SpanKind, Tracer, StatusCode}
+
 import sttp.monad.MonadError
-import sttp.monad.syntax.MonadErrorOps
+//import sttp.monad.syntax.MonadErrorOps
 import sttp.tapir.AnyEndpoint
 import sttp.tapir.model.ServerRequest
 import sttp.tapir.server.ServerEndpoint
@@ -9,6 +12,13 @@ import sttp.tapir.server.interceptor.RequestResult.{Failure, Response}
 import sttp.tapir.server.interceptor._
 import sttp.tapir.server.interpreter.BodyListener
 import sttp.tapir.server.model.ServerResponse
+import zio.telemetry.opentelemetry.tracing.propagation.TraceContextPropagator
+import zio.telemetry.opentelemetry.context.IncomingContextCarrier
+import io.opentelemetry.api.trace.StatusCode
+
+import io.opentelemetry.api.trace.Span
+
+import zio.telemetry.opentelemetry.tracing.Tracing
 
 /** Interceptor which traces requests using otel4s.
   *
@@ -34,29 +44,93 @@ import sttp.tapir.server.model.ServerResponse
   * See https://typelevel.org/otel4s/oteljava/tracing-context-propagation.html
   * for details on context propagation.
   */
-class Otel4sTracing[F[_]](config: Otel4sTracingConfig[F])
-    extends RequestInterceptor[F] {
-  import config._
 
+class ZIOpenTelemetryTracing(
+    config: Otel4zTracingConfig,
+    propagator: TraceContextPropagator,
+    carrier: IncomingContextCarrier[
+      scala.collection.mutable.Map[String, String]
+    ]
+) extends RequestInterceptor[Task] {
+
+  import config.*
   // https://typelevel.org/otel4s/instrumentation/tracing-cross-service-propagation.html
-  implicit private val getter: TextMapGetter[ServerRequest] =
-    new TextMapGetter[ServerRequest] {
-      override def get(carrier: ServerRequest, key: String): Option[String] =
-        carrier.header(key)
-      override def keys(carrier: ServerRequest): Iterable[String] =
-        carrier.headers.map(_.name)
-    }
-
+  // implicit private val getter: TextMapGetter[ServerRequest] =
+  //   new TextMapGetter[ServerRequest] {
+  //     override def get(carrier: ServerRequest, key: String): Option[String] =
+  //       carrier.header(key)
+  //     override def keys(carrier: ServerRequest): Iterable[String] =
+  //       carrier.headers.map(_.name)
+//}
   override def apply[R, B](
-      responder: Responder[F, B],
-      requestHandler: EndpointInterceptor[F] => RequestHandler[F, R, B]
-  ): RequestHandler[F, R, B] = new RequestHandler[F, R, B] {
-    override def apply(
-        request: ServerRequest,
-        endpoints: List[ServerEndpoint[R, F]]
-    )(implicit
-        monad: MonadError[F]
-    ): F[RequestResult[B]] = {
+      responder: Responder[Task, B],
+      requestHandler: EndpointInterceptor[Task] => RequestHandler[Task, R, B]
+  ): RequestHandler[Task, R, B] =
+    new RequestHandler[Task, R, B] {
+      override def apply(
+          request: ServerRequest,
+          endpoints: List[ServerEndpoint[R, Task]]
+      )(implicit monad: MonadError[Task]): Task[RequestResult[B]] = {
+
+        ZIO.logInfo("ooooo") *> config.tracing
+          .extractSpan(propagator, carrier, request.showShort):
+            config.tracing.getCurrentSpanUnsafe
+              .flatMap: span =>
+                (for {
+                  requestResult <- requestHandler(
+                    knownEndpointInterceptor(request, span)
+                  )(request, endpoints)
+                  _ <- requestResult match {
+                    case Response(response, _) =>
+                      ZIO
+                        .succeed(
+                          span
+                            .setAllAttributes(
+                              responseAttributes(request, response)
+                            )
+                        )
+                        .map(_ =>
+                          if (response.isServerError)
+                            span
+                              .setStatus(
+                                StatusCode.ERROR
+                              )
+                            span.setAllAttributes(
+                              errorAttributes(Left(response.code))
+                            )
+                          else monad.unit(())
+                        )
+                    case Failure(_) =>
+                      // ignore, request not handled
+                      monad.unit(())
+                  }
+                } yield requestResult)
+
+        /*
+                requestHandler(knownEndpointInterceptor(request, span))(
+                  request,
+                  endpoints
+                )
+                  .handleError { case e: Exception =>
+                    ZIO
+                      .succeed(
+                        span
+                          .setStatus(
+                            io.opentelemetry.api.trace.StatusCode.ERROR
+                          )
+                      )
+                      .map(_ =>
+                        span.setAttribute(
+                          AttributeKey.stringKey("error.type"),
+                          e.getClass.getName
+                        )
+                      )
+                      .flatMap(_ => monad.error(e))
+                  }
+
+        // .flatMap(_ => requestHandler(request))
+         */
+        /*
       tracer.joinOrRoot(request)(
         tracer
           .spanBuilder(spanName(request))
@@ -97,60 +171,74 @@ class Otel4sTracing[F[_]](config: Otel4sTracingConfig[F])
           )
       )
     }
-  }
-
-  private def knownEndpointInterceptor(request: ServerRequest, span: Span[F]) =
-    new EndpointInterceptor[F] {
-      def apply[B](
-          responder: Responder[F, B],
-          endpointHandler: EndpointHandler[F, B]
-      ): EndpointHandler[F, B] = new EndpointHandler[F, B] {
-        def onDecodeFailure(
-            ctx: DecodeFailureContext
-        )(implicit
-            monad: MonadError[F],
-            bodyListener: BodyListener[F, B]
-        ): F[Option[ServerResponse[B]]] =
-          endpointHandler.onDecodeFailure(ctx).flatMap {
-            case result @ Some(_) =>
-              knownEndpoint(ctx.endpoint).map(_ => result)
-            case None => monad.unit(None)
-          }
-
-        def onDecodeSuccess[A, U, I](
-            ctx: DecodeSuccessContext[F, A, U, I]
-        )(implicit
-            monad: MonadError[F],
-            bodyListener: BodyListener[F, B]
-        ): F[ServerResponse[B]] =
-          knownEndpoint(ctx.endpoint).flatMap(_ =>
-            endpointHandler.onDecodeSuccess(ctx)
-          )
-
-        def onSecurityFailure[A](
-            ctx: SecurityFailureContext[F, A]
-        )(implicit
-            monad: MonadError[F],
-            bodyListener: BodyListener[F, B]
-        ): F[ServerResponse[B]] =
-          knownEndpoint(ctx.endpoint).flatMap(_ =>
-            endpointHandler.onSecurityFailure(ctx)
-          )
-
-        def knownEndpoint(
-            e: AnyEndpoint
-        )(implicit monad: MonadError[F]): F[Unit] = {
-          val (name, attributes) = spanNameFromEndpointAndAttributes(request, e)
-          span.updateName(name).flatMap(_ => span.addAttributes(attributes))
-        }
+         */
       }
+
+      def knownEndpointInterceptor(
+          request: ServerRequest,
+          span: Span
+      ) =
+        new EndpointInterceptor[Task] {
+          def apply[B](
+              responder: Responder[Task, B],
+              endpointHandler: EndpointHandler[Task, B]
+          ): EndpointHandler[Task, B] = new EndpointHandler[Task, B] {
+            def onDecodeFailure(
+                ctx: DecodeFailureContext
+            )(implicit
+                monad: MonadError[Task],
+                bodyListener: BodyListener[Task, B]
+            ): Task[Option[ServerResponse[B]]] =
+              endpointHandler.onDecodeFailure(ctx).flatMap {
+                case result @ Some(_) =>
+                  knownEndpoint(ctx.endpoint).map(_ => result)
+                case None => monad.unit(None)
+              }
+
+            def onDecodeSuccess[A, U, I](
+                ctx: DecodeSuccessContext[Task, A, U, I]
+            )(implicit
+                monad: MonadError[Task],
+                bodyListener: BodyListener[Task, B]
+            ): Task[ServerResponse[B]] =
+              knownEndpoint(ctx.endpoint).flatMap(_ =>
+                endpointHandler.onDecodeSuccess(ctx)
+              )
+
+            def onSecurityFailure[A](
+                ctx: SecurityFailureContext[Task, A]
+            )(implicit
+                monad: MonadError[Task],
+                bodyListener: BodyListener[Task, B]
+            ): Task[ServerResponse[B]] =
+              knownEndpoint(ctx.endpoint).flatMap(_ =>
+                endpointHandler.onSecurityFailure(ctx)
+              )
+
+            def knownEndpoint(
+                e: AnyEndpoint
+            ): Task[Unit] = {
+              val (name, attributes) =
+                spanNameFromEndpointAndAttributes(request, e)
+              ZIO.succeed:
+                span
+                  .updateName(name)
+                span.setAllAttributes(attributes)
+
+            }
+          }
+        }
     }
 }
 
-object Otel4sTracing {
-  def apply[F[_]](config: Otel4sTracingConfig[F]): Otel4sTracing[F] =
-    new Otel4sTracing(config)
-  def apply[F[_]](tracer: Tracer[F]): Otel4sTracing[F] = new Otel4sTracing(
-    Otel4sTracingConfig(tracer)
-  )
+object ZIOpenTelemetryTracing {
+  def apply(
+      tracing: Tracing
+  ): ZIOpenTelemetryTracing =
+    new ZIOpenTelemetryTracing(
+      Otel4zTracingConfig(tracing),
+
+      TraceContextPropagator.default,
+      IncomingContextCarrier.default()
+    )
 }

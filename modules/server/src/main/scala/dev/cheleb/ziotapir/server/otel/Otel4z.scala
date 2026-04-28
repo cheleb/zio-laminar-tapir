@@ -1,0 +1,143 @@
+package dev.cheleb.ziotapir.server.otel
+
+import sttp.model.headers.{Forwarded, Host}
+import sttp.model.{HeaderNames, StatusCode}
+import sttp.tapir.AnyEndpoint
+import sttp.tapir.model.ServerRequest
+import sttp.tapir.server.model.ServerResponse
+import zio.telemetry.opentelemetry.tracing.Tracing
+import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.semconv.HttpAttributes
+import io.opentelemetry.semconv.UrlAttributes
+import io.opentelemetry.semconv.ServerAttributes
+import io.opentelemetry.semconv.ErrorAttributes
+import scala.annotation.nowarn
+
+/** Configuration for OpenTelemetry Otel4z tracing of server requests, used by
+  * [[Otel4zTracing]]. Use the [[apply]] method to override only some of the
+  * configuration options, while using the defaults for the rest.
+  *
+  * The default values follow OpenTelemetry semantic conventions, as described
+  * in [their
+  * documentation](https://opentelemetry.io/docs/specs/semconv/http/http-spans/#name).
+  *
+  * @param tracing
+  *   The tracing instance to use. To obtain it see
+  *
+  * @param spanName
+  *   Calculates the name of the span, given an incoming request.
+  * @param requestAttributes
+  *   Calculates the attributes of the span, given an incoming request.
+  * @param spanNameFromEndpointAndAttributes
+  *   Calculates an updated name of the span and additional attributes, once
+  *   (and if) an endpoint is determined to handle the request. By default, the
+  *   span name includes the request's method and the route, which is created by
+  *   rendering the endpoint's path template.
+  * @param responseAttributes
+  *   Calculates additional attributes of the span, given a response that will
+  *   be sent back.
+  * @param errorAttributes
+  *   Calculates additional attributes of the span, given an error that occurred
+  *   while processing the request (an exception); although usually, exceptions
+  *   are translated into 5xx responses earlier in the interceptor chain.
+  */
+case class Otel4zTracingConfig(
+    tracing: Tracing,
+    spanName: ServerRequest => String,
+    requestAttributes: ServerRequest => Attributes,
+    spanNameFromEndpointAndAttributes: (ServerRequest, AnyEndpoint) => (
+        String,
+        Attributes
+    ),
+    responseAttributes: (ServerRequest, ServerResponse[?]) => Attributes,
+    errorAttributes: Either[StatusCode, Throwable] => Attributes
+)
+
+object Otel4zTracingConfig {
+  def apply(
+      tracing: Tracing,
+      spanName: ServerRequest => String = Defaults.spanName,
+      requestAttributes: ServerRequest => Attributes =
+        Defaults.requestAttributes,
+      spanNameFromEndpointAndAttributes: (ServerRequest, AnyEndpoint) => (
+          String,
+          Attributes
+      ) = Defaults.spanNameFromEndpointAndAttributes,
+      responseAttributes: (ServerRequest, ServerResponse[?]) => Attributes =
+        Defaults.responseAttributes,
+      errorAttributes: Either[StatusCode, Throwable] => Attributes =
+        Defaults.errorAttributes
+  ): Otel4zTracingConfig =
+    new Otel4zTracingConfig(
+      tracing,
+      spanName,
+      requestAttributes,
+      spanNameFromEndpointAndAttributes,
+      responseAttributes,
+      errorAttributes
+    )
+
+  /** @see
+    *   https://opentelemetry.io/docs/specs/semconv/http/http-spans/#name
+    * @see
+    *   https://opentelemetry.io/docs/specs/semconv/http/http-spans/#http-server
+    */
+  object Defaults {
+    def spanNameFromEndpointAndAttributes(
+        request: ServerRequest,
+        endpoint: AnyEndpoint
+    ): (String, Attributes) = {
+      val route = endpoint.showPathTemplate(showQueryParam = None)
+      val name = s"${request.method.method} $route"
+      (name, Attributes.of(HttpAttributes.HTTP_ROUTE, route))
+    }
+
+    def requestAttributes(request: ServerRequest): Attributes = {
+      val hostHeader: String = request
+        .header(HeaderNames.Forwarded)
+        .flatMap(f =>
+          Forwarded.parse(f).toOption.flatMap(_.headOption).flatMap(_.host)
+        )
+        .orElse(request.header(HeaderNames.XForwardedHost))
+        .orElse(request.header(":authority"))
+        .orElse(request.header(HeaderNames.Host))
+        .getOrElse("unknown")
+
+      val (host, _) = Host.parseHostAndPort(hostHeader)
+
+      Attributes.of(
+        HttpAttributes.HTTP_REQUEST_METHOD,
+        request.method.method,
+        UrlAttributes.URL_PATH,
+        request.uri.pathToString,
+        UrlAttributes.URL_SCHEME,
+        request.uri.scheme.getOrElse("http"),
+        ServerAttributes.SERVER_ADDRESS,
+        host
+      )
+
+    }
+
+    def spanName(request: ServerRequest): String = s"${request.method.method}"
+
+    @nowarn
+    def responseAttributes(
+        request: ServerRequest,
+        response: ServerResponse[_]
+    ): Attributes =
+      Attributes.of(
+        HttpAttributes.HTTP_RESPONSE_STATUS_CODE,
+        response.code.code.toLong
+      )
+
+    def errorAttributes(e: Either[StatusCode, Throwable]): Attributes =
+      e match {
+        case Left(statusCode) =>
+          // see footnote for error.type
+          Attributes.of(ErrorAttributes.ERROR_TYPE, statusCode.code.toString)
+        case Right(exception) =>
+          val errorType = exception.getClass.getSimpleName
+          Attributes.of(ErrorAttributes.ERROR_TYPE, errorType)
+      }
+  }
+}
