@@ -7,7 +7,6 @@ import io.opentelemetry.api
 import sttp.tapir.server.ziohttp.ZioHttpServerOptions
 import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import zio.logging.backend.SLF4J
-
 import sttp.tapir.server.tracing.opentelemetry.OpenTelemetryTracing
 
 /** ZIOpenTelemetry is a trait that provides a ZIO layer for OpenTelemetry.
@@ -65,11 +64,12 @@ trait ZIOpenTelemetry(resourceName: String) {
   ): ZioHttpServerOptions[Any] =
     ZioHttpServerOptions.customiseInterceptors
       .prependInterceptor(
+        // ZIOpenTelemetryTracing(otel, contextStorage)
         OpenTelemetryTracing(otel)
       )
-      .prependInterceptor(
-        ZioOtelContextBridge.tapirRequestInterceptor(contextStorage)
-      )
+      // .prependInterceptor(
+      //   ZioOtelContextBridge.tapirRequestInterceptor(contextStorage)
+      // )
       .appendInterceptor(
         CORSInterceptor.default
       )
