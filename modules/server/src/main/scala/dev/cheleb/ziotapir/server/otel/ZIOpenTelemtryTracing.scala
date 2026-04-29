@@ -14,11 +14,13 @@ import sttp.tapir.server.interpreter.BodyListener
 import sttp.tapir.server.model.ServerResponse
 import zio.telemetry.opentelemetry.tracing.propagation.TraceContextPropagator
 import zio.telemetry.opentelemetry.context.IncomingContextCarrier
-import io.opentelemetry.api.trace.StatusCode
 
 import io.opentelemetry.api.trace.Span
 
 import zio.telemetry.opentelemetry.tracing.Tracing
+import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.api.common.AttributeKey
+import io.opentelemetry.api.trace.StatusCode
 
 /** Interceptor which traces requests using otel4s.
   *
@@ -72,64 +74,61 @@ class ZIOpenTelemetryTracing(
           endpoints: List[ServerEndpoint[R, Task]]
       )(implicit monad: MonadError[Task]): Task[RequestResult[B]] = {
 
-        ZIO.logInfo("ooooo") *> config.tracing
-          .extractSpan(propagator, carrier, request.showShort):
-            config.tracing.getCurrentSpanUnsafe
-              .flatMap: span =>
-                (for {
-                  requestResult <- requestHandler(
-                    knownEndpointInterceptor(request, span)
-                  )(request, endpoints)
-                  _ <- requestResult match {
-                    case Response(response, _) =>
-                      ZIO
-                        .succeed(
+        config.tracing
+          .extractSpanUnsafe(
+            propagator,
+            carrier,
+            request.showShort,
+            spanKind = SpanKind.SERVER
+          )
+          .flatMap: (span, finalize) =>
+            (for {
+              requestResult <- requestHandler(
+                knownEndpointInterceptor(request, span)
+              )(request, endpoints)
+                .tapError { case e: Exception =>
+                  ZIO
+                    .succeed:
+                      span.setStatus(StatusCode.ERROR)
+                      span.setAttribute(
+                        AttributeKey.stringKey("error.type"),
+                        e.getClass.getName
+                      )
+                    .flatMap(_ => monad.error(e))
+                }
+              _ <- requestResult match {
+                case Response(response, _) =>
+                  ZIO
+                    .succeed(
+                      span
+                        .setAllAttributes(
+                          responseAttributes(request, response)
+                        )
+                    )
+                    .flatMap(_ =>
+                      if (response.isServerError)
+                        ZIO.succeed {
                           span
-                            .setAllAttributes(
-                              responseAttributes(request, response)
+                            .setStatus(
+                              StatusCode.ERROR
                             )
-                        )
-                        .map(_ =>
-                          if (response.isServerError)
-                            span
-                              .setStatus(
-                                StatusCode.ERROR
-                              )
-                            span.setAllAttributes(
-                              errorAttributes(Left(response.code))
-                            )
-                          else monad.unit(())
-                        )
-                    case Failure(_) =>
-                      // ignore, request not handled
-                      monad.unit(())
-                  }
-                } yield requestResult)
-
-        /*
-                requestHandler(knownEndpointInterceptor(request, span))(
-                  request,
-                  endpoints
-                )
-                  .handleError { case e: Exception =>
-                    ZIO
-                      .succeed(
-                        span
-                          .setStatus(
-                            io.opentelemetry.api.trace.StatusCode.ERROR
+                          span.setAllAttributes(
+                            errorAttributes(Left(response.code))
                           )
-                      )
-                      .map(_ =>
-                        span.setAttribute(
-                          AttributeKey.stringKey("error.type"),
-                          e.getClass.getName
+                        } *> monad.error(
+                          new Exception(
+                            s"Server error with status code ${response.code}"
+                          )
                         )
-                      )
-                      .flatMap(_ => monad.error(e))
-                  }
+                      else monad.unit(())
+                    )
+                case Failure(_) =>
+                  // ignore, request not handled
+                  monad.unit(())
+              }
+            } yield requestResult)
+              .ensuring(finalize)
 
-        // .flatMap(_ => requestHandler(request))
-         */
         /*
       tracer.joinOrRoot(request)(
         tracer
