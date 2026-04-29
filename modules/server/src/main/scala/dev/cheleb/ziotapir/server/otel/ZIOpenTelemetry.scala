@@ -64,11 +64,7 @@ trait ZIOpenTelemetry(resourceName: String) {
     ZioHttpServerOptions.customiseInterceptors
       .prependInterceptor(
         ZIOpenTelemetryTracing(tracing)
-        // OpenTelemetryTracing(otel)
       )
-      // .prependInterceptor(
-      //   ZioOtelContextBridge.tapirRequestInterceptor(contextStorage)
-      // )
       .appendInterceptor(
         CORSInterceptor.default
       )
