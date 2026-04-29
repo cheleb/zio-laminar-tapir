@@ -10,6 +10,8 @@ trait HelloService {
   def sayHello(): Task[String]
 
   def askHttpBin(): Task[GetResponse]
+
+  def boom(): Task[Unit] = ZIO.fail(new RuntimeException("Boom!"))
 }
 
 private case class HelloServiceImpl()(using backend: BackendClient)

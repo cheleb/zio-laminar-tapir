@@ -11,10 +11,15 @@ import zio.stream.ZStream
 import demo.Organisation
 import java.util.UUID
 import zio.telemetry.opentelemetry.tracing.Tracing
+import sttp.tapir.ztapir.*
 
 case class HelloController(dep: HelloService)(using tracing: Tracing)
     extends BaseController[ZioStreams]
     with HelloEndpoints {
+
+  extension [A](task: Task[A])
+    def toApi: IO[ErrorResponse, A] =
+      task.mapError(e => ErrorResponse(e.getMessage))
 
   import tracing.aspects.*
 
@@ -23,7 +28,10 @@ case class HelloController(dep: HelloService)(using tracing: Tracing)
       dep.sayHello() @@ span("hello-endpoint")
 
   val proxy: ServerEndpoint[Any, Task] =
-    proxyEndpoint.serverLogicSuccess(_ => dep.askHttpBin())
+    proxyEndpoint.zServerLogic(_ =>
+      dep.askHttpBin().toApi
+        @@ span("proxy-endpoint")
+    )
 
   val streaming: ServerEndpoint[ZioStreams, Task] =
     streamingEndpoint.serverLogicSuccess(_ =>
@@ -35,8 +43,15 @@ case class HelloController(dep: HelloService)(using tracing: Tracing)
             .toJsonArrayStream
     )
 
+  val boom: ServerEndpoint[Any, Task] =
+    boomEndpoint.zServerLogic(_ =>
+      dep.boom().mapError(e => ErrorResponse(e.getMessage)) @@ span(
+        "boom-endpoint"
+      )
+    )
+
   override def routes: List[ServerEndpoint[Any, Task]] =
-    List(hello, proxy)
+    List(hello, proxy, boom)
 
   override def streamRoutes: List[ServerEndpoint[ZioStreams, Task]] =
     List(streaming)

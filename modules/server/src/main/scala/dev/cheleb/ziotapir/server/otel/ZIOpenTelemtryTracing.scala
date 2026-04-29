@@ -4,7 +4,7 @@ import zio.*
 //import io.opentelemetry.api.trace.{Span, SpanKind, Tracer, StatusCode}
 
 import sttp.monad.MonadError
-//import sttp.monad.syntax.MonadErrorOps
+import sttp.model.StatusCode as SttpStatusCode
 import sttp.tapir.AnyEndpoint
 import sttp.tapir.model.ServerRequest
 import sttp.tapir.server.ServerEndpoint
@@ -12,167 +12,134 @@ import sttp.tapir.server.interceptor.RequestResult.{Failure, Response}
 import sttp.tapir.server.interceptor._
 import sttp.tapir.server.interpreter.BodyListener
 import sttp.tapir.server.model.ServerResponse
-import zio.telemetry.opentelemetry.tracing.propagation.TraceContextPropagator
-import zio.telemetry.opentelemetry.context.IncomingContextCarrier
 
 import io.opentelemetry.api.trace.Span
 
 import zio.telemetry.opentelemetry.tracing.Tracing
 import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.api.common.AttributeKey
+
 import io.opentelemetry.api.trace.StatusCode
+import io.opentelemetry.api.common.Attributes
 
 /** Interceptor which traces requests using otel4s.
   *
   * Span names and attributes are calculated using the provided
-  * [[Otel4sTracingConfig]].
+  * [[Otel4zTracingConfig]].
   *
   * To use, customize the interceptors of the server interpreter you are using,
   * and prepend this interceptor, so that it runs as early as possible, e.g.:
   *
   * {{{
-  * OtelJava
-  *   .autoConfigured[IO]()
-  *   .use { otel4s =>
-  *     otel4s.tracerProvider.get("tracer name").flatMap { tracer =>
-  *       def endpoints: List[ServerEndpoint[Any, IO]] = ???
-  *       val routes =
-  *         Http4sServerInterpreter[IO](Http4sServerOptions.default[IO].prependInterceptor(Otel4sTracing(tracing)))
-  *           .toRoutes(endpoints)
-  *        //...
-  *   }
-  * }
+  * protected def serverOptions(using
+  *        tracing: Tracing
+  *    ): ZioHttpServerOptions[Any] =
+  *      ZioHttpServerOptions.customiseInterceptors
+  *        .prependInterceptor(
+  *          ZIOpenTelemetryTracing(tracing)
+  *        )
+  *        .appendInterceptor(
+  *          CORSInterceptor.default
+  *        )
+  *        .serverLog(
+  *          ZioHttpServerOptions.defaultServerLog
+  *        )
+  *        .options
   * }}}
   * See https://typelevel.org/otel4s/oteljava/tracing-context-propagation.html
   * for details on context propagation.
   */
 
 class ZIOpenTelemetryTracing(
-    config: Otel4zTracingConfig,
-    propagator: TraceContextPropagator,
-    carrier: IncomingContextCarrier[
-      scala.collection.mutable.Map[String, String]
-    ]
+    tracing: Tracing,
+    config: Otel4zTracingConfig
 ) extends RequestInterceptor[Task] {
 
   import config.*
-  // https://typelevel.org/otel4s/instrumentation/tracing-cross-service-propagation.html
-  // implicit private val getter: TextMapGetter[ServerRequest] =
-  //   new TextMapGetter[ServerRequest] {
-  //     override def get(carrier: ServerRequest, key: String): Option[String] =
-  //       carrier.header(key)
-  //     override def keys(carrier: ServerRequest): Iterable[String] =
-  //       carrier.headers.map(_.name)
-//}
+
+  /** Set span status and attributes for errors, both exceptions and error
+    * status.
+    *
+    * @param span
+    * @param e
+    * @return
+    */
+  private def spanError(span: Span)(e: SttpStatusCode | Throwable): Task[Unit] =
+    ZIO
+      .succeed:
+        span.setStatus(StatusCode.ERROR)
+        span.setAllAttributes(errorAttributes(e))
+
+  /** Set span attributes for the response.
+    *
+    * @param span
+    * @param attributes
+    * @return
+    */
+  private def setSpanAttibutes(span: Span, attributes: Attributes): Task[Unit] =
+    ZIO.succeed(span.setAllAttributes(attributes))
+
   override def apply[R, B](
       responder: Responder[Task, B],
       requestHandler: EndpointInterceptor[Task] => RequestHandler[Task, R, B]
   ): RequestHandler[Task, R, B] =
+
     new RequestHandler[Task, R, B] {
       override def apply(
           request: ServerRequest,
           endpoints: List[ServerEndpoint[R, Task]]
-      )(implicit monad: MonadError[Task]): Task[RequestResult[B]] = {
+      )(implicit monad: MonadError[Task]): Task[RequestResult[B]] = tracing
+        .extractSpanUnsafe(
+          config.propagator,
+          config.carrier,
+          request.showShort,
+          spanKind = SpanKind.SERVER,
+          attributes = config.requestAttributes(request)
+        )
+        .flatMap: (span, finalize) =>
+          handleRequest(span, request, endpoints)
+            .tapError:
+              spanError(span)
+            .ensuring(finalize)
 
-        config.tracing
-          .extractSpanUnsafe(
-            propagator,
-            carrier,
-            request.showShort,
-            spanKind = SpanKind.SERVER
-          )
-          .flatMap: (span, finalize) =>
-            (for {
-              requestResult <- requestHandler(
-                knownEndpointInterceptor(request, span)
-              )(request, endpoints)
-                .tapError { case e: Exception =>
-                  ZIO
-                    .succeed:
-                      span.setStatus(StatusCode.ERROR)
-                      span.setAttribute(
-                        AttributeKey.stringKey("error.type"),
-                        e.getClass.getName
-                      )
-                    .flatMap(_ => monad.error(e))
-                }
-              _ <- requestResult match {
-                case Response(response, _) =>
-                  ZIO
-                    .succeed(
-                      span
-                        .setAllAttributes(
-                          responseAttributes(request, response)
-                        )
-                    )
-                    .flatMap(_ =>
-                      if (response.isServerError)
-                        ZIO.succeed {
-                          span
-                            .setStatus(
-                              StatusCode.ERROR
-                            )
-                          span.setAllAttributes(
-                            errorAttributes(Left(response.code))
-                          )
-                        } *> monad.error(
-                          new Exception(
-                            s"Server error with status code ${response.code}"
-                          )
-                        )
-                      else monad.unit(())
-                    )
-                case Failure(_) =>
-                  // ignore, request not handled
-                  monad.unit(())
-              }
-            } yield requestResult)
-              .ensuring(finalize)
+      /** Handle the request, setting span attributes and status based on the
+        * result.
+        *
+        * @param span
+        * @param request
+        * @param endpoints
+        * @param monad
+        * @return
+        */
+      def handleRequest(
+          span: Span,
+          request: ServerRequest,
+          endpoints: List[ServerEndpoint[R, Task]]
+      )(implicit monad: MonadError[Task]) =
+        for {
+          requestResult <- requestHandler(
+            knownEndpointInterceptor(request, span)
+          )(request, endpoints)
+          _ <- requestResult match {
+            case Response(response, _) =>
+              setSpanAttibutes(
+                span,
+                responseAttributes(request, response)
+              ) *> ZIO.when(response.isServerError)(
+                spanError(span)(response.code)
+              )
+            case Failure(_) =>
+              // ignore, request not handled
+              ZIO.unit
+          }
+        } yield requestResult
 
-        /*
-      tracer.joinOrRoot(request)(
-        tracer
-          .spanBuilder(spanName(request))
-          .addAttributes(requestAttributes(request))
-          .withSpanKind(SpanKind.Server)
-          .build
-          .use(span =>
-            (for {
-              requestResult <- requestHandler(
-                knownEndpointInterceptor(request, span)
-              )(request, endpoints)
-              _ <- requestResult match {
-                case Response(response, _) =>
-                  span
-                    .addAttributes(responseAttributes(request, response))
-                    .flatMap(_ =>
-                      if (response.isServerError)
-                        span
-                          .setStatus(trace.StatusCode.Error)
-                          .flatMap(_ =>
-                            span.addAttributes(
-                              errorAttributes(Left(response.code))
-                            )
-                          )
-                      else monad.unit(())
-                    )
-                case Failure(_) =>
-                  // ignore, request not handled
-                  monad.unit(())
-              }
-            } yield requestResult)
-              .handleError { case e: Exception =>
-                span
-                  .setStatus(trace.StatusCode.Error)
-                  .flatMap(_ => span.addAttributes(errorAttributes(Right(e))))
-                  .flatMap(_ => monad.error(e))
-              }
-          )
-      )
-    }
-         */
-      }
-
+      /** Interceptor which sets span name and attributes based on the matched
+        * endpoint.
+        *
+        * @param request
+        * @param span
+        * @return
+        */
       def knownEndpointInterceptor(
           request: ServerRequest,
           span: Span
@@ -231,13 +198,35 @@ class ZIOpenTelemetryTracing(
 }
 
 object ZIOpenTelemetryTracing {
+
+  /** Create a new ZIOpenTelemetryTracing interceptor with the provided Tracing
+    * and default configuration.
+    *
+    * @param tracing
+    * @return
+    */
   def apply(
       tracing: Tracing
   ): ZIOpenTelemetryTracing =
     new ZIOpenTelemetryTracing(
-      Otel4zTracingConfig(tracing),
-
-      TraceContextPropagator.default,
-      IncomingContextCarrier.default()
+      tracing,
+      Otel4zTracingConfig()
     )
+
+  /** Create a new ZIOpenTelemetryTracing interceptor with the provided Tracing
+    * and configuration.
+    *
+    * @param tracing
+    * @param config
+    * @return
+    */
+  def apply(
+      tracing: Tracing,
+      config: Otel4zTracingConfig
+  ): ZIOpenTelemetryTracing =
+    new ZIOpenTelemetryTracing(
+      tracing,
+      config
+    )
+
 }

@@ -9,6 +9,10 @@ import demo.BaseEndpoint
 import sttp.capabilities.zio.ZioStreams
 import demo.Organisation
 import demo.GetResponse
+import sttp.model.StatusCode
+import zio.json.JsonCodec
+
+case class ErrorResponse(message: String) derives JsonCodec
 
 trait HelloEndpoints extends BaseEndpoint:
 
@@ -20,6 +24,14 @@ trait HelloEndpoints extends BaseEndpoint:
   val proxyEndpoint = endpoint.get
     .in("httpbin")
     .out(jsonBody[GetResponse])
+    .errorOut(
+      oneOf(
+        oneOfVariant(
+          statusCode(StatusCode.InternalServerError)
+            .and(jsonBody[ErrorResponse])
+        )
+      )
+    )
     .description("A simple proxy endpoint")
 
   val streamingEndpoint = endpoint.get
@@ -34,3 +46,15 @@ trait HelloEndpoints extends BaseEndpoint:
       )
     )
     .description("A simple streaming endpoint that emits a stream of strings")
+
+  val boomEndpoint = endpoint.get
+    .in("boom")
+    .description("An endpoint that always fails with an error")
+    .errorOut(
+      oneOf(
+        oneOfVariant(
+          statusCode(StatusCode.InternalServerError)
+            .and(jsonBody[ErrorResponse])
+        )
+      )
+    )

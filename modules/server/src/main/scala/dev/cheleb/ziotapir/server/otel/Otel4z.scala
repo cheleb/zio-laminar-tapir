@@ -5,13 +5,15 @@ import sttp.model.{HeaderNames, StatusCode}
 import sttp.tapir.AnyEndpoint
 import sttp.tapir.model.ServerRequest
 import sttp.tapir.server.model.ServerResponse
-import zio.telemetry.opentelemetry.tracing.Tracing
+
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.semconv.HttpAttributes
 import io.opentelemetry.semconv.UrlAttributes
 import io.opentelemetry.semconv.ServerAttributes
 import io.opentelemetry.semconv.ErrorAttributes
 import scala.annotation.nowarn
+import zio.telemetry.opentelemetry.tracing.propagation.TraceContextPropagator
+import zio.telemetry.opentelemetry.context.IncomingContextCarrier
 
 /** Configuration for OpenTelemetry Otel4z tracing of server requests, used by
   * [[Otel4zTracing]]. Use the [[apply]] method to override only some of the
@@ -42,7 +44,11 @@ import scala.annotation.nowarn
   *   are translated into 5xx responses earlier in the interceptor chain.
   */
 case class Otel4zTracingConfig(
-    tracing: Tracing,
+    propagator: TraceContextPropagator,
+    carrier: IncomingContextCarrier[
+      scala.collection.mutable.Map[String, String]
+    ],
+
     spanName: ServerRequest => String,
     requestAttributes: ServerRequest => Attributes,
     spanNameFromEndpointAndAttributes: (ServerRequest, AnyEndpoint) => (
@@ -50,12 +56,15 @@ case class Otel4zTracingConfig(
         Attributes
     ),
     responseAttributes: (ServerRequest, ServerResponse[?]) => Attributes,
-    errorAttributes: Either[StatusCode, Throwable] => Attributes
+    errorAttributes: StatusCode | Throwable => Attributes
 )
 
 object Otel4zTracingConfig {
   def apply(
-      tracing: Tracing,
+      propagator: TraceContextPropagator = TraceContextPropagator.default,
+      carrier: IncomingContextCarrier[
+        scala.collection.mutable.Map[String, String]
+      ] = IncomingContextCarrier.default(),
       spanName: ServerRequest => String = Defaults.spanName,
       requestAttributes: ServerRequest => Attributes =
         Defaults.requestAttributes,
@@ -65,11 +74,12 @@ object Otel4zTracingConfig {
       ) = Defaults.spanNameFromEndpointAndAttributes,
       responseAttributes: (ServerRequest, ServerResponse[?]) => Attributes =
         Defaults.responseAttributes,
-      errorAttributes: Either[StatusCode, Throwable] => Attributes =
+      errorAttributes: StatusCode | Throwable => Attributes =
         Defaults.errorAttributes
   ): Otel4zTracingConfig =
     new Otel4zTracingConfig(
-      tracing,
+      propagator,
+      carrier,
       spanName,
       requestAttributes,
       spanNameFromEndpointAndAttributes,
@@ -130,12 +140,12 @@ object Otel4zTracingConfig {
         response.code.code.toLong
       )
 
-    def errorAttributes(e: Either[StatusCode, Throwable]): Attributes =
+    def errorAttributes(e: StatusCode | Throwable): Attributes =
       e match {
-        case Left(statusCode) =>
+        case statusCode: StatusCode =>
           // see footnote for error.type
           Attributes.of(ErrorAttributes.ERROR_TYPE, statusCode.code.toString)
-        case Right(exception) =>
+        case exception: Throwable =>
           val errorType = exception.getClass.getSimpleName
           Attributes.of(ErrorAttributes.ERROR_TYPE, errorType)
       }
