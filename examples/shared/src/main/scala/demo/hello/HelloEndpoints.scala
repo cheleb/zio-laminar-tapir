@@ -49,6 +49,7 @@ trait HelloEndpoints extends BaseEndpoint:
 
   val boomEndpoint = endpoint.get
     .in("boom")
+    .in(query("n").description("The depth of the boom").example(5).default(0))
     .description("An endpoint that always fails with an error")
     .errorOut(
       oneOf(

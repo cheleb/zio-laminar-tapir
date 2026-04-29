@@ -34,9 +34,9 @@ class HttpApi(using tracing: Tracing) extends Routes[HelloService] {
     * that the controllers can be created.
     */
   def endpointsWithDeps
-      : Task[List[ServerEndpoint[ZioStreams & WebSockets, Task]]] =
+      : RIO[Tracing, List[ServerEndpoint[ZioStreams & WebSockets, Task]]] =
     endpoints
-      .provide(
+      .provideSome[Tracing](
         HelloService.live,
         ZIOSttpBackendLive.configuredLayerOn(
           Uri.unsafeParse("https://httpbin.org")

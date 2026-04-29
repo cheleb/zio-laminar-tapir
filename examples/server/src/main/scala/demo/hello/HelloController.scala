@@ -44,11 +44,7 @@ case class HelloController(dep: HelloService)(using tracing: Tracing)
     )
 
   val boom: ServerEndpoint[Any, Task] =
-    boomEndpoint.zServerLogic(_ =>
-      dep.boom().mapError(e => ErrorResponse(e.getMessage)) @@ span(
-        "boom-endpoint"
-      )
-    )
+    boomEndpoint.zServerLogic(n => dep.boom(n).toApi.ignore)
 
   override def routes: List[ServerEndpoint[Any, Task]] =
     List(hello, proxy, boom)
