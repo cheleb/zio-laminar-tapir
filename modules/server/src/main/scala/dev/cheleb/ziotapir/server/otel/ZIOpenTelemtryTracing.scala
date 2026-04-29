@@ -56,28 +56,6 @@ class ZIOpenTelemetryTracing(
 
   import config.*
 
-  /** Set span status and attributes for errors, both exceptions and error
-    * status.
-    *
-    * @param span
-    * @param e
-    * @return
-    */
-  private def spanError(span: Span)(e: SttpStatusCode | Throwable): Task[Unit] =
-    ZIO
-      .succeed:
-        span.setStatus(StatusCode.ERROR)
-        span.setAllAttributes(errorAttributes(e))
-
-  /** Set span attributes for the response.
-    *
-    * @param span
-    * @param attributes
-    * @return
-    */
-  private def setSpanAttibutes(span: Span, attributes: Attributes): Task[Unit] =
-    ZIO.succeed(span.setAllAttributes(attributes))
-
   override def apply[R, B](
       responder: Responder[Task, B],
       requestHandler: EndpointInterceptor[Task] => RequestHandler[Task, R, B]
@@ -194,6 +172,34 @@ class ZIOpenTelemetryTracing(
             }
           }
         }
+
+        /** Set span status and attributes for errors, both exceptions and error
+          * status.
+          *
+          * @param span
+          * @param e
+          * @return
+          */
+      private def spanError(
+          span: Span
+      )(e: SttpStatusCode | Throwable): Task[Unit] =
+        ZIO
+          .succeed:
+            span.setStatus(StatusCode.ERROR)
+            span.setAllAttributes(errorAttributes(e))
+
+      /** Set span attributes for the response.
+        *
+        * @param span
+        * @param attributes
+        * @return
+        */
+      private def setSpanAttibutes(
+          span: Span,
+          attributes: Attributes
+      ): Task[Unit] =
+        ZIO.succeed(span.setAllAttributes(attributes))
+
     }
 }
 
