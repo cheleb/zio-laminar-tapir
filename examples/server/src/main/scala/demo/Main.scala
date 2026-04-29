@@ -16,8 +16,6 @@ object Main extends ZIOApp with ZIOpenTelemetry("zio-tapir-server") {
   val program = for
     _ <- Console.printLine("Starting server on http://localhost:8080")
 
-    //  otel <- ZIO.service[api.OpenTelemetry]
-
     given Tracing <- ZIO.service[Tracing]
 
     endpointsNoDeps <- HttpApiAny.endpoints
