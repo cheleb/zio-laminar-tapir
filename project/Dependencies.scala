@@ -10,7 +10,7 @@ object Dependencies {
     val opentelemetry = "1.61.0"
     val opentelemetryRuntime = "2.27.0-alpha"
     val opentelemetrySemcov = "1.40.0"
-    val tapir = "1.13.17"
+    val tapir = "1.13.18"
     val sttp = "4.0.23"
     val sttpModelCore = "1.7.17"
     val zio = "2.1.25"
