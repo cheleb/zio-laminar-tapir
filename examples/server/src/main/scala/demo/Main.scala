@@ -5,12 +5,12 @@ import zio.http.*
 
 import sttp.tapir.server.ziohttp.ZioHttpInterpreter
 
-import dev.cheleb.ziotapir.server.otel.ZIOpenTelemetry
+import dev.cheleb.ziotapir.server.otel.ZIOtel
 import zio.telemetry.opentelemetry.context.ContextStorage
 import zio.telemetry.opentelemetry.tracing.Tracing
 import zio.telemetry.opentelemetry.OpenTelemetry
 
-object Main extends ZIOApp with ZIOpenTelemetry("zio-tapir-server") {
+object Main extends ZIOApp with ZIOtel("zio-tapir-server") {
 
   // The main program - start the server on port 8080
   val program = for

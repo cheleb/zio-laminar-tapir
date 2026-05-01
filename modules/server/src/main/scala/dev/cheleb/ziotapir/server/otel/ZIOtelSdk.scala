@@ -7,7 +7,7 @@ import io.opentelemetry.api
 
 import io.opentelemetry.instrumentation.runtimetelemetry.RuntimeTelemetry
 
-object OtelSdk {
+object ZIOtelSdk {
 
   def custom(resourceName: String): TaskLayer[api.OpenTelemetry] =
     OpenTelemetry.custom(

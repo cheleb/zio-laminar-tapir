@@ -45,13 +45,11 @@ import io.opentelemetry.api.common.Attributes
   *        )
   *        .options
   * }}}
-  * See https://typelevel.org/otel4s/oteljava/tracing-context-propagation.html
-  * for details on context propagation.
   */
 
-class ZIOpenTelemetryTracing(
+class ZIOtelTracing(
     tracing: Tracing,
-    config: Otel4zTracingConfig
+    config: ZIOtelTracingConfig
 ) extends RequestInterceptor[Task] {
 
   import config.*
@@ -175,10 +173,6 @@ class ZIOpenTelemetryTracing(
 
         /** Set span status and attributes for errors, both exceptions and error
           * status.
-          *
-          * @param span
-          * @param e
-          * @return
           */
       private def spanError(
           span: Span
@@ -188,12 +182,6 @@ class ZIOpenTelemetryTracing(
             span.setStatus(StatusCode.ERROR)
             span.setAllAttributes(errorAttributes(e))
 
-      /** Set span attributes for the response.
-        *
-        * @param span
-        * @param attributes
-        * @return
-        */
       private def setSpanAttibutes(
           span: Span,
           attributes: Attributes
@@ -203,7 +191,7 @@ class ZIOpenTelemetryTracing(
     }
 }
 
-object ZIOpenTelemetryTracing {
+object ZIOtelTracing {
 
   /** Create a new ZIOpenTelemetryTracing interceptor with the provided Tracing
     * and default configuration.
@@ -213,24 +201,20 @@ object ZIOpenTelemetryTracing {
     */
   def apply(
       tracing: Tracing
-  ): ZIOpenTelemetryTracing =
-    new ZIOpenTelemetryTracing(
+  ): ZIOtelTracing =
+    new ZIOtelTracing(
       tracing,
-      Otel4zTracingConfig()
+      ZIOtelTracingConfig()
     )
 
   /** Create a new ZIOpenTelemetryTracing interceptor with the provided Tracing
     * and configuration.
-    *
-    * @param tracing
-    * @param config
-    * @return
     */
   def apply(
       tracing: Tracing,
-      config: Otel4zTracingConfig
-  ): ZIOpenTelemetryTracing =
-    new ZIOpenTelemetryTracing(
+      config: ZIOtelTracingConfig
+  ): ZIOtelTracing =
+    new ZIOtelTracing(
       tracing,
       config
     )

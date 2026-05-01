@@ -9,13 +9,13 @@ import sttp.tapir.server.interceptor.cors.CORSInterceptor
 import zio.logging.backend.SLF4J
 import zio.telemetry.opentelemetry.tracing.Tracing
 
-/** ZIOpenTelemetry is a trait that provides a ZIO layer for OpenTelemetry.
+/** ZIOtel is a trait that provides a ZIO layer for OpenTelemetry.
   * @param name
   */
-trait ZIOpenTelemetry(resourceName: String) {
+trait ZIOtel(resourceName: String) {
   this: ZIOApp =>
 
-  /** The environment for the ZIOpenTelemetry trait.
+  /** The environment for the ZIOtel trait.
     *
     * This is the environment that will be used to run the ZIO application,
     * hence provided by bootstrap. It includes the ContextStorage and the
@@ -24,11 +24,11 @@ trait ZIOpenTelemetry(resourceName: String) {
   override type Environment = ContextStorage &
     io.opentelemetry.api.OpenTelemetry
 
-  /** The tag for the ZIOpenTelemetry trait. */
+  /** The tag for the ZIOtel trait. */
   def environmentTag: Tag[Environment] =
     Tag[Environment]
 
-  /** The OpenTelemetry layer for the ZIOpenTelemetry trait.
+  /** The OpenTelemetry layer for the ZIOtel trait.
     *
     * If the OTEL_EXPORTER_OTLP_ENDPOINT environment variable is set, the
     * OpenTelemetry layer will be created using the OtelSdk.custom method.
@@ -45,14 +45,14 @@ trait ZIOpenTelemetry(resourceName: String) {
       "OTEL_EXPORTER_OTLP_ENDPOINT"
     ) match
     case Some(_) =>
-      OtelSdk
+      ZIOtelSdk
         .custom(resourceName) >+> OpenTelemetry
         .logging(s"zio-simulator-${resourceName}")
     case None =>
       ZLayer
         .succeed(api.OpenTelemetry.noop())
 
-  /** The server options for the ZIOpenTelemetry trait.
+  /** The server options for the ZIOtel trait.
     *
     * This is the server options that will be used to run the ZIO application,
     * hence provided by bootstrap. It includes the OpenTelemetry instance and
@@ -63,7 +63,7 @@ trait ZIOpenTelemetry(resourceName: String) {
   ): ZioHttpServerOptions[Any] =
     ZioHttpServerOptions.customiseInterceptors
       .prependInterceptor(
-        ZIOpenTelemetryTracing(tracing)
+        ZIOtelTracing(tracing)
       )
       .appendInterceptor(
         CORSInterceptor.default

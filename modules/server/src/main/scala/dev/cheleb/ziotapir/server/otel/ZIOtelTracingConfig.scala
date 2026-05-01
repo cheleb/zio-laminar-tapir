@@ -43,7 +43,7 @@ import zio.telemetry.opentelemetry.context.IncomingContextCarrier
   *   while processing the request (an exception); although usually, exceptions
   *   are translated into 5xx responses earlier in the interceptor chain.
   */
-case class Otel4zTracingConfig(
+case class ZIOtelTracingConfig(
     propagator: TraceContextPropagator,
     carrier: IncomingContextCarrier[
       scala.collection.mutable.Map[String, String]
@@ -59,7 +59,7 @@ case class Otel4zTracingConfig(
     errorAttributes: StatusCode | Throwable => Attributes
 )
 
-object Otel4zTracingConfig {
+object ZIOtelTracingConfig {
   def apply(
       propagator: TraceContextPropagator = TraceContextPropagator.default,
       carrier: IncomingContextCarrier[
@@ -76,8 +76,8 @@ object Otel4zTracingConfig {
         Defaults.responseAttributes,
       errorAttributes: StatusCode | Throwable => Attributes =
         Defaults.errorAttributes
-  ): Otel4zTracingConfig =
-    new Otel4zTracingConfig(
+  ): ZIOtelTracingConfig =
+    new ZIOtelTracingConfig(
       propagator,
       carrier,
       spanName,
