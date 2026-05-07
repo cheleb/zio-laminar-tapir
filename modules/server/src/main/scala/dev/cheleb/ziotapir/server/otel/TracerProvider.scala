@@ -10,7 +10,7 @@ import zio._
 import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter
 import io.opentelemetry.exporter.logging.otlp.OtlpJsonLoggingSpanExporter
 
-object TracerProvider {
+object TracerProvider extends OtelEndpoint {
 
   /** Prints to stdout in OTLP Json format
     */
@@ -42,7 +42,12 @@ object TracerProvider {
   def grpc(resourceName: String): RIO[Scope, SdkTracerProvider] =
     for {
       spanExporter <- ZIO.fromAutoCloseable(
-        ZIO.succeed(OtlpGrpcSpanExporter.builder().build())
+        ZIO.succeed(
+          OtlpGrpcSpanExporter
+            .builder()
+            .setEndpoint(otelEndpoint)
+            .build()
+        )
       )
       spanProcessor <- ZIO.fromAutoCloseable(
         ZIO.succeed(SimpleSpanProcessor.create(spanExporter))

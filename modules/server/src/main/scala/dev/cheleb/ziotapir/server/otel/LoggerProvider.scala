@@ -10,7 +10,7 @@ import zio._
 import io.opentelemetry.semconv.ServiceAttributes
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
 
-object LoggerProvider {
+object LoggerProvider extends OtelEndpoint {
 
   /** Prints to stdout in OTLP gRPC format
     */
@@ -21,6 +21,7 @@ object LoggerProvider {
           ZIO.succeed(
             OtlpGrpcLogRecordExporter
               .builder()
+              .setEndpoint(otelEndpoint)
               .build()
           )
         )

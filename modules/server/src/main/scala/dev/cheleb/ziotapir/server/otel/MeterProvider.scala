@@ -9,7 +9,7 @@ import io.opentelemetry.semconv.ServiceAttributes
 import io.opentelemetry.exporter.logging.otlp.OtlpJsonLoggingMetricExporter
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
 
-object MeterProvider {
+object MeterProvider extends OtelEndpoint {
 
   /** Prints to stdout in OTLP Json format
     */
@@ -46,7 +46,12 @@ object MeterProvider {
   def grpc(resourceName: String): RIO[Scope, SdkMeterProvider] =
     for {
       metricExporter <- ZIO.fromAutoCloseable(
-        ZIO.succeed(OtlpGrpcMetricExporter.builder().build())
+        ZIO.succeed(
+          OtlpGrpcMetricExporter
+            .builder()
+            .setEndpoint(otelEndpoint)
+            .build()
+        )
       )
       metricReader <-
         ZIO.fromAutoCloseable(
