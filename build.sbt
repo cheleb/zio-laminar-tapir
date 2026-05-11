@@ -223,7 +223,8 @@ lazy val exampleServer = project
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %% "zio" % Versions.zio,
-      "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % Versions.tapir
+      "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % Versions.tapir,
+      "com.softwaremill.sttp.tapir" %% "tapir-zio-tracing" % Versions.tapir
     )
   )
   .settings(
