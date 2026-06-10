@@ -7,12 +7,13 @@ object Dependencies {
     val laminar = "17.2.1"
     val logbackClassic = "1.5.32"
     val webawesome = "3.2.1"
-    val tapir = "1.13.19"
+    val tapir = "1.13.20"
     val sttp = "4.0.25"
     val sttpModelCore = "1.7.17"
-    val zio = "2.1.25"
-    val zioJson = "0.7.45"
+    val zio = "2.1.26"
+    val zioJson = "0.9.2"
     val zioPrelude = "1.0.0-RC44"
+    val zioSchema = "1.8.5"
   }
 
   val coreDependencies =
