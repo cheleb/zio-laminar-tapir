@@ -13,6 +13,7 @@ object Dependencies {
     val zio = "2.1.26"
     val zioJson = "0.9.2"
     val zioPrelude = "1.0.0-RC44"
+    val zioSchema = "1.8.5"
   }
 
   val coreDependencies =
