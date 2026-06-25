@@ -31,7 +31,7 @@ val myApp =
     div(
       // Make the TabGroup and the Responses panel appear side by side
       styleAttr := "display: flex; align-items: flex-start; gap: 1rem; w",
-      TabGroup(_.placement.start, _.active := "websocket")(
+      TabGroup(_.placement := "start", _.active := "websocket")(
         Tab(_.panel := "session")("Session management"),
         Tab(_.panel := "batchSameOrigin")("Same Origin"),
         Tab(_.panel := "batchDifferentOrigin")("Different Origin"),
