@@ -17,7 +17,7 @@ object ZIOSttpBackendLive {
   private def layer =
     ZLayer.derive[BackendClientLive]
 
-  def configuredLayer: ZLayer[Any, Throwable, BackendClientLive] = {
+  def configuredLayer: TaskLayer[BackendClientLive] = {
     val backend = HttpClientZioBackend.layer()
     val interpreter = SttpClientInterpreter()
     val streamInterpreter = StreamSttpClientInterpreter()
@@ -35,7 +35,7 @@ object ZIOSttpBackendLive {
 
   def configuredLayerOn(
       uri: Uri
-  ): ZLayer[Any, Throwable, BackendClient] = {
+  ): TaskLayer[BackendClient] = {
     val backend = HttpClientZioBackend.layer()
     val interpreter = SttpClientInterpreter()
     val streamInterpreter = StreamSttpClientInterpreter()
