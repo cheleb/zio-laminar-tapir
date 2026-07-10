@@ -62,21 +62,8 @@ object FetchBackendClientLive {
   /** The layer that can be used to create
     */
   private[ziotapir] def configuredLayer
-      : ZLayer[Any, Nothing, BackendClientLive] = {
-    val backend = FetchZioBackend()
-    val interpreter = SttpClientInterpreter()
-    val streamInterpreter = StreamSttpClientInterpreter()
-    val websocketInterpreter = WebSocketSttpClientInterpreter()
-    val config = BackendClientConfig(backendBaseURL)
-
-    ZLayer.succeed(backend) ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
-      streamInterpreter
-    ) ++ ZLayer.succeed(
-      websocketInterpreter
-    ) ++ ZLayer.succeed(
-      config
-    ) >>> layer
-  }
+      : ZLayer[Any, Nothing, BackendClientLive] = 
+    configuredLayerOn(backendBaseURL)
 
   private[ziotapir] def configuredLayerOn(
       uri: Uri
