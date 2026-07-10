@@ -9,29 +9,17 @@ import sttp.tapir.client.sttp4.stream.StreamSttpClientInterpreter
 import sttp.tapir.client.sttp4.ws.WebSocketSttpClientInterpreter
 import sttp.client4.httpclient.zio.HttpClientZioBackend
 import sttp.model.Uri
+import sttp.capabilities.zio.ZioStreams
 
 object ZIOSttpBackendLive {
 
   /** The layer that can be used to create a client.
     */
-  private def layer =
+  private def layer: URLayer[WebSocketStreamBackend[Task, ZioStreams] & SttpClientInterpreter & StreamSttpClientInterpreter & WebSocketSttpClientInterpreter & BackendClientConfig, BackendClient] =
     ZLayer.derive[BackendClientLive]
 
-  def configuredLayer: TaskLayer[BackendClientLive] = {
-    val backend = HttpClientZioBackend.layer()
-    val interpreter = SttpClientInterpreter()
-    val streamInterpreter = StreamSttpClientInterpreter()
-    val websocketInterpreter = WebSocketSttpClientInterpreter()
-    val config = BackendClientConfig(Uri.unsafeParse("http://localhost:8080"))
-
-    backend ++ ZLayer.succeed(interpreter) ++ ZLayer.succeed(
-      streamInterpreter
-    ) ++ ZLayer.succeed(
-      websocketInterpreter
-    ) ++ ZLayer.succeed(
-      config
-    ) >>> layer
-  }
+  def configuredLayer: TaskLayer[BackendClient] = 
+    configuredLayerOn(Uri.unsafeParse("http://localhost:8080"))
 
   def configuredLayerOn(
       uri: Uri
