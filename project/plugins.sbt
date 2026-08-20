@@ -8,7 +8,7 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.2")
 
 addSbtPlugin("com.github.sbt" % "sbt-ci-release"      % "1.12.0")
 addSbtPlugin("com.github.sbt" % "sbt-pgp"             % "2.3.1")
-addSbtPlugin("com.eed3si9n"   % "sbt-assembly"        % "2.4.1")
+addSbtPlugin("com.eed3si9n"   % "sbt-assembly"        % "2.4.2")
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.7")
 
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.4.0")
