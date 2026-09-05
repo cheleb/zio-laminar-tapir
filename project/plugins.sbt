@@ -13,7 +13,7 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.7")
 
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.4.0")
 addSbtPlugin("io.spray"           % "sbt-revolver"             % "0.10.0")
-addSbtPlugin("org.scalameta"      % "sbt-mdoc"                 % "2.9.1")
+addSbtPlugin("org.scalameta"      % "sbt-mdoc"                 % "2.9.2")
 
 addSbtPlugin("com.github.sbt" % "sbt-unidoc"  % "0.6.1")
 addSbtPlugin("com.github.sbt" % "sbt-ghpages" % "0.10.0")
