@@ -17,7 +17,7 @@ jobs:
       - name: Set up bun
         uses: oven-sh/setup-bun@v2
       - name: Setup JVM
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: "24"
           distribution: "zulu"
