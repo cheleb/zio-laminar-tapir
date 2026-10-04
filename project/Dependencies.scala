@@ -8,7 +8,7 @@ object Dependencies {
     val logbackClassic = "1.6.1"
     val webawesome = "3.2.1"
     val tapir = "1.13.31"
-    val sttp = "4.0.26"
+    val sttp = "4.0.27"
     val sttpModelCore = "1.7.17"
     val zio = "2.1.26"
     val zioJson = "0.9.2"
