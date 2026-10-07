@@ -110,7 +110,6 @@ lazy val server = project
   .settings(name := "zio-tapir-server")
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-json" % Versions.zioJson,
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
     )
   )
@@ -124,7 +123,6 @@ lazy val client = project
   .settings(name := "zio-tapir-client")
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio-json" % Versions.zioJson,
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
     )
   )
@@ -154,7 +152,6 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio" % Versions.zio,
-      "dev.zio" %%% "zio-json" % Versions.zioJson,
       "dev.zio" %%% "zio-prelude" % Versions.zioPrelude,
       "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore
     )
@@ -207,8 +204,6 @@ lazy val exampleShared = crossProject(JSPlatform, JVMPlatform)
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio" % Versions.zio,
-      "dev.zio" %%% "zio-json" % Versions.zioJson,
-      "dev.zio" %%% "zio-schema-json" % Versions.zioSchema,
       "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore,
       "com.softwaremill.sttp.tapir" %%% "tapir-zio" % Versions.tapir,
       "com.softwaremill.sttp.tapir" %%% "tapir-json-zio" % Versions.tapir
