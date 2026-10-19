@@ -12,7 +12,7 @@ case class GetResponse(args: Map[String, String], headers: Map[String, String])
 
 trait BaseEndpoint {
   val baseEndpoint: Endpoint[Unit, Unit, Throwable, Unit, Any] = endpoint
-    .errorOut(statusCode and plainBody[String])
+    .errorOut(statusCode.and(plainBody[String]))
     .mapErrorOut[Throwable](HttpError.decode)(
       HttpError.encode
     )
