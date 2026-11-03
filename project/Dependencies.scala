@@ -6,12 +6,12 @@ object Dependencies {
   val Versions = new {
     val laminar = "17.2.1"
     val logbackClassic = "1.6.6"
-    val webawesome = "3.2.1"
+    val webawesome = "3.14.1"
     val tapir = "1.14.1"
-    val sttp = "4.1.0"
-    val sttpModelCore = "1.7.17"
+    val sttp = "4.1.1"
+    val sttpModelCore = "1.9.0"
     val zio = "2.1.27"
-    val zioPrelude = "1.0.0-RC44"
+    val zioPrelude = "1.0.0-RC48"
   }
 
   val coreDependencies =
