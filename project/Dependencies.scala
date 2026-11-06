@@ -14,6 +14,15 @@ object Dependencies {
     val zioPrelude = "1.0.0-RC48"
   }
 
+  /** Test dependencies (ZIO Test), cross-built for JVM and Scala.js. */
+  val testingDependencies = Seq(
+    libraryDependencies ++= Seq(
+      "dev.zio" %%% "zio-test" % Versions.zio % Test,
+      "dev.zio" %%% "zio-test-sbt" % Versions.zio % Test
+    ),
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+  )
+
   val coreDependencies =
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % Versions.tapir,

@@ -62,7 +62,7 @@ object FetchBackendClientLive {
   /** The layer that can be used to create
     */
   private[ziotapir] def configuredLayer
-      : ZLayer[Any, Nothing, BackendClientLive] = 
+      : ZLayer[Any, Nothing, BackendClientLive] =
     configuredLayerOn(backendBaseURL)
 
   private[ziotapir] def configuredLayerOn(

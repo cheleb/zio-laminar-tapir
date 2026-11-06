@@ -15,10 +15,15 @@ object ZIOSttpBackendLive {
 
   /** The layer that can be used to create a client.
     */
-  private def layer: URLayer[WebSocketStreamBackend[Task, ZioStreams] & SttpClientInterpreter & StreamSttpClientInterpreter & WebSocketSttpClientInterpreter & BackendClientConfig, BackendClient] =
+  private def layer: URLayer[
+    WebSocketStreamBackend[Task, ZioStreams] & SttpClientInterpreter &
+      StreamSttpClientInterpreter & WebSocketSttpClientInterpreter &
+      BackendClientConfig,
+    BackendClient
+  ] =
     ZLayer.derive[BackendClientLive]
 
-  def configuredLayer: TaskLayer[BackendClient] = 
+  def configuredLayer: TaskLayer[BackendClient] =
     configuredLayerOn(Uri.unsafeParse("http://localhost:8080"))
 
   def configuredLayerOn(
