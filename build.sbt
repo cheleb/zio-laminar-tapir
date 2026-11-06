@@ -113,6 +113,7 @@ lazy val server = project
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
     )
   )
+  .settings(testingDependencies)
   .settings(
     run / fork := true
   )
@@ -126,6 +127,7 @@ lazy val client = project
       "com.softwaremill.sttp.tapir" %% "tapir-zio" % Versions.tapir
     )
   )
+  .settings(testingDependencies)
   .settings(
     run / fork := true
   )
@@ -156,6 +158,7 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
       "com.softwaremill.sttp.model" %%% "core" % Versions.sttpModelCore
     )
   )
+  .settings(testingDependencies)
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
@@ -171,6 +174,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(
     coreDependencies
   )
+  .settings(testingDependencies)
 
 lazy val coreJvm = core.jvm
 lazy val coreJs = core.js
@@ -183,6 +187,7 @@ lazy val laminar = scalajsProject("laminar")
   .settings(
     laminarDependencies
   )
+  .settings(testingDependencies)
   .settings(scalacOptions ++= usedScalacOptions)
 
 lazy val webawesome = scalajsProject("webawesome")
@@ -225,7 +230,10 @@ lazy val exampleServer = project
       "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % Versions.tapir
     )
   )
+  // End-to-end tests: start the example server and call it through the client.
+  .settings(testingDependencies)
   .settings(
+    Test / fork := true,
     publish / skip := true,
     Runtime / fork := true
   )

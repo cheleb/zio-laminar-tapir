@@ -319,7 +319,11 @@ case class BackendClientLive(
   ): I => Task[
     ZioStreams.Pipe[WI, WO]
   ] =
-    websocketInterpreter.toClientThrowErrors(wse, Some(config.baseUrl), backend)
+    websocketInterpreter.toClientThrowErrors(
+      wse,
+      Some(BackendClientLive.websocketUri(config.baseUrl)),
+      backend
+    )
 
   /** Turn a websocket endpoint into a function that builds a WebSocketRequest
     * from an arbitrary input.
@@ -334,7 +338,10 @@ case class BackendClientLive(
     Task,
     ZioStreams.Pipe[WI, WO]
   ] =
-    websocketInterpreter.toRequestThrowErrors(wse, Some(config.baseUrl))
+    websocketInterpreter.toRequestThrowErrors(
+      wse,
+      Some(BackendClientLive.websocketUri(config.baseUrl))
+    )
 
   /** Call a websocket endpoint with a payload, and get a ZIO back.
     *
@@ -378,4 +385,22 @@ case class BackendClientLive(
 
     websocketClient(wse)(payload)
 
+}
+
+object BackendClientLive {
+
+  /** WebSocket connections need a `ws` or `wss` scheme (the JVM HttpClient
+    * rejects `http` and `https`), while the base url of the backend is usually
+    * configured with an http scheme.
+    *
+    * @param baseUrl
+    *   the base url of the backend
+    * @return
+    *   the base url with `http` mapped to `ws` and `https` mapped to `wss`
+    */
+  private[ziotapir] def websocketUri(baseUrl: Uri): Uri =
+    baseUrl.scheme.map(_.toLowerCase) match
+      case Some("http")  => baseUrl.scheme("ws")
+      case Some("https") => baseUrl.scheme("wss")
+      case _             => baseUrl
 }

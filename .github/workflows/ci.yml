@@ -24,5 +24,7 @@ jobs:
       - uses: sbt/setup-sbt@v1
       - name: compile
         run: sbt compile              
+      - name: test
+        run: sbt test exampleServer/test
       - name: build demo
         run: ./scripts/gh-pages.sh
