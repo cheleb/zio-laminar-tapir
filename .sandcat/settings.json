@@ -1,0 +1,9 @@
+{
+  "network": [
+    {
+      "action": "allow",
+      "host": "*",
+      "method": "GET"
+    }
+  ]
+}
