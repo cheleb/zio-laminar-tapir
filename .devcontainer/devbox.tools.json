@@ -1,0 +1,4 @@
+{
+  "//": "User-managed devbox packages. Add extras here — sandcat init does not overwrite this file. Merged with devbox.stack.json at image build time; entries here override same-named packages from the stack, and win cross-family collisions via a Nix priority bump (e.g. put openjdk17@latest here to replace the stack's temurin-bin-25 as the active Java).",
+  "packages": []
+}
