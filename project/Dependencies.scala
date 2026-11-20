@@ -3,7 +3,7 @@ import sbt.Keys._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 object Dependencies {
-  val Versions = new {
+  object Versions {
     val laminar = "17.2.1"
     val logbackClassic = "1.6.6"
     val webawesome = "3.14.1"

@@ -234,8 +234,7 @@ lazy val exampleServer = project
   .settings(testingDependencies)
   .settings(
     Test / fork := true,
-    publish / skip := true,
-    Runtime / fork := true
+    publish / skip := true
   )
 
 lazy val exampleClient = scalajsExampleProject("client")
