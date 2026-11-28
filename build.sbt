@@ -76,6 +76,9 @@ lazy val docs = project // new documentation project
   .settings(
     publish / skip := true,
     moduleName := "zio-laminar-tapir-docs",
+    // mdoc 2.9.3 no longer excludes com.lihaoyi from scalameta_2.13,
+    // which leaks sourcecode_2.13 next to sourcecode_3.
+    excludeDependencies += ExclusionRule("com.lihaoyi", "sourcecode_2.13"),
     // ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(
     //   core,
     //   sharedJs,
