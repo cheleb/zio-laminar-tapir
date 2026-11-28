@@ -4,8 +4,8 @@ name: Deploy static content to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    tags:
-      - "v*"
+#    tags:
+#      - "v*"
     branches: ["website"]
 
 # Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
